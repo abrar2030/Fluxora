@@ -1,4 +1,3 @@
-```markdown
 # Advanced Energy Consumption Forecasting System
 
 [![CI/CD Pipeline](https://github.com/yourorg/energy-forecasting/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/yourorg/energy-forecasting/actions)
@@ -12,32 +11,32 @@ An end-to-end MLOps solution for industrial-grade energy consumption forecasting
 
 ## 🚀 Key Features
 
-- **Multi-Model Serving**: XGBoost, LSTM, Prophet ensemble predictions
+- **Multi-Model Serving**: XGBoost, LSTM, Prophet ensemble predictions  
 - **MLOps Infrastructure**:
-  - Kubernetes-native deployment with Istio
-  - MLflow Model Registry
-  - Feast Feature Store
-  - Prometheus/Grafana monitoring
+  - Kubernetes-native deployment with Istio  
+  - MLflow Model Registry  
+  - Feast Feature Store  
+  - Prometheus/Grafana monitoring  
 - **Data Quality Assurance**:
-  - Great Expectations validations
-  - Temporal coherence checks
-  - Automated data drift detection
+  - Great Expectations validations  
+  - Temporal coherence checks  
+  - Automated data drift detection  
 - **Production-Grade API**:
-  - JWT Authentication
-  - Rate limiting
-  - Canary deployments
+  - JWT Authentication  
+  - Rate limiting  
+  - Canary deployments  
 - **Smart Forecasting**:
-  - Probabilistic predictions
-  - SHAP explainability
-  - Counterfactual analysis
+  - Probabilistic predictions  
+  - SHAP explainability  
+  - Counterfactual analysis  
 
 ## 📦 Installation
 
 ### Prerequisites
-- Kubernetes cluster (minikube supported)
-- Python 3.10+
-- Docker 20.10+
-- Apache Spark 3.3+
+- Kubernetes cluster (minikube supported)  
+- Python 3.10+  
+- Docker 20.10+  
+- Apache Spark 3.3+  
 
 ```bash
 # Clone repository
@@ -46,7 +45,7 @@ cd energy-forecasting
 
 # Initialize environment
 make bootstrap && dvc pull
-```
+
 
 ## 🛠️ Usage
 
