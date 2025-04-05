@@ -40,7 +40,7 @@ An end-to-end MLOps solution for industrial-grade energy consumption forecasting
 
 ```bash
 # Clone repository
-git clone https://github.com/yourorg/energy-forecasting.git
+git clone https://github.com/abrar2030/Fluxora.git
 cd energy-forecasting
 
 # Initialize environment
