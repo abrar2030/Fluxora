@@ -1,173 +1,195 @@
-# Energy Consumption Time Series Forecasting
+```markdown
+# Advanced Energy Consumption Forecasting System
 
-![GitHub](https://img.shields.io/github/license/yourusername/energy_forecasting)
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
-![CI/CD](https://github.com/yourusername/energy_forecasting/actions/workflows/main.yml/badge.svg)
+[![CI/CD Pipeline](https://github.com/yourorg/energy-forecasting/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/yourorg/energy-forecasting/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![MLflow](https://img.shields.io/badge/MLflow-Enabled-orange)](https://mlflow.org/)
 
-An end-to-end MLOps project for forecasting household energy consumption using machine learning and deep learning models, featuring Docker deployment and CI/CD pipelines.
+![System Architecture](docs/images/architecture.png)
 
-## 📌 Features
+An end-to-end MLOps solution for industrial-grade energy consumption forecasting, featuring automated retraining, real-time monitoring, and Kubernetes-native deployment.
 
-- **Models**: XGBoost, LSTM (TensorFlow), and Facebook Prophet
-- **MLOps Components**:
-  - Data versioning & preprocessing pipelines
-  - Hyperparameter tuning with Optuna
-  - Dockerized Flask API
-  - CI/CD with GitHub Actions
-  - Logging & configuration management
-- Advanced time series features:
-  - Lag features
-  - Rolling statistics
-  - Custom seasonality (Prophet)
+## 🚀 Key Features
 
-## 🚀 Quick Start
+- **Multi-Model Serving**: XGBoost, LSTM, Prophet ensemble predictions
+- **MLOps Infrastructure**:
+  - Kubernetes-native deployment with Istio
+  - MLflow Model Registry
+  - Feast Feature Store
+  - Prometheus/Grafana monitoring
+- **Data Quality Assurance**:
+  - Great Expectations validations
+  - Temporal coherence checks
+  - Automated data drift detection
+- **Production-Grade API**:
+  - JWT Authentication
+  - Rate limiting
+  - Canary deployments
+- **Smart Forecasting**:
+  - Probabilistic predictions
+  - SHAP explainability
+  - Counterfactual analysis
+
+## 📦 Installation
 
 ### Prerequisites
-- Python 3.9+
-- Docker (for API deployment)
-- Make (optional)
+- Kubernetes cluster (minikube supported)
+- Python 3.10+
+- Docker 20.10+
+- Apache Spark 3.3+
 
-### Installation
 ```bash
-git clone https://github.com/yourusername/energy_forecasting.git
-cd energy_forecasting
-pip install -r requirements.txt
+# Clone repository
+git clone https://github.com/yourorg/energy-forecasting.git
+cd energy-forecasting
+
+# Initialize environment
+make bootstrap && dvc pull
 ```
 
-### Usage
+## 🛠️ Usage
 
-#### Download data:
+### Data Pipeline
 ```bash
-make download_data
+# Run complete data processing
+make data_pipeline
 ```
 
-#### Preprocess data and train models:
+### Model Training
 ```bash
+# Train all models
 make train
+
+# Hyperparameter tuning
+make tune
 ```
 
-#### Start prediction API:
+### Deployment
 ```bash
-make run_api
+# Deploy to Kubernetes
+make deploy_prod
+
+# Monitor deployment
+kubectl get pods -n energy-forecast
 ```
 
-## 📂 Project Structure
+## 🌐 API Endpoints
+
+| Endpoint       | Method | Description                     |
+|----------------|--------|---------------------------------|
+| `/predict`     | POST   | Get energy forecasts            |
+| `/monitor`     | GET    | Model performance metrics       |
+| `/retrain`     | POST   | Trigger model retraining        |
+| `/health`      | GET    | System health status            |
+
+### Sample Prediction Request:
+```bash
+curl -X POST http://api/predict \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SECRET_KEY" \
+  -d '{
+    "timestamp": "2023-08-15T14:00:00",
+    "meter_id": "MT_001",
+    "historical_load": [0.45, 0.48, 0.52]
+  }'
 ```
-energy_forecasting/
-├── data/               # Data storage
-├── models/             # Serialized models
-├── notebooks/          # Jupyter notebooks for EDA
-├── src/                # Source code
-│   ├── api/            # Flask API implementation
-│   ├── data_processing/ # Data pipelines
-│   ├── models/         # Model implementations
-│   ├── evaluation/     # Metrics & backtesting
-│   └── utils/          # Helper functions
-├── tests/              # Unit tests
-├── config/             # Configuration files
-└── .github/workflows/  # CI/CD pipelines
+
+### Sample Response:
+```json
+{
+  "prediction": 0.49,
+  "confidence_interval": [0.46, 0.53],
+  "model_version": "prod-v1.2.0",
+  "shap_values": {
+    "temperature": 0.12,
+    "hour_of_day": -0.08
+  }
+}
+```
+
+## 📊 Monitoring Stack
+
+Access monitoring tools:
+```bash
+# Grafana
+open http://localhost:3000
+
+# Prometheus
+open http://localhost:9090
+
+# MLflow UI
+mlflow ui --port 5000
+```
+
+## 🧩 Project Structure
+```
+energy-forecasting/
+├── deployments/          # Kubernetes manifests
+├── feature_repo/         # Feast feature definitions
+├── mlflow/               # Experiment tracking
+├── monitoring/           # Grafana/Prometheus configs
+├── pipelines/            # Prefect workflows
+└── src/
+    ├── api/              # FastAPI service
+    ├── data/             # ETL pipelines
+    ├── models/           # Model architectures
+    ├── monitoring/       # Data drift detection
+    └── visualization/    # Plotting utilities
 ```
 
 ## ⚙️ Configuration
-Modify `config/config.yaml` for:
 
-- Data paths
-- Model hyperparameters
-- API settings
-
+Modify `config/config.yaml`:
 ```yaml
-data:
-  url: "https://archive.ics.uci.edu/ml/machine-learning-databases/00321/LD2011_2014.txt.zip"
-models:
-  lstm_params:
-    epochs: 100
+model:
+  production_threshold: 0.85  # Minimum accuracy for deployment
+  drift:
+    threshold: 0.15           # Data drift alert level
+
+feature_store:
+  offline_store: s3://energy-data/features
+  online_store: redis://redis:6379
+
 api:
-  port: 5000
+  rate_limit: "100/minute"
 ```
 
-## 🌐 API Usage
-After starting the API:
-
-```bash
-curl -X POST http://localhost:5000/predict \
-  -H "Content-Type: application/json" \
-  -d '{"data": [0.5, 25, 3, 0.48, 0.52, 0.6]}'
-```
-
-**Response:**
-```json
-{"prediction": [0.723]}
-```
-
-## 📊 Model Evaluation
-Metrics calculated during training:
-
-- MAE (Mean Absolute Error)
-- RMSE (Root Mean Squared Error)
-- MAPE (Mean Absolute Percentage Error)
-
-Run evaluation:
+## 🤖 Model Versioning
 ```python
-from src.evaluation.evaluate import backtest
-results = backtest(model, X_test, y_test, model_type='xgboost')
+from src.models.model_versioning import promote_model
+
+# Promote best performing model
+promote_model(
+    run_id="a1b2c3d4", 
+    validation_metric="mae",
+    threshold=0.45
+)
 ```
 
-## 🔧 Testing
-Run unit tests:
-```bash
-pytest tests/
-```
-
-## 🤖 MLOps Features
-
-### Prefect Data Pipeline:
+## 🔍 Data Validation
 ```python
-from prefect import flow
+from src.data.data_validator import validate_energy_data
 
-@flow
-def main_pipeline():
-    download_data()
-    preprocess()
-    train_models()
+# Validate incoming data
+validation_report = validate_energy_data(
+    df, 
+    expectation_suite="energy_suite"
+)
+
+if not validation_report.success:
+    handle_invalid_data(validation_report)
 ```
-
-### Optuna Hyperparameter Tuning:
-```bash
-python src/models/tune.py
-```
-
-### CI/CD Pipeline:
-- Automatic testing on push/pull requests
-- Model performance validation
-
-## 📈 Results
-Example forecasting results (from `notebooks/EDA.ipynb`):
-- Daily Seasonality
-- Weekly & yearly patterns
-- Error distribution plots
 
 ## 🤝 Contributing
+
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add some amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-## 📄 License
-MIT License - see [LICENSE](LICENSE) for details
+## 📜 License
 
-## 📚 Acknowledgments
-- UCI Machine Learning Repository for dataset
-- Facebook Prophet team
-- XGBoost & TensorFlow developers
-
----
-
-**This README includes**:
-- Badges for quick project status
-- Visual hierarchy with emojis
-- Clear installation/usage instructions
-- API examples
-- Contribution guidelines
-- License information
-- Mobile-friendly formatting
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+```
