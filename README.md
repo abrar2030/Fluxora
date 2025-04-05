@@ -171,8 +171,3 @@ MIT License - see [LICENSE](LICENSE) for details
 - Contribution guidelines
 - License information
 - Mobile-friendly formatting
-
-**To Use**:
-1. Replace `yourusername` in URLs with your GitHub username
-2. Add actual screenshots to `docs/images/`
-3. Customize the "Acknowledgments" section as needed
