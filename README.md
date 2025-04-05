@@ -1,11 +1,8 @@
 # Advanced Energy Consumption Forecasting System
 
-[![CI/CD Pipeline](https://github.com/yourorg/energy-forecasting/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/yourorg/energy-forecasting/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 [![MLflow](https://img.shields.io/badge/MLflow-Enabled-orange)](https://mlflow.org/)
-
-![System Architecture](docs/images/architecture.png)
 
 An end-to-end MLOps solution for industrial-grade energy consumption forecasting, featuring automated retraining, real-time monitoring, and Kubernetes-native deployment.
 
