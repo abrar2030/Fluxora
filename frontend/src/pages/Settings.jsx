@@ -1,262 +1,373 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useDataService } from '../utils/dataService';
+import { 
+  Box, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Grid, 
+  TextField, 
+  Button, 
+  Switch,
+  FormControlLabel,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Alert,
+  Snackbar,
+  useTheme,
+  Skeleton
+} from '@mui/material';
+import { 
+  Save as SaveIcon,
+  Notifications as NotificationsIcon,
+  Security as SecurityIcon,
+  Storage as StorageIcon,
+  Language as LanguageIcon,
+  ColorLens as ThemeIcon,
+  Delete as DeleteIcon,
+  Refresh as RefreshIcon
+} from '@mui/icons-material';
 
 const Settings = () => {
-  const [generalSettings, setGeneralSettings] = useState({
-    apiEndpoint: 'http://localhost:8000',
-    refreshInterval: '5',
-    theme: 'light',
-    notifications: true
+  const theme = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState({
+    notifications: true,
+    darkMode: false,
+    dataRetention: 90,
+    apiKey: 'sk_test_51HG7LkKF5YG78D6H2QsJgYbIhaeEDq',
+    language: 'en',
+    autoRefresh: true
   });
-  
-  const [modelSettings, setModelSettings] = useState({
-    defaultModel: 'xgboost',
-    confidenceInterval: '95',
-    predictionHorizon: '24',
-    featureStore: true
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
   });
-  
-  const [monitoringSettings, setMonitoringSettings] = useState({
-    driftThreshold: '0.25',
-    performanceMonitoring: true,
-    alertEmails: 'admin@example.com',
-    logLevel: 'info'
-  });
-  
-  const handleGeneralChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setGeneralSettings({
-      ...generalSettings,
-      [name]: type === 'checkbox' ? checked : value
+
+  useEffect(() => {
+    // Simulate loading settings from API
+    const loadSettings = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      setLoading(false);
+    };
+    
+    loadSettings();
+  }, []);
+
+  const handleSettingChange = (setting, value) => {
+    setSettings({
+      ...settings,
+      [setting]: value
     });
   };
-  
-  const handleModelChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setModelSettings({
-      ...modelSettings,
-      [name]: type === 'checkbox' ? checked : value
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    handleSettingChange(name, value);
+  };
+
+  const handleSwitchChange = (e) => {
+    const { name, checked } = e.target;
+    handleSettingChange(name, checked);
+  };
+
+  const handleSaveSettings = () => {
+    // Simulate saving settings to API
+    setSnackbar({
+      open: true,
+      message: 'Settings saved successfully!',
+      severity: 'success'
     });
   };
-  
-  const handleMonitoringChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setMonitoringSettings({
-      ...monitoringSettings,
-      [name]: type === 'checkbox' ? checked : value
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false
     });
   };
-  
-  const handleSaveSettings = (e) => {
-    e.preventDefault();
-    // In a real app, this would save settings to backend
-    alert('Settings saved successfully!');
+
+  const handleResetApiKey = () => {
+    handleSettingChange('apiKey', 'sk_test_' + Math.random().toString(36).substring(2, 15));
+    setSnackbar({
+      open: true,
+      message: 'API key regenerated successfully!',
+      severity: 'info'
+    });
   };
-  
+
+  // Skeleton loader for settings
+  const SettingsSkeleton = () => (
+    <List>
+      <ListItem>
+        <ListItemIcon>
+          <Skeleton variant="circular" width={24} height={24} />
+        </ListItemIcon>
+        <ListItemText 
+          primary={<Skeleton variant="text" width={120} />} 
+          secondary={<Skeleton variant="text" width={200} />} 
+        />
+        <ListItemSecondaryAction>
+          <Skeleton variant="rectangular" width={40} height={24} />
+        </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem>
+        <ListItemIcon>
+          <Skeleton variant="circular" width={24} height={24} />
+        </ListItemIcon>
+        <ListItemText 
+          primary={<Skeleton variant="text" width={100} />} 
+          secondary={<Skeleton variant="text" width={180} />} 
+        />
+        <ListItemSecondaryAction>
+          <Skeleton variant="rectangular" width={40} height={24} />
+        </ListItemSecondaryAction>
+      </ListItem>
+      <ListItem>
+        <ListItemIcon>
+          <Skeleton variant="circular" width={24} height={24} />
+        </ListItemIcon>
+        <ListItemText 
+          primary={<Skeleton variant="text" width={80} />} 
+          secondary={<Skeleton variant="text" width={160} />} 
+        />
+        <ListItemSecondaryAction>
+          <Skeleton variant="rectangular" width={100} height={40} />
+        </ListItemSecondaryAction>
+      </ListItem>
+    </List>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
-      </div>
-      
-      <form onSubmit={handleSaveSettings}>
+    <Box className="fade-in">
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Settings
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+        Configure application preferences and account settings
+      </Typography>
+
+      <Grid container spacing={3}>
         {/* General Settings */}
-        <div className="card mb-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">General Settings</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="apiEndpoint" className="label">API Endpoint</label>
-              <input
-                type="text"
-                id="apiEndpoint"
-                name="apiEndpoint"
-                value={generalSettings.apiEndpoint}
-                onChange={handleGeneralChange}
-                className="input"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="refreshInterval" className="label">Dashboard Refresh Interval (minutes)</label>
-              <input
-                type="number"
-                id="refreshInterval"
-                name="refreshInterval"
-                value={generalSettings.refreshInterval}
-                onChange={handleGeneralChange}
-                min="1"
-                max="60"
-                className="input"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="theme" className="label">Theme</label>
-              <select
-                id="theme"
-                name="theme"
-                value={generalSettings.theme}
-                onChange={handleGeneralChange}
-                className="input"
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System Default</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center mt-8">
-              <input
-                type="checkbox"
-                id="notifications"
-                name="notifications"
-                checked={generalSettings.notifications}
-                onChange={handleGeneralChange}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="notifications" className="ml-2 text-sm text-gray-700">
-                Enable Browser Notifications
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        {/* Model Settings */}
-        <div className="card mb-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Model Settings</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="defaultModel" className="label">Default Model Type</label>
-              <select
-                id="defaultModel"
-                name="defaultModel"
-                value={modelSettings.defaultModel}
-                onChange={handleModelChange}
-                className="input"
-              >
-                <option value="xgboost">XGBoost</option>
-                <option value="lstm">LSTM</option>
-                <option value="prophet">Prophet</option>
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="confidenceInterval" className="label">Confidence Interval (%)</label>
-              <input
-                type="number"
-                id="confidenceInterval"
-                name="confidenceInterval"
-                value={modelSettings.confidenceInterval}
-                onChange={handleModelChange}
-                min="50"
-                max="99"
-                className="input"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="predictionHorizon" className="label">Default Prediction Horizon (hours)</label>
-              <input
-                type="number"
-                id="predictionHorizon"
-                name="predictionHorizon"
-                value={modelSettings.predictionHorizon}
-                onChange={handleModelChange}
-                min="1"
-                max="168"
-                className="input"
-              />
-            </div>
-            
-            <div className="flex items-center mt-8">
-              <input
-                type="checkbox"
-                id="featureStore"
-                name="featureStore"
-                checked={modelSettings.featureStore}
-                onChange={handleModelChange}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="featureStore" className="ml-2 text-sm text-gray-700">
-                Use Feature Store for Online Features
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        {/* Monitoring Settings */}
-        <div className="card mb-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Monitoring Settings</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="driftThreshold" className="label">Data Drift Threshold</label>
-              <input
-                type="number"
-                id="driftThreshold"
-                name="driftThreshold"
-                value={monitoringSettings.driftThreshold}
-                onChange={handleMonitoringChange}
-                min="0.01"
-                max="1.0"
-                step="0.01"
-                className="input"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="alertEmails" className="label">Alert Email Recipients</label>
-              <input
-                type="text"
-                id="alertEmails"
-                name="alertEmails"
-                value={monitoringSettings.alertEmails}
-                onChange={handleMonitoringChange}
-                className="input"
-                placeholder="Comma-separated email addresses"
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="logLevel" className="label">Log Level</label>
-              <select
-                id="logLevel"
-                name="logLevel"
-                value={monitoringSettings.logLevel}
-                onChange={handleMonitoringChange}
-                className="input"
-              >
-                <option value="debug">Debug</option>
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="error">Error</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center mt-8">
-              <input
-                type="checkbox"
-                id="performanceMonitoring"
-                name="performanceMonitoring"
-                checked={monitoringSettings.performanceMonitoring}
-                onChange={handleMonitoringChange}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="performanceMonitoring" className="ml-2 text-sm text-gray-700">
-                Enable Performance Monitoring
-              </label>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-end space-x-3">
-          <button type="button" className="btn btn-outline">
-            Reset to Defaults
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Save Settings
-          </button>
-        </div>
-      </form>
-    </div>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                General Settings
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              {loading ? <SettingsSkeleton /> : (
+                <List>
+                  <ListItem>
+                    <ListItemIcon>
+                      <NotificationsIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Notifications" 
+                      secondary="Enable push notifications for alerts and updates" 
+                    />
+                    <ListItemSecondaryAction>
+                      <Switch
+                        edge="end"
+                        name="notifications"
+                        checked={settings.notifications}
+                        onChange={handleSwitchChange}
+                      />
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  
+                  <ListItem>
+                    <ListItemIcon>
+                      <ThemeIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Dark Mode" 
+                      secondary="Switch between light and dark theme" 
+                    />
+                    <ListItemSecondaryAction>
+                      <Switch
+                        edge="end"
+                        name="darkMode"
+                        checked={settings.darkMode}
+                        onChange={handleSwitchChange}
+                      />
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  
+                  <ListItem>
+                    <ListItemIcon>
+                      <LanguageIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Language" 
+                      secondary="Select your preferred language" 
+                    />
+                    <ListItemSecondaryAction>
+                      <TextField
+                        select
+                        name="language"
+                        value={settings.language}
+                        onChange={handleInputChange}
+                        SelectProps={{
+                          native: true,
+                        }}
+                        variant="outlined"
+                        size="small"
+                        sx={{ width: 100 }}
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                      </TextField>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  
+                  <ListItem>
+                    <ListItemIcon>
+                      <RefreshIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary="Auto Refresh" 
+                      secondary="Automatically refresh data every minute" 
+                    />
+                    <ListItemSecondaryAction>
+                      <Switch
+                        edge="end"
+                        name="autoRefresh"
+                        checked={settings.autoRefresh}
+                        onChange={handleSwitchChange}
+                      />
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Data & Security */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Data & Security
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              {loading ? <SettingsSkeleton /> : (
+                <>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon>
+                        <StorageIcon />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary="Data Retention" 
+                        secondary="Number of days to keep historical data" 
+                      />
+                      <ListItemSecondaryAction>
+                        <TextField
+                          name="dataRetention"
+                          value={settings.dataRetention}
+                          onChange={handleInputChange}
+                          type="number"
+                          variant="outlined"
+                          size="small"
+                          sx={{ width: 100 }}
+                          InputProps={{
+                            endAdornment: <Typography variant="caption">days</Typography>,
+                          }}
+                        />
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                    
+                    <ListItem>
+                      <ListItemIcon>
+                        <SecurityIcon />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary="API Key" 
+                        secondary="Your secret API key for accessing the Fluxora API" 
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton 
+                          edge="end" 
+                          aria-label="regenerate" 
+                          onClick={handleResetApiKey}
+                          color="primary"
+                        >
+                          <RefreshIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                    
+                    <ListItem>
+                      <TextField
+                        fullWidth
+                        name="apiKey"
+                        value={settings.apiKey}
+                        onChange={handleInputChange}
+                        variant="outlined"
+                        size="small"
+                        type="password"
+                        InputProps={{
+                          readOnly: true,
+                        }}
+                      />
+                    </ListItem>
+                    
+                    <ListItem>
+                      <Alert severity="warning" sx={{ width: '100%' }}>
+                        Regenerating your API key will invalidate the previous key immediately.
+                      </Alert>
+                    </ListItem>
+                  </List>
+                  
+                  <Box sx={{ mt: 3 }}>
+                    <Button 
+                      variant="outlined" 
+                      color="error" 
+                      startIcon={<DeleteIcon />}
+                      sx={{ mr: 2 }}
+                    >
+                      Clear All Data
+                    </Button>
+                    
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      startIcon={<SaveIcon />}
+                      onClick={handleSaveSettings}
+                    >
+                      Save Settings
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+      
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

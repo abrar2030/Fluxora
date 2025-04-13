@@ -1,393 +1,366 @@
-import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { usePredictions } from '../utils/hooks';
-
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+import React, { useState, useEffect } from 'react';
+import { useDataService } from '../utils/dataService';
+import { 
+  Box, 
+  Typography, 
+  Card, 
+  CardContent, 
+  Grid, 
+  TextField, 
+  Button, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem,
+  Divider,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  useTheme,
+  CircularProgress,
+  Skeleton
+} from '@mui/material';
+import { 
+  Timeline as TimelineIcon,
+  CalendarToday as CalendarIcon,
+  Send as SendIcon
+} from '@mui/icons-material';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from 'recharts';
 
 const Predictions = () => {
-  const [formData, setFormData] = useState({
-    meterId: '',
-    startDate: '',
-    endDate: '',
-    interval: 'hourly',
-    features: []
+  const theme = useTheme();
+  const { getPredictionData } = useDataService();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [predictionData, setPredictionData] = useState([]);
+  const [meterIds, setMeterIds] = useState(['meter_001', 'meter_002']);
+  const [selectedMeters, setSelectedMeters] = useState(['meter_001']);
+  const [dateRange, setDateRange] = useState({
+    start: '2023-04-14',
+    end: '2023-04-15'
   });
-  
-  const [showResults, setShowResults] = useState(false);
-  const { predictions, loading, error, fetchPredictions } = usePredictions();
-  
-  // Chart data state
-  const [chartData, setChartData] = useState({
-    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-    datasets: [
-      {
-        label: 'Predicted Consumption',
-        data: [30, 25, 35, 55, 60, 45, 35, 28, 40, 58, 62, 48],
-        borderColor: 'rgb(14, 165, 233)',
-        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Confidence Interval (Upper)',
-        data: [33, 28, 39, 60, 65, 49, 38, 31, 44, 63, 67, 52],
-        borderColor: 'rgba(20, 184, 166, 0.5)',
-        backgroundColor: 'transparent',
-        borderDash: [5, 5],
-        tension: 0.4,
-      },
-      {
-        label: 'Confidence Interval (Lower)',
-        data: [27, 22, 31, 50, 55, 41, 32, 25, 36, 53, 57, 44],
-        borderColor: 'rgba(20, 184, 166, 0.5)',
-        backgroundColor: 'transparent',
-        borderDash: [5, 5],
-        tension: 0.4,
-      },
-    ],
-  });
-  
-  // Chart options
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Energy Consumption Prediction',
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        title: {
-          display: true,
-          text: 'kWh',
-        },
-      },
-    },
-  };
-  
-  // Available features for prediction
-  const availableFeatures = [
-    { id: 'temperature', name: 'Temperature' },
-    { id: 'humidity', name: 'Humidity' },
-    { id: 'occupancy', name: 'Occupancy' },
-    { id: 'day_type', name: 'Day Type (Weekday/Weekend)' },
-    { id: 'holiday', name: 'Holiday' },
-  ];
-  
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-  
-  // Handle checkbox changes
-  const handleFeatureToggle = (featureId) => {
-    const updatedFeatures = formData.features.includes(featureId)
-      ? formData.features.filter(id => id !== featureId)
-      : [...formData.features, featureId];
-    
-    setFormData({
-      ...formData,
-      features: updatedFeatures
-    });
-  };
-  
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Prepare context features object
-    const contextFeatures = {};
-    formData.features.forEach(featureId => {
-      // In a real app, we would have actual values for these features
-      // For now, we'll use dummy values
-      if (featureId === 'temperature') contextFeatures.temperature = [22, 23, 24, 25, 26, 25, 24, 23, 22, 21, 20, 19];
-      if (featureId === 'humidity') contextFeatures.humidity = [45, 48, 50, 52, 55, 58, 60, 62, 60, 58, 55, 50];
-      if (featureId === 'occupancy') contextFeatures.occupancy = [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0];
-      if (featureId === 'day_type') contextFeatures.day_type = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; // 1 for weekday, 0 for weekend
-      if (featureId === 'holiday') contextFeatures.holiday = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 1 for holiday, 0 for non-holiday
-    });
-    
-    try {
-      // Call the API to get predictions
-      const result = await fetchPredictions(
-        formData.meterId,
-        formData.startDate,
-        formData.endDate,
-        formData.interval,
-        contextFeatures
-      );
-      
-      // If we got a result, update the chart data
-      if (result) {
-        // Format the data for the chart
-        const timestamps = result.timestamps || [];
-        const predictedValues = result.predictions || [];
-        const confidenceIntervals = result.confidence_intervals || [];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Create formatted labels (e.g., "Apr 10, 14:00")
-        const formattedLabels = timestamps.map(ts => {
-          const date = new Date(ts);
-          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        });
-        
-        // Create upper and lower confidence bounds
-        const upperBounds = confidenceIntervals.map(interval => interval[1]);
-        const lowerBounds = confidenceIntervals.map(interval => interval[0]);
-        
-        // Update chart data
-        setChartData({
-          labels: formattedLabels,
-          datasets: [
-            {
-              label: 'Predicted Consumption',
-              data: predictedValues,
-              borderColor: 'rgb(14, 165, 233)',
-              backgroundColor: 'rgba(14, 165, 233, 0.1)',
-              fill: true,
-              tension: 0.4,
-            },
-            {
-              label: 'Confidence Interval (Upper)',
-              data: upperBounds,
-              borderColor: 'rgba(20, 184, 166, 0.5)',
-              backgroundColor: 'transparent',
-              borderDash: [5, 5],
-              tension: 0.4,
-            },
-            {
-              label: 'Confidence Interval (Lower)',
-              data: lowerBounds,
-              borderColor: 'rgba(20, 184, 166, 0.5)',
-              backgroundColor: 'transparent',
-              borderDash: [5, 5],
-              tension: 0.4,
-            },
-          ],
-        });
+        // Get prediction data
+        const data = getPredictionData(24);
+        setPredictionData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching prediction data:', error);
+        setLoading(false);
       }
-      
-      setShowResults(true);
-    } catch (err) {
-      console.error('Error generating prediction:', err);
-      // In a real app, we would show an error message to the user
-    }
+    };
+
+    fetchData();
+  }, [getPredictionData]);
+
+  const handleMeterChange = (event) => {
+    setSelectedMeters(event.target.value);
   };
-  
+
+  const handleDateChange = (event) => {
+    setDateRange({
+      ...dateRange,
+      [event.target.name]: event.target.value
+    });
+  };
+
+  const handleSubmit = () => {
+    setSubmitting(true);
+    // Simulate API call
+    setTimeout(() => {
+      const newData = getPredictionData(24);
+      setPredictionData(newData);
+      setSubmitting(false);
+    }, 1500);
+  };
+
+  // Format data for chart
+  const chartData = predictionData.map(item => ({
+    name: item.timestamp.split(' ')[1],
+    prediction: item.prediction,
+    lower: item.lower,
+    upper: item.upper
+  }));
+
+  // Skeleton loader for prediction form
+  const FormSkeleton = () => (
+    <Card sx={{ mb: 4 }}>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          Generate New Prediction
+        </Typography>
+        <Divider sx={{ mb: 3 }} />
+        
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={4}>
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <Skeleton variant="rectangular" height={56} />
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+
+  // Skeleton loader for results
+  const ResultsSkeleton = () => (
+    <Card>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box>
+            <Skeleton variant="text" width={150} height={32} />
+            <Skeleton variant="text" width={200} />
+          </Box>
+          <Skeleton variant="rectangular" width={120} height={36} />
+        </Box>
+        
+        <Divider sx={{ mb: 3 }} />
+        
+        <Box sx={{ height: 400, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress />
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Energy Predictions</h1>
-      </div>
-      
-      {/* Prediction form */}
-      <div className="card">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Generate New Prediction</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="meterId" className="label">Meter ID</label>
-              <select
-                id="meterId"
-                name="meterId"
-                value={formData.meterId}
-                onChange={handleInputChange}
-                className="input"
-                required
-              >
-                <option value="">Select a meter</option>
-                <option value="building_a">Building A</option>
-                <option value="building_b">Building B</option>
-                <option value="building_c">Building C</option>
-                <option value="building_d">Building D</option>
-              </select>
-            </div>
+    <Box className="fade-in">
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Energy Predictions
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+        Generate and view energy consumption predictions
+      </Typography>
+
+      {/* Prediction Form */}
+      {loading ? <FormSkeleton /> : (
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Generate New Prediction
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
             
-            <div>
-              <label htmlFor="interval" className="label">Prediction Interval</label>
-              <select
-                id="interval"
-                name="interval"
-                value={formData.interval}
-                onChange={handleInputChange}
-                className="input"
-                required
-              >
-                <option value="hourly">Hourly</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="startDate" className="label">Start Date</label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-                className="input"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="endDate" className="label">End Date</label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-                className="input"
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <label className="label">Context Features</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {availableFeatures.map((feature) => (
-                <div key={feature.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={feature.id}
-                    checked={formData.features.includes(feature.id)}
-                    onChange={() => handleFeatureToggle(feature.id)}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel id="meter-select-label">Select Meters</InputLabel>
+                  <Select
+                    labelId="meter-select-label"
+                    id="meter-select"
+                    multiple
+                    value={selectedMeters}
+                    onChange={handleMeterChange}
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((value) => (
+                          <Chip key={value} label={value} size="small" />
+                        ))}
+                      </Box>
+                    )}
+                  >
+                    {meterIds.map((meter) => (
+                      <MenuItem key={meter} value={meter}>
+                        {meter}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  id="start-date"
+                  name="start"
+                  label="Start Date"
+                  type="date"
+                  value={dateRange.start}
+                  onChange={handleDateChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={3}>
+                <TextField
+                  fullWidth
+                  id="end-date"
+                  name="end"
+                  label="End Date"
+                  type="date"
+                  value={dateRange.end}
+                  onChange={handleDateChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Button 
+                  variant="contained" 
+                  fullWidth 
+                  startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Generating...' : 'Generate'}
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Prediction Results */}
+      {loading ? <ResultsSkeleton /> : (
+        <Card>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Prediction Results
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CalendarIcon fontSize="small" color="action" />
+                  <Typography variant="body2" color="text.secondary">
+                    {dateRange.start} to {dateRange.end}
+                  </Typography>
+                  <Chip 
+                    label={selectedMeters.join(', ')} 
+                    size="small" 
+                    sx={{ 
+                      backgroundColor: theme.palette.primary.light + '20',
+                      color: theme.palette.primary.main
+                    }} 
                   />
-                  <label htmlFor={feature.id} className="ml-2 text-sm text-gray-700">
-                    {feature.name}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating...
-                </>
-              ) : (
-                'Generate Prediction'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-      
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">
-                {error}
-              </p>
-            </div>
-          </div>
-        </div>
+                </Box>
+              </Box>
+              <Button variant="outlined" startIcon={<TimelineIcon />}>
+                Export Data
+              </Button>
+            </Box>
+            
+            <Divider sx={{ mb: 3 }} />
+            
+            {/* Prediction Chart */}
+            <Box sx={{ height: 400, mb: 4 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chartData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 10,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="prediction" 
+                    name="Prediction" 
+                    stroke={theme.palette.primary.main} 
+                    strokeWidth={2} 
+                    dot={{ r: 4 }} 
+                    activeDot={{ r: 6 }} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="upper" 
+                    name="Upper Bound" 
+                    stroke={theme.palette.grey[400]} 
+                    strokeDasharray="3 3" 
+                    dot={false} 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="lower" 
+                    name="Lower Bound" 
+                    stroke={theme.palette.grey[400]} 
+                    strokeDasharray="3 3" 
+                    dot={false} 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
+            
+            {/* Prediction Table */}
+            <TableContainer component={Paper} sx={{ boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
+              <Table sx={{ minWidth: 650 }} aria-label="prediction table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Timestamp</TableCell>
+                    <TableCell align="right">Prediction (kWh)</TableCell>
+                    <TableCell align="right">Lower Bound</TableCell>
+                    <TableCell align="right">Upper Bound</TableCell>
+                    <TableCell align="right">Confidence</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {predictionData.map((row) => (
+                    <TableRow
+                      key={row.timestamp}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell component="th" scope="row">
+                        {row.timestamp}
+                      </TableCell>
+                      <TableCell align="right">{row.prediction.toFixed(1)}</TableCell>
+                      <TableCell align="right">{row.lower.toFixed(1)}</TableCell>
+                      <TableCell align="right">{row.upper.toFixed(1)}</TableCell>
+                      <TableCell align="right">
+                        <Chip 
+                          label="95%" 
+                          size="small" 
+                          sx={{ 
+                            backgroundColor: theme.palette.success.light + '20',
+                            color: theme.palette.success.main
+                          }} 
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
       )}
-      
-      {/* Prediction results */}
-      {showResults && (
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Prediction Results</h2>
-          <div className="mb-6">
-            <Line data={chartData} options={chartOptions} />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-500">Average Consumption</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {predictions ? 
-                  (predictions.predictions.reduce((a, b) => a + b, 0) / predictions.predictions.length).toFixed(1) + ' kWh' : 
-                  '42.5 kWh'}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-500">Peak Consumption</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {predictions ? 
-                  Math.max(...predictions.predictions).toFixed(1) + ' kWh' : 
-                  '62.0 kWh'}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-500">Total Consumption</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {predictions ? 
-                  predictions.predictions.reduce((a, b) => a + b, 0).toFixed(1) + ' kWh' : 
-                  '510.0 kWh'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-6 flex justify-end space-x-3">
-            <button className="btn btn-outline flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Export Results
-            </button>
-            <button className="btn btn-primary flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Save Prediction
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    </Box>
   );
 };
 

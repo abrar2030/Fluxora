@@ -1,26 +1,50 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Predictions from './pages/Predictions';
-import Models from './pages/Models';
-import Monitoring from './pages/Monitoring';
+import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
-import Layout from './components/Layout';
-import NotFound from './pages/NotFound';
 
-function App() {
+const App = () => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Loading screen
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-content">
+          <h1>Fluxora</h1>
+          <p>Energy Prediction System</p>
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <Layout>
+    // Using HashRouter instead of BrowserRouter for better compatibility with static hosting
+    <HashRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/predictions" element={<Predictions />} />
-        <Route path="/models" element={<Models />} />
-        <Route path="/monitoring" element={<Monitoring />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="predictions" element={<Predictions />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
       </Routes>
-    </Layout>
+    </HashRouter>
   );
-}
+};
 
 export default App;

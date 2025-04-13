@@ -1,56 +1,24 @@
 #!/bin/bash
 
-# Run script for Fluxora project
-# This script starts both the backend and frontend components
+# Start the backend API server
+cd /home/ubuntu/Fluxora
+python -m src.api.app &
+API_PID=$!
 
-# Colors for terminal output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Wait for API to start
+echo "Starting API server..."
+sleep 3
 
-echo -e "${BLUE}Starting Fluxora application...${NC}"
-
-# Create Python virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-  echo -e "${BLUE}Creating Python virtual environment...${NC}"
-  python3 -m venv venv
-fi
-
-# Start backend server
-echo -e "${BLUE}Starting backend server...${NC}"
-source venv/bin/activate
-pip install -r requirements.txt > /dev/null
-python src/app.py &
-BACKEND_PID=$!
-
-# Wait for backend to initialize
-echo -e "${BLUE}Waiting for backend to initialize...${NC}"
-sleep 5
-
-# Start frontend
-echo -e "${BLUE}Starting frontend...${NC}"
-cd frontend
-npm install > /dev/null
-npm start &
+# Start the frontend development server
+cd /home/ubuntu/Fluxora/frontend
+npm run dev &
 FRONTEND_PID=$!
-cd ..
 
-echo -e "${GREEN}Fluxora application is running!${NC}"
-echo -e "${GREEN}Backend running with PID: ${BACKEND_PID}${NC}"
-echo -e "${GREEN}Frontend running with PID: ${FRONTEND_PID}${NC}"
-echo -e "${GREEN}Access the application at: http://localhost:3000${NC}"
-echo -e "${BLUE}Press Ctrl+C to stop all services${NC}"
+echo "Starting frontend development server..."
+echo "API server running with PID: $API_PID"
+echo "Frontend server running with PID: $FRONTEND_PID"
+echo "Access the application at http://localhost:3000"
 
-# Handle graceful shutdown
-function cleanup {
-  echo -e "${BLUE}Stopping services...${NC}"
-  kill $FRONTEND_PID
-  kill $BACKEND_PID
-  echo -e "${GREEN}All services stopped${NC}"
-  exit 0
-}
-
-trap cleanup SIGINT
-
-# Keep script running
+# Wait for user to press Ctrl+C
+echo "Press Ctrl+C to stop the servers"
 wait

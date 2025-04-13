@@ -1,248 +1,368 @@
-import React, { useState, useEffect } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
+import React, { useEffect, useState } from 'react';
+import { useDataService } from '../utils/dataService';
+import { 
+  Box, 
+  Grid, 
+  Paper, 
+  Typography, 
+  Card, 
+  CardContent, 
+  CardHeader,
+  IconButton,
+  Divider,
+  useTheme,
+  Skeleton,
+  CircularProgress,
+  Chip
+} from '@mui/material';
+import { 
+  MoreVert as MoreVertIcon,
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  Bolt as BoltIcon,
+  WaterDrop as WaterIcon,
+  Thermostat as ThermostatIcon,
+  Speed as SpeedIcon
+} from '@mui/icons-material';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+// Energy source data
+const sourceData = [
+  { name: 'Solar', value: 35 },
+  { name: 'Wind', value: 25 },
+  { name: 'Hydro', value: 20 },
+  { name: 'Natural Gas', value: 15 },
+  { name: 'Coal', value: 5 },
+];
+
+const COLORS = ['#4CAF50', '#2196F3', '#00BCD4', '#FFC107', '#F44336'];
 
 const Dashboard = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Simulate data loading
+  const theme = useTheme();
+  const { apiStatus, getEnergyData, getCurrentStats } = useDataService();
+  const [loading, setLoading] = useState(true);
+  const [energyData, setEnergyData] = useState([]);
+  const [stats, setStats] = useState({
+    currentConsumption: 0,
+    predictedPeak: 0,
+    temperature: 0,
+    humidity: 0
+  });
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Energy consumption data
-  const energyData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Actual Consumption',
-        data: [65, 59, 80, 81, 56, 55, 40, 45, 60, 70, 75, 80],
-        borderColor: 'rgb(14, 165, 233)',
-        backgroundColor: 'rgba(14, 165, 233, 0.1)',
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Predicted Consumption',
-        data: [70, 62, 78, 79, 60, 59, 45, 50, 65, 72, 78, 82],
-        borderColor: 'rgb(20, 184, 166)',
-        backgroundColor: 'transparent',
-        borderDash: [5, 5],
-        tension: 0.4,
-      },
-    ],
-  };
-  
-  // Prediction accuracy data
-  const accuracyData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Prediction Accuracy',
-        data: [92, 94, 91, 95, 93, 96, 94, 92, 93, 95, 94, 96],
-        backgroundColor: 'rgb(14, 165, 233)',
-        borderRadius: 4,
-      },
-    ],
-  };
-  
-  // Chart options
-  const lineOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Energy Consumption Trends',
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: false,
-        title: {
-          display: true,
-          text: 'kWh',
-        },
-      },
-    },
-  };
-  
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Model Prediction Accuracy (%)',
-      },
-    },
-    scales: {
-      y: {
-        min: 80,
-        max: 100,
-      },
-    },
-  };
-  
-  // Stats data
-  const stats = [
-    { name: 'Total Energy Consumption', value: '1,245 kWh', change: '+5.3%', trend: 'up' },
-    { name: 'Average Prediction Accuracy', value: '94.2%', change: '+1.2%', trend: 'up' },
-    { name: 'Cost Savings', value: '$3,240', change: '+12.5%', trend: 'up' },
-    { name: 'Carbon Footprint Reduction', value: '2.4 tons', change: '-8.1%', trend: 'down' },
-  ];
-  
-  // Recent predictions
-  const recentPredictions = [
-    { id: 1, meter: 'Building A', timestamp: '2025-04-10 09:30', prediction: '42.5 kWh', accuracy: '95.2%' },
-    { id: 2, meter: 'Building B', timestamp: '2025-04-10 09:15', prediction: '31.8 kWh', accuracy: '93.7%' },
-    { id: 3, meter: 'Building C', timestamp: '2025-04-10 09:00', prediction: '28.3 kWh', accuracy: '94.5%' },
-    { id: 4, meter: 'Building D', timestamp: '2025-04-10 08:45', prediction: '35.1 kWh', accuracy: '92.8%' },
-  ];
-  
+    const fetchData = async () => {
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Get energy data and current stats
+        const energyData = getEnergyData(24);
+        const currentStats = getCurrentStats();
+        
+        setEnergyData(energyData);
+        setStats(currentStats);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [getEnergyData, getCurrentStats]);
+
+  // Skeleton loader for stats cards
+  const StatCardSkeleton = () => (
+    <Card sx={{ height: '100%' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Skeleton variant="text" width={120} />
+          <Skeleton variant="circular" width={40} height={40} />
+        </Box>
+        <Skeleton variant="text" width={80} height={40} />
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+          <Skeleton variant="text" width={150} />
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  // Skeleton loader for charts
+  const ChartSkeleton = () => (
+    <Card sx={{ height: '100%' }}>
+      <CardHeader 
+        title={<Skeleton variant="text" width={200} />}
+        subheader={<Skeleton variant="text" width={150} />}
+        action={
+          <IconButton disabled>
+            <MoreVertIcon />
+          </IconButton>
+        }
+      />
+      <Divider />
+      <CardContent>
+        <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress />
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        <div className="flex space-x-3">
-          <button className="btn btn-outline flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Export
-          </button>
-          <button className="btn btn-primary flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            New Prediction
-          </button>
-        </div>
-      </div>
-      
-      {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.name} className="card card-hover">
-            <h3 className="text-sm font-medium text-gray-500">{stat.name}</h3>
-            <div className="mt-1 flex items-baseline justify-between">
-              <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                stat.trend === 'up' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {stat.change}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-      
+    <Box className="fade-in">
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Dashboard
+      </Typography>
+      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+        Overview of energy consumption and predictions
+        {apiStatus.status === 'healthy' && (
+          <Chip 
+            label={`API v${apiStatus.version}`} 
+            size="small" 
+            color="success" 
+            sx={{ ml: 2 }} 
+          />
+        )}
+      </Typography>
+
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          {loading ? <StatCardSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography color="text.secondary" variant="subtitle2">
+                    Current Consumption
+                  </Typography>
+                  <Box sx={{ 
+                    backgroundColor: theme.palette.primary.light + '20', 
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <BoltIcon sx={{ color: theme.palette.primary.main }} />
+                  </Box>
+                </Box>
+                <Typography variant="h4" fontWeight="bold">
+                  {stats.currentConsumption} kWh
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <TrendingUpIcon sx={{ color: theme.palette.success.main, fontSize: 16, mr: 0.5 }} />
+                  <Typography variant="body2" color="success.main">
+                    +5.2% from yesterday
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          {loading ? <StatCardSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography color="text.secondary" variant="subtitle2">
+                    Predicted Peak
+                  </Typography>
+                  <Box sx={{ 
+                    backgroundColor: theme.palette.secondary.light + '20', 
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <SpeedIcon sx={{ color: theme.palette.secondary.main }} />
+                  </Box>
+                </Box>
+                <Typography variant="h4" fontWeight="bold">
+                  {stats.predictedPeak} kWh
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Expected at 18:00
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          {loading ? <StatCardSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography color="text.secondary" variant="subtitle2">
+                    Temperature
+                  </Typography>
+                  <Box sx={{ 
+                    backgroundColor: theme.palette.warning.light + '20', 
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <ThermostatIcon sx={{ color: theme.palette.warning.main }} />
+                  </Box>
+                </Box>
+                <Typography variant="h4" fontWeight="bold">
+                  {stats.temperature}°C
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <TrendingDownIcon sx={{ color: theme.palette.info.main, fontSize: 16, mr: 0.5 }} />
+                  <Typography variant="body2" color="info.main">
+                    -2°C from yesterday
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+        
+        <Grid item xs={12} sm={6} md={3}>
+          {loading ? <StatCardSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography color="text.secondary" variant="subtitle2">
+                    Humidity
+                  </Typography>
+                  <Box sx={{ 
+                    backgroundColor: theme.palette.info.light + '20', 
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <WaterIcon sx={{ color: theme.palette.info.main }} />
+                  </Box>
+                </Box>
+                <Typography variant="h4" fontWeight="bold">
+                  {stats.humidity}%
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                  <TrendingUpIcon sx={{ color: theme.palette.success.main, fontSize: 16, mr: 0.5 }} />
+                  <Typography variant="body2" color="success.main">
+                    +5% from yesterday
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Grid>
+      </Grid>
+
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            <Line data={energyData} options={lineOptions} />
+      <Grid container spacing={3}>
+        {/* Energy Consumption Chart */}
+        <Grid item xs={12} md={8}>
+          {loading ? <ChartSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardHeader 
+                title="Today's Energy Consumption" 
+                subheader="Hourly consumption in kWh"
+                action={
+                  <IconButton aria-label="settings">
+                    <MoreVertIcon />
+                  </IconButton>
+                }
+              />
+              <Divider />
+              <CardContent>
+                <Box sx={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={energyData}
+                      margin={{
+                        top: 10,
+                        right: 30,
+                        left: 0,
+                        bottom: 0,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area 
+                        type="monotone" 
+                        dataKey="consumption" 
+                        stroke={theme.palette.primary.main} 
+                        fill={theme.palette.primary.main} 
+                        fillOpacity={0.2} 
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
           )}
-        </div>
-        <div className="card">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            <Bar data={accuracyData} options={barOptions} />
+        </Grid>
+
+        {/* Energy Sources Chart */}
+        <Grid item xs={12} md={4}>
+          {loading ? <ChartSkeleton /> : (
+            <Card sx={{ height: '100%' }}>
+              <CardHeader 
+                title="Energy Sources" 
+                subheader="Distribution by source type"
+                action={
+                  <IconButton aria-label="settings">
+                    <MoreVertIcon />
+                  </IconButton>
+                }
+              />
+              <Divider />
+              <CardContent>
+                <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={sourceData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {sourceData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
           )}
-        </div>
-      </div>
-      
-      {/* Recent predictions */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Recent Predictions</h2>
-          <a href="/predictions" className="text-sm font-medium text-primary-600 hover:text-primary-800">
-            View all
-          </a>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Meter ID
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Timestamp
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Prediction
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Accuracy
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {recentPredictions.map((prediction) => (
-                <tr key={prediction.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {prediction.meter}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {prediction.timestamp}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {prediction.prediction}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      {prediction.accuracy}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 
