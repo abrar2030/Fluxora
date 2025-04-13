@@ -6,6 +6,8 @@
 
 An end-to-end MLOps solution for industrial-grade energy consumption forecasting, featuring automated retraining, real-time monitoring, and Kubernetes-native deployment.
 
+> **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
+
 ## 🚀 Key Features
 
 - **Multi-Model Serving**: XGBoost, LSTM, Prophet ensemble predictions  
