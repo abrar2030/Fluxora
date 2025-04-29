@@ -195,4 +195,3 @@ if not validation_report.success:
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 ```
-
