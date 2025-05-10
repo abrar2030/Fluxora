@@ -7,7 +7,7 @@
 An end-to-end MLOps solution for industrial-grade energy consumption forecasting, featuring automated retraining, real-time monitoring, and Kubernetes-native deployment.
 
 <div align="center">
-  <img src="Fluxora.bmp" alt="An end-to-end MLOps solution for industrial-grade energy consumption forecasting" width="100%">
+  <img src="docs/Fluxora.bmp" alt="An end-to-end MLOps solution for industrial-grade energy consumption forecasting" width="100%">
 </div>
 
 > **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
