@@ -1,155 +1,197 @@
-# Fluxora
+# Advanced Energy Consumption Forecasting System
 
-Fluxora is a comprehensive energy management platform that helps users monitor, analyze, and optimize their energy consumption and production.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![MLflow](https://img.shields.io/badge/MLflow-Enabled-orange)](https://mlflow.org/)
 
-## Features
+An end-to-end MLOps solution for industrial-grade energy consumption forecasting, featuring automated retraining, real-time monitoring, and Kubernetes-native deployment.
 
-- Real-time energy monitoring
-- Historical data analysis
-- Predictive analytics
-- Energy optimization recommendations
-- Mobile and web interfaces
-- API for integration
+<div align="center">
+  <img src="docs/Fluxora.bmp" alt="An end-to-end MLOps solution for industrial-grade energy consumption forecasting" width="100%">
+</div>
 
-## Project Structure
+> **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
 
-```
-fluxora/
-├── apps/                  # Application code
-│   ├── backend/          # Backend FastAPI application
-│   ├── web/             # Web frontend (React)
-│   └── mobile/          # Mobile frontend (React Native)
-├── packages/             # Shared code and utilities
-│   ├── shared/          # Shared business logic
-│   ├── ui/              # Shared UI components
-│   └── utils/           # Shared utilities
-├── tools/               # Development and deployment tools
-│   ├── scripts/         # Development scripts
-│   ├── deployments/     # Deployment configurations
-│   └── monitoring/      # Monitoring tools
-├── config/              # Configuration files
-│   ├── dev/            # Development configuration
-│   ├── prod/           # Production configuration
-│   └── test/           # Test configuration
-└── docs/               # Documentation
-    ├── api/            # API documentation
-    ├── architecture/   # Architecture documentation
-    └── guides/         # User and developer guides
-```
+## 🚀 Key Features
 
-## Quick Start
+- **Multi-Model Serving**: XGBoost, LSTM, Prophet ensemble predictions  
+- **MLOps Infrastructure**:
+  - Kubernetes-native deployment with Istio  
+  - MLflow Model Registry  
+  - Feast Feature Store  
+  - Prometheus/Grafana monitoring  
+- **Data Quality Assurance**:
+  - Great Expectations validations  
+  - Temporal coherence checks  
+  - Automated data drift detection  
+- **Production-Grade API**:
+  - JWT Authentication  
+  - Rate limiting  
+  - Canary deployments  
+- **Smart Forecasting**:
+  - Probabilistic predictions  
+  - SHAP explainability  
+  - Counterfactual analysis  
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-org/fluxora.git
-   cd fluxora
-   ```
-
-2. Set up the development environment:
-   ```bash
-   # Create and activate virtual environment
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-   # Install dependencies
-   pip install -r requirements.txt
-   pip install -r requirements_dev.txt
-   ```
-
-3. Start the development servers:
-   ```bash
-   # Backend
-   cd apps/backend
-   uvicorn app.main:app --reload
-
-   # Web Frontend
-   cd apps/web
-   npm install
-   npm run dev
-
-   # Mobile Frontend
-   cd apps/mobile
-   npm install
-   npm start
-   ```
-
-For detailed setup instructions, see the [Setup Guide](docs/guides/setup.md).
-
-## Documentation
-
-- [Project Structure](docs/architecture/project-structure.md)
-- [API Documentation](docs/api/README.md)
-- [Setup Guide](docs/guides/setup.md)
-- [Contributing Guide](docs/guides/contributing.md)
-
-## Development
+## 📦 Installation
 
 ### Prerequisites
-
-- Python 3.10 or higher
-- Node.js 18 or higher
-- npm or yarn
-- Docker and Docker Compose
-- Git
-
-### Running Tests
+- Kubernetes cluster (minikube supported)  
+- Python 3.10+  
+- Docker 20.10+  
+- Apache Spark 3.3+  
 
 ```bash
-# Backend tests
-cd apps/backend
-pytest
+# Clone repository
+git clone https://github.com/abrar2030/Fluxora.git
+cd Fluxora
 
-# Web frontend tests
-cd apps/web
-npm test
+# Initialize environment
+make bootstrap && dvc pull
 
-# Mobile frontend tests
-cd apps/mobile
-npm test
+
+## 🛠️ Usage
+
+### Data Pipeline
+```bash
+# Run complete data processing
+make data_pipeline
 ```
 
-### Code Style
+### Model Training
+```bash
+# Train all models
+make train
 
-- Python: PEP 8, Black, isort
-- JavaScript/TypeScript: ESLint, Prettier
-- See [Contributing Guide](docs/guides/contributing.md) for details
+# Hyperparameter tuning
+make tune
+```
 
-## Deployment
+### Deployment
+```bash
+# Deploy to Kubernetes
+make deploy_prod
 
-1. Build the applications:
-   ```bash
-   # Backend
-   cd apps/backend
-   docker build -t fluxora-backend .
+# Monitor deployment
+kubectl get pods -n energy-forecast
+```
 
-   # Web Frontend
-   cd apps/web
-   npm run build
+## 🌐 API Endpoints
 
-   # Mobile Frontend
-   cd apps/mobile
-   npm run build
-   ```
+| Endpoint       | Method | Description                     |
+|----------------|--------|---------------------------------|
+| `/predict`     | POST   | Get energy forecasts            |
+| `/monitor`     | GET    | Model performance metrics       |
+| `/retrain`     | POST   | Trigger model retraining        |
+| `/health`      | GET    | System health status            |
 
-2. Deploy using Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
+### Sample Prediction Request:
+```bash
+curl -X POST http://api/predict \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SECRET_KEY" \
+  -d '{
+    "timestamp": "2023-08-15T14:00:00",
+    "meter_id": "MT_001",
+    "historical_load": [0.45, 0.48, 0.52]
+  }'
+```
 
-For detailed deployment instructions, see the [Deployment Guide](docs/guides/deployment.md).
+### Sample Response:
+```json
+{
+  "prediction": 0.49,
+  "confidence_interval": [0.46, 0.53],
+  "model_version": "prod-v1.2.0",
+  "shap_values": {
+    "temperature": 0.12,
+    "hour_of_day": -0.08
+  }
+}
+```
 
-## Contributing
+## 📊 Monitoring Stack
 
-We welcome contributions! Please see our [Contributing Guide](docs/guides/contributing.md) for details.
+Access monitoring tools:
+```bash
+# Grafana
+open http://localhost:3000
 
-## License
+# Prometheus
+open http://localhost:9090
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# MLflow UI
+mlflow ui --port 5000
+```
 
-## Support
+## 🧩 Project Structure
+```
+energy-forecasting/
+├── deployments/          # Kubernetes manifests
+├── feature_repo/         # Feast feature definitions
+├── mlflow/               # Experiment tracking
+├── monitoring/           # Grafana/Prometheus configs
+├── pipelines/            # Prefect workflows
+└── src/
+    ├── api/              # FastAPI service
+    ├── data/             # ETL pipelines
+    ├── models/           # Model architectures
+    ├── monitoring/       # Data drift detection
+    └── visualization/    # Plotting utilities
+```
 
-- Documentation: [docs/](docs/)
-- Issues: [GitHub Issues](https://github.com/your-org/fluxora/issues)
-- Email: support@fluxora.com
-- Slack: [Join our workspace](https://fluxora.slack.com)
+## ⚙️ Configuration
+
+Modify `config/config.yaml`:
+```yaml
+model:
+  production_threshold: 0.85  # Minimum accuracy for deployment
+  drift:
+    threshold: 0.15           # Data drift alert level
+
+feature_store:
+  offline_store: s3://energy-data/features
+  online_store: redis://redis:6379
+
+api:
+  rate_limit: "100/minute"
+```
+
+## 🤖 Model Versioning
+```python
+from src.models.model_versioning import promote_model
+
+# Promote best performing model
+promote_model(
+    run_id="a1b2c3d4", 
+    validation_metric="mae",
+    threshold=0.45
+)
+```
+
+## 🔍 Data Validation
+```python
+from src.data.data_validator import validate_energy_data
+
+# Validate incoming data
+validation_report = validate_energy_data(
+    df, 
+    expectation_suite="energy_suite"
+)
+
+if not validation_report.success:
+    handle_invalid_data(validation_report)
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add some amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📜 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 ```
