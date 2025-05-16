@@ -15,16 +15,16 @@ const Layout = () => {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      <Sidebar 
-        mobileOpen={mobileOpen} 
+      <Sidebar
+        mobileOpen={mobileOpen}
         handleDrawerToggle={handleDrawerToggle}
         isMobile={isMobile}
       />
-      <Box 
-        component="main" 
-        sx={{ 
-          flexGrow: 1, 
-          p: 3, 
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
           width: { sm: `calc(100% - 240px)` },
           height: '100vh',
           overflow: 'auto',

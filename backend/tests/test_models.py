@@ -153,4 +153,4 @@ def test_energy_data_relationships(db):
     assert data.alerts[0] == alert
     assert data.recommendations[0] == recommendation
     assert alert.energy_data == data
-    assert recommendation.energy_data == data 
+    assert recommendation.energy_data == data

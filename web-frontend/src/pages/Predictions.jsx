@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useDataService } from '../utils/dataService';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Grid, 
-  TextField, 
-  Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
   MenuItem,
   Divider,
   Paper,
@@ -25,20 +25,20 @@ import {
   CircularProgress,
   Skeleton
 } from '@mui/material';
-import { 
+import {
   Timeline as TimelineIcon,
   CalendarToday as CalendarIcon,
   Send as SendIcon
 } from '@mui/icons-material';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 
 const Predictions = () => {
@@ -59,7 +59,7 @@ const Predictions = () => {
       try {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1500));
-        
+
         // Get prediction data
         const data = getPredictionData(24);
         setPredictionData(data);
@@ -110,7 +110,7 @@ const Predictions = () => {
           Generate New Prediction
         </Typography>
         <Divider sx={{ mb: 3 }} />
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Skeleton variant="rectangular" height={56} />
@@ -140,9 +140,9 @@ const Predictions = () => {
           </Box>
           <Skeleton variant="rectangular" width={120} height={36} />
         </Box>
-        
+
         <Divider sx={{ mb: 3 }} />
-        
+
         <Box sx={{ height: 400, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <CircularProgress />
         </Box>
@@ -167,7 +167,7 @@ const Predictions = () => {
               Generate New Prediction
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            
+
             <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
@@ -194,7 +194,7 @@ const Predictions = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              
+
               <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
@@ -209,7 +209,7 @@ const Predictions = () => {
                   }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
@@ -224,11 +224,11 @@ const Predictions = () => {
                   }}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Button 
-                  variant="contained" 
-                  fullWidth 
+                <Button
+                  variant="contained"
+                  fullWidth
                   startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
                   onClick={handleSubmit}
                   disabled={submitting}
@@ -255,13 +255,13 @@ const Predictions = () => {
                   <Typography variant="body2" color="text.secondary">
                     {dateRange.start} to {dateRange.end}
                   </Typography>
-                  <Chip 
-                    label={selectedMeters.join(', ')} 
-                    size="small" 
-                    sx={{ 
+                  <Chip
+                    label={selectedMeters.join(', ')}
+                    size="small"
+                    sx={{
                       backgroundColor: theme.palette.primary.light + '20',
                       color: theme.palette.primary.main
-                    }} 
+                    }}
                   />
                 </Box>
               </Box>
@@ -269,9 +269,9 @@ const Predictions = () => {
                 Export Data
               </Button>
             </Box>
-            
+
             <Divider sx={{ mb: 3 }} />
-            
+
             {/* Prediction Chart */}
             <Box sx={{ height: 400, mb: 4 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -289,35 +289,35 @@ const Predictions = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="prediction" 
-                    name="Prediction" 
-                    stroke={theme.palette.primary.main} 
-                    strokeWidth={2} 
-                    dot={{ r: 4 }} 
-                    activeDot={{ r: 6 }} 
+                  <Line
+                    type="monotone"
+                    dataKey="prediction"
+                    name="Prediction"
+                    stroke={theme.palette.primary.main}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="upper" 
-                    name="Upper Bound" 
-                    stroke={theme.palette.grey[400]} 
-                    strokeDasharray="3 3" 
-                    dot={false} 
+                  <Line
+                    type="monotone"
+                    dataKey="upper"
+                    name="Upper Bound"
+                    stroke={theme.palette.grey[400]}
+                    strokeDasharray="3 3"
+                    dot={false}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="lower" 
-                    name="Lower Bound" 
-                    stroke={theme.palette.grey[400]} 
-                    strokeDasharray="3 3" 
-                    dot={false} 
+                  <Line
+                    type="monotone"
+                    dataKey="lower"
+                    name="Lower Bound"
+                    stroke={theme.palette.grey[400]}
+                    strokeDasharray="3 3"
+                    dot={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </Box>
-            
+
             {/* Prediction Table */}
             <TableContainer component={Paper} sx={{ boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
               <Table sx={{ minWidth: 650 }} aria-label="prediction table">
@@ -343,13 +343,13 @@ const Predictions = () => {
                       <TableCell align="right">{row.lower.toFixed(1)}</TableCell>
                       <TableCell align="right">{row.upper.toFixed(1)}</TableCell>
                       <TableCell align="right">
-                        <Chip 
-                          label="95%" 
-                          size="small" 
-                          sx={{ 
+                        <Chip
+                          label="95%"
+                          size="small"
+                          sx={{
                             backgroundColor: theme.palette.success.light + '20',
                             color: theme.palette.success.main
-                          }} 
+                          }}
                         />
                       </TableCell>
                     </TableRow>

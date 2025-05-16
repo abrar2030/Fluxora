@@ -28,14 +28,14 @@ async def predict(payload: PredictionRequest):
     """
     # Transform input data using feature pipeline
     preprocessed = feature_pipeline.transform(payload)
-    
+
     # Get predictions from model
     predictions = predict_with_model(model, preprocessed)
-    
+
     # Calculate confidence intervals (95%)
     std_dev = np.std(predictions, axis=0) if len(predictions.shape) > 1 else np.std(predictions)
     confidence_intervals = [(float(pred - 1.96 * std_dev), float(pred + 1.96 * std_dev)) for pred in predictions]
-    
+
     return {
         "predictions": predictions.tolist(),
         "confidence_intervals": confidence_intervals,

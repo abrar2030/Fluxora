@@ -151,4 +151,4 @@ def test_settings_default_values():
     assert settings.database.database_url is not None
     assert settings.api.title is not None
     assert settings.security.secret_key is not None
-    assert settings.logging.level is not None 
+    assert settings.logging.level is not None

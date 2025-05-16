@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useDataService } from '../utils/dataService';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Grid, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
   Paper,
   Tabs,
   Tab,
@@ -14,16 +14,16 @@ import {
   Skeleton,
   CircularProgress
 } from '@mui/material';
-import { 
-  BarChart, 
-  Bar, 
+import {
+  BarChart,
+  Bar,
   LineChart,
   Line,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -52,7 +52,7 @@ const Analytics = () => {
     // Simulate data loading
     const loadData = async () => {
       await new Promise(resolve => setTimeout(resolve, 1800));
-      
+
       // Mock data for charts
       setData({
         monthlyData: [
@@ -108,10 +108,10 @@ const Analytics = () => {
           { season: 'Fall', heating: 120, cooling: 120, other: 140 },
         ]
       });
-      
+
       setLoading(false);
     };
-    
+
     loadData();
   }, []);
 
@@ -164,7 +164,7 @@ const Analytics = () => {
                   Total energy consumption by month (kWh)
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {loading ? <ChartSkeleton /> : (
                   <Box sx={{ height: 400 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -202,7 +202,7 @@ const Analytics = () => {
                   Comparison of weekday vs weekend consumption
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {loading ? <ChartSkeleton /> : (
                   <Box sx={{ height: 400 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -220,19 +220,19 @@ const Analytics = () => {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="weekday" 
-                          name="Weekday" 
-                          stroke={theme.palette.primary.main} 
+                        <Line
+                          type="monotone"
+                          dataKey="weekday"
+                          name="Weekday"
+                          stroke={theme.palette.primary.main}
                           strokeWidth={2}
                           activeDot={{ r: 8 }}
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="weekend" 
-                          name="Weekend" 
-                          stroke={theme.palette.secondary.main} 
+                        <Line
+                          type="monotone"
+                          dataKey="weekend"
+                          name="Weekend"
+                          stroke={theme.palette.secondary.main}
                           strokeWidth={2}
                           activeDot={{ r: 8 }}
                         />
@@ -259,7 +259,7 @@ const Analytics = () => {
                   Percentage breakdown of energy usage
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {loading ? <ChartSkeleton /> : (
                   <Box sx={{ height: 400, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -298,7 +298,7 @@ const Analytics = () => {
                   Energy usage across different seasons
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {loading ? <ChartSkeleton /> : (
                   <Box sx={{ height: 400 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -342,7 +342,7 @@ const Analytics = () => {
                   Correlation between temperature and energy usage
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                
+
                 {loading ? <ChartSkeleton /> : (
                   <Box sx={{ height: 400 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -355,35 +355,35 @@ const Analytics = () => {
                         }}
                       >
                         <CartesianGrid />
-                        <XAxis 
-                          type="number" 
-                          dataKey="temperature" 
-                          name="Temperature" 
-                          unit="°C" 
-                          label={{ 
-                            value: 'Temperature (°C)', 
-                            position: 'insideBottomRight', 
-                            offset: -10 
-                          }} 
+                        <XAxis
+                          type="number"
+                          dataKey="temperature"
+                          name="Temperature"
+                          unit="°C"
+                          label={{
+                            value: 'Temperature (°C)',
+                            position: 'insideBottomRight',
+                            offset: -10
+                          }}
                         />
-                        <YAxis 
-                          type="number" 
-                          dataKey="consumption" 
-                          name="Consumption" 
+                        <YAxis
+                          type="number"
+                          dataKey="consumption"
+                          name="Consumption"
                           unit=" kWh"
-                          label={{ 
-                            value: 'Energy Consumption (kWh)', 
-                            angle: -90, 
-                            position: 'insideLeft' 
-                          }} 
+                          label={{
+                            value: 'Energy Consumption (kWh)',
+                            angle: -90,
+                            position: 'insideLeft'
+                          }}
                         />
                         <ZAxis type="number" dataKey="size" range={[100, 500]} />
                         <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                         <Legend />
-                        <Scatter 
-                          name="Energy Usage" 
-                          data={data.temperatureData} 
-                          fill={theme.palette.primary.main} 
+                        <Scatter
+                          name="Energy Usage"
+                          data={data.temperatureData}
+                          fill={theme.palette.primary.main}
                           shape="circle"
                         />
                       </ScatterChart>

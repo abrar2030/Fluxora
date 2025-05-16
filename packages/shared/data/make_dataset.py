@@ -13,16 +13,16 @@ class DatasetMaker:
     This includes loading raw data, cleaning, splitting, and potentially saving processed datasets.
     """
 
-    def __init__(self, raw_data_path: str, processed_data_dir: str = None, 
+    def __init__(self, raw_data_path: str, processed_data_dir: str = None,
                  test_size: float = 0.2, validation_size: float = 0.1, random_state: int = 42):
         """
         Initializes the DatasetMaker.
         Args:
             raw_data_path (str): Path to the raw input data file (e.g., CSV, Parquet).
-            processed_data_dir (str, optional): Directory to save processed datasets. 
+            processed_data_dir (str, optional): Directory to save processed datasets.
                                                 If None, processed data is not saved by default.
             test_size (float): Proportion of the dataset to include in the test split.
-            validation_size (float): Proportion of the *remaining* dataset (after test split) 
+            validation_size (float): Proportion of the *remaining* dataset (after test split)
                                      to include in the validation split. If 0, no validation set is created.
             random_state (int): Seed for random number generation for reproducibility.
         """
@@ -48,7 +48,7 @@ class DatasetMaker:
             if not os.path.exists(self.raw_data_path):
                 logger.error(f"Raw data file not found: {self.raw_data_path}")
                 return None
-            
+
             if self.raw_data_path.endswith(".csv"):
                 df = pd.read_csv(self.raw_data_path)
             elif self.raw_data_path.endswith( (".parquet", ".pq")):
@@ -177,7 +177,7 @@ class DatasetMaker:
             return {}
 
         processed_df = self.preprocess_data(raw_df.copy()) # Use copy to avoid modifying original df
-        
+
         X_train, y_train, X_val, y_val, X_test, y_test = self.split_data(processed_df, target_column)
 
         datasets = {
@@ -187,7 +187,7 @@ class DatasetMaker:
         }
 
         self.save_processed_data(datasets)
-        
+
         logger.info("Dataset creation pipeline completed.")
         return datasets
 
@@ -214,10 +214,10 @@ if __name__ == "__main__":
         processed_data_dir="data/processed",
         validation_size=0.1 # Create a validation set
     )
-    
+
     # Specify the target column in your dataset
     created_datasets = dataset_maker.run(target_column="target")
-    
+
     if created_datasets:
         logger.info("Accessing created datasets:")
         if created_datasets.get("X_train") is not None:

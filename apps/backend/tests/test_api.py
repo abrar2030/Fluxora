@@ -150,4 +150,4 @@ def test_get_energy_recommendations_with_type(db, sample_data):
 
 def test_get_energy_recommendations_invalid_type():
     response = client.get("/api/energy/recommendations?type=invalid")
-    assert response.status_code == 422 
+    assert response.status_code == 422

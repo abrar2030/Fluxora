@@ -9,7 +9,7 @@ class FeatureStore:
     """
     def __init__(self, repo_path=None):
         self.features = {}
-        
+
     def get_online_features(self, entity_rows, features):
         """
         Simulate getting online features
@@ -17,7 +17,7 @@ class FeatureStore:
         # In a real implementation, this would retrieve features from a database
         # For testing, we'll generate random features
         result = {}
-        
+
         # Add requested features with random values
         for feature in features:
             feature_name = feature.split(':')[-1]
@@ -31,17 +31,17 @@ class FeatureStore:
                 result[feature_name] = np.random.uniform(30, 80, size=len(entity_rows))
             else:
                 result[feature_name] = np.random.uniform(0, 100, size=len(entity_rows))
-                
+
         # Add entity values
         for i, entity_row in enumerate(entity_rows):
             for key, value in entity_row.items():
                 if key not in result:
                     result[key] = [None] * len(entity_rows)
                 result[key][i] = value
-                
+
         # Convert to DataFrame for compatibility
         return pd.DataFrame(result)
-    
+
     def materialize(self, start_date, end_date):
         """
         Mock implementation of materialize
@@ -52,7 +52,7 @@ class FeatureStore:
 def get_feature_store():
     """
     Get the feature store instance
-    
+
     Returns:
         FeatureStore: The feature store instance
     """
@@ -61,11 +61,11 @@ def get_feature_store():
 def get_online_features(entity_rows, feature_refs):
     """
     Get online features from the feature store
-    
+
     Args:
         entity_rows: List of entity dictionaries
         feature_refs: List of feature references
-        
+
     Returns:
         DataFrame: Features for the provided entities
     """
@@ -78,7 +78,7 @@ def get_online_features(entity_rows, feature_refs):
 def materialize_features(start_date, end_date):
     """
     Materialize features for a date range
-    
+
     Args:
         start_date: Start date for materialization
         end_date: End date for materialization

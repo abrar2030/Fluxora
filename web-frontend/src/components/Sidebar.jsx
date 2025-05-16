@@ -1,20 +1,20 @@
 import React from 'react';
-import { 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
-  Toolbar, 
-  Typography, 
-  Box, 
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  Box,
   Divider,
   useTheme
 } from '@mui/material';
-import { 
-  Dashboard as DashboardIcon, 
-  Timeline as TimelineIcon, 
-  BarChart as BarChartIcon, 
+import {
+  Dashboard as DashboardIcon,
+  Timeline as TimelineIcon,
+  BarChart as BarChartIcon,
   Settings as SettingsIcon,
   BoltOutlined as EnergyIcon
 } from '@mui/icons-material';
@@ -36,9 +36,9 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
 
   const drawer = (
     <>
-      <Toolbar sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Toolbar sx={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: theme.palette.primary.main,
         color: 'white'
@@ -51,17 +51,17 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
       <Divider />
       <List sx={{ mt: 2 }}>
         {menuItems.map((item) => (
-          <ListItem 
-            button 
+          <ListItem
+            button
             key={item.text}
             onClick={() => navigate(item.path)}
             sx={{
               mb: 1,
               mx: 1,
               borderRadius: 2,
-              backgroundColor: location.pathname === item.path ? 
+              backgroundColor: location.pathname === item.path ?
                 theme.palette.primary.light + '20' : 'transparent',
-              color: location.pathname === item.path ? 
+              color: location.pathname === item.path ?
                 theme.palette.primary.main : theme.palette.text.primary,
               '&:hover': {
                 backgroundColor: theme.palette.primary.light + '10',
@@ -69,7 +69,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
             }}
           >
             <ListItemIcon sx={{
-              color: location.pathname === item.path ? 
+              color: location.pathname === item.path ?
                 theme.palette.primary.main : theme.palette.text.primary,
             }}>
               {item.icon}
@@ -102,8 +102,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
         }}
         sx={{
           display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
             width: drawerWidth,
             boxShadow: 3
           },
@@ -111,14 +111,14 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
       >
         {drawer}
       </Drawer>
-      
+
       {/* Desktop drawer */}
       <Drawer
         variant="permanent"
         sx={{
           display: { xs: 'none', sm: 'block' },
-          '& .MuiDrawer-paper': { 
-            boxSizing: 'border-box', 
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
             width: drawerWidth,
             boxShadow: 3,
             border: 'none'

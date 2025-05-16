@@ -185,4 +185,4 @@ def test_middleware_custom_headers(client):
     response = client.get("/custom-headers", headers={"X-Custom-Header": "test"})
     assert response.status_code == 200
     assert "X-Custom-Header" in response.headers
-    assert response.headers["X-Custom-Header"] == "test" 
+    assert response.headers["X-Custom-Header"] == "test"

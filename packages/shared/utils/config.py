@@ -12,21 +12,21 @@ column_mapping = {
     "target": "target_variable_name", # Name of the target variable column
     "prediction": "prediction_score_name", # Name of the prediction score column (if applicable)
     "datetime": "timestamp_column_name", # Name of the datetime column for time-series data
-    
+
     # List of numerical features
     "numerical_features": [
-        "feature1", 
-        "feature2", 
+        "feature1",
+        "feature2",
         # ... add other numerical feature names
     ],
-    
+
     # List of categorical features
     "categorical_features": [
-        "category_a", 
+        "category_a",
         "category_b",
         # ... add other categorical feature names
     ],
-    
+
     # Optional: ID column if applicable
     "id_column": "unique_identifier_column"
 }

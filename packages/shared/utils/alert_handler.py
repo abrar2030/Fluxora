@@ -18,12 +18,12 @@ class AlertHandler:
         Args:
             alert_type (str): A unique identifier for the type of alert (e.g., "DATA_DRIFT_ALERT", "MODEL_PERFORMANCE_DEGRADATION").
             details (dict): A dictionary containing detailed information about the alert.
-            level (str, optional): The severity level of the alert (e.g., "INFO", "WARNING", "ERROR", "CRITICAL"). 
+            level (str, optional): The severity level of the alert (e.g., "INFO", "WARNING", "ERROR", "CRITICAL").
                                    Defaults to self.default_level.
         """
         alert_level = level or self.default_level
         log_message = f"ALERT TRIGGERED - Type: {alert_type}, Level: {alert_level}, Details: {details}"
-        
+
         if alert_level.upper() == "INFO":
             logger.info(log_message)
         elif alert_level.upper() == "WARNING":

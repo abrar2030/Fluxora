@@ -131,4 +131,4 @@ def test_calculate_forecast_accuracy_zero_actual():
     accuracy = calculate_forecast_accuracy(actual, forecast)
     assert "mae" in accuracy
     assert "rmse" in accuracy
-    assert "mape" in accuracy 
+    assert "mape" in accuracy

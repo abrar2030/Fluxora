@@ -8,16 +8,16 @@ import Settings from './pages/Settings';
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);
-  
+
   React.useEffect(() => {
     // Simulate initial loading
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
-  
+
   // Loading screen
   if (isLoading) {
     return (
@@ -30,7 +30,7 @@ const App = () => {
       </div>
     );
   }
-  
+
   return (
     // Using HashRouter instead of BrowserRouter for better compatibility with static hosting
     <HashRouter>

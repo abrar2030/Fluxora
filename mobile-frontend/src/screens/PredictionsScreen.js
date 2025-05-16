@@ -121,9 +121,9 @@ const PredictionsScreen = ({ navigation }) => {
             <HelperText type="error" visible={!!contextError}>
               {contextError}
             </HelperText>
-            <Button 
-              mode="contained" 
-              onPress={handlePredict} 
+            <Button
+              mode="contained"
+              onPress={handlePredict}
               disabled={loading || !!contextError}
               loading={loading}
               style={styles.button}

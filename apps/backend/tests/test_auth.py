@@ -188,4 +188,4 @@ def test_token_permissions():
     }
     token = create_access_token(token)
     payload = verify_token(token)
-    assert payload["permissions"] == ["read:data", "write:data"] 
+    assert payload["permissions"] == ["read:data", "write:data"]

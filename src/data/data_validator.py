@@ -1,8 +1,9 @@
 import great_expectations as ge
 
+
 def validate_raw_data(df):
     suite = ge.dataset.PandasDataset(df)
-    
+
     suite.expect_column_values_to_not_be_null("Global_active_power")
     suite.expect_column_values_to_be_between(
         "Global_active_power", min_value=0, max_value=20
@@ -10,7 +11,7 @@ def validate_raw_data(df):
     suite.expect_column_pair_values_A_to_be_greater_than_B(
         "Voltage", "Global_intensity"
     )
-    
+
     validation_result = suite.validate()
     if not validation_result["success"]:
         raise DataValidationError(f"Data validation failed: {validation_result}")

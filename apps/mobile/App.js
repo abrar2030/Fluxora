@@ -18,7 +18,7 @@ import 'react-native-gesture-handler';
 export default function App() {
   return (
     // Wrap the entire app in PaperProvider
-    <PaperProvider> 
+    <PaperProvider>
       <NavigationContainer>
         <AppNavigator />
       </NavigationContainer>

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDataService } from '../utils/dataService';
-import { 
-  Box, 
-  Grid, 
-  Paper, 
-  Typography, 
-  Card, 
-  CardContent, 
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
+  Card,
+  CardContent,
   CardHeader,
   IconButton,
   Divider,
@@ -15,7 +15,7 @@ import {
   CircularProgress,
   Chip
 } from '@mui/material';
-import { 
+import {
   MoreVert as MoreVertIcon,
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -24,13 +24,13 @@ import {
   Thermostat as ThermostatIcon,
   Speed as SpeedIcon
 } from '@mui/icons-material';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -65,11 +65,11 @@ const Dashboard = () => {
       try {
         // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         // Get energy data and current stats
         const energyData = getEnergyData(24);
         const currentStats = getCurrentStats();
-        
+
         setEnergyData(energyData);
         setStats(currentStats);
         setLoading(false);
@@ -101,7 +101,7 @@ const Dashboard = () => {
   // Skeleton loader for charts
   const ChartSkeleton = () => (
     <Card sx={{ height: '100%' }}>
-      <CardHeader 
+      <CardHeader
         title={<Skeleton variant="text" width={200} />}
         subheader={<Skeleton variant="text" width={150} />}
         action={
@@ -127,11 +127,11 @@ const Dashboard = () => {
       <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
         Overview of energy consumption and predictions
         {apiStatus.status === 'healthy' && (
-          <Chip 
-            label={`API v${apiStatus.version}`} 
-            size="small" 
-            color="success" 
-            sx={{ ml: 2 }} 
+          <Chip
+            label={`API v${apiStatus.version}`}
+            size="small"
+            color="success"
+            sx={{ ml: 2 }}
           />
         )}
       </Typography>
@@ -146,8 +146,8 @@ const Dashboard = () => {
                   <Typography color="text.secondary" variant="subtitle2">
                     Current Consumption
                   </Typography>
-                  <Box sx={{ 
-                    backgroundColor: theme.palette.primary.light + '20', 
+                  <Box sx={{
+                    backgroundColor: theme.palette.primary.light + '20',
                     borderRadius: '50%',
                     width: 40,
                     height: 40,
@@ -171,7 +171,7 @@ const Dashboard = () => {
             </Card>
           )}
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           {loading ? <StatCardSkeleton /> : (
             <Card sx={{ height: '100%' }}>
@@ -180,8 +180,8 @@ const Dashboard = () => {
                   <Typography color="text.secondary" variant="subtitle2">
                     Predicted Peak
                   </Typography>
-                  <Box sx={{ 
-                    backgroundColor: theme.palette.secondary.light + '20', 
+                  <Box sx={{
+                    backgroundColor: theme.palette.secondary.light + '20',
                     borderRadius: '50%',
                     width: 40,
                     height: 40,
@@ -204,7 +204,7 @@ const Dashboard = () => {
             </Card>
           )}
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           {loading ? <StatCardSkeleton /> : (
             <Card sx={{ height: '100%' }}>
@@ -213,8 +213,8 @@ const Dashboard = () => {
                   <Typography color="text.secondary" variant="subtitle2">
                     Temperature
                   </Typography>
-                  <Box sx={{ 
-                    backgroundColor: theme.palette.warning.light + '20', 
+                  <Box sx={{
+                    backgroundColor: theme.palette.warning.light + '20',
                     borderRadius: '50%',
                     width: 40,
                     height: 40,
@@ -238,7 +238,7 @@ const Dashboard = () => {
             </Card>
           )}
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
           {loading ? <StatCardSkeleton /> : (
             <Card sx={{ height: '100%' }}>
@@ -247,8 +247,8 @@ const Dashboard = () => {
                   <Typography color="text.secondary" variant="subtitle2">
                     Humidity
                   </Typography>
-                  <Box sx={{ 
-                    backgroundColor: theme.palette.info.light + '20', 
+                  <Box sx={{
+                    backgroundColor: theme.palette.info.light + '20',
                     borderRadius: '50%',
                     width: 40,
                     height: 40,
@@ -280,8 +280,8 @@ const Dashboard = () => {
         <Grid item xs={12} md={8}>
           {loading ? <ChartSkeleton /> : (
             <Card sx={{ height: '100%' }}>
-              <CardHeader 
-                title="Today's Energy Consumption" 
+              <CardHeader
+                title="Today's Energy Consumption"
                 subheader="Hourly consumption in kWh"
                 action={
                   <IconButton aria-label="settings">
@@ -306,12 +306,12 @@ const Dashboard = () => {
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Area 
-                        type="monotone" 
-                        dataKey="consumption" 
-                        stroke={theme.palette.primary.main} 
-                        fill={theme.palette.primary.main} 
-                        fillOpacity={0.2} 
+                      <Area
+                        type="monotone"
+                        dataKey="consumption"
+                        stroke={theme.palette.primary.main}
+                        fill={theme.palette.primary.main}
+                        fillOpacity={0.2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -325,8 +325,8 @@ const Dashboard = () => {
         <Grid item xs={12} md={4}>
           {loading ? <ChartSkeleton /> : (
             <Card sx={{ height: '100%' }}>
-              <CardHeader 
-                title="Energy Sources" 
+              <CardHeader
+                title="Energy Sources"
                 subheader="Distribution by source type"
                 action={
                   <IconButton aria-label="settings">

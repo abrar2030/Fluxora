@@ -22,7 +22,7 @@ class PlottingUtilities:
         sns.set_palette(self.palette)
         logger.info(f"Plotting style set to: {style}, palette: {palette}")
 
-    def plot_histogram(self, data: pd.Series, title: str, xlabel: str, ylabel: str = "Frequency", 
+    def plot_histogram(self, data: pd.Series, title: str, xlabel: str, ylabel: str = "Frequency",
                        bins: int = 30, figsize: tuple = (10, 6), save_path: str = None):
         """
         Plots a histogram for a given series.
@@ -48,7 +48,7 @@ class PlottingUtilities:
         else:
             plt.show()
 
-    def plot_correlation_matrix(self, df: pd.DataFrame, title: str = "Correlation Matrix", 
+    def plot_correlation_matrix(self, df: pd.DataFrame, title: str = "Correlation Matrix",
                                 figsize: tuple = (12, 10), annot: bool = True, cmap: str = "coolwarm",
                                 save_path: str = None):
         """
@@ -65,7 +65,7 @@ class PlottingUtilities:
         if numeric_df.empty:
             logger.warning("No numeric columns found in DataFrame for correlation matrix.")
             return
-        
+
         corr_matrix = numeric_df.corr()
         plt.figure(figsize=figsize)
         sns.heatmap(corr_matrix, annot=annot, cmap=cmap, fmt=".2f", linewidths=.5)
@@ -78,7 +78,7 @@ class PlottingUtilities:
         else:
             plt.show()
 
-    def plot_line(self, x_data, y_data, title: str, xlabel: str, ylabel: str, 
+    def plot_line(self, x_data, y_data, title: str, xlabel: str, ylabel: str,
                   labels: list = None, figsize: tuple = (12, 6), save_path: str = None):
         """
         Plots one or more lines on the same axes.
@@ -106,7 +106,7 @@ class PlottingUtilities:
             plt.legend()
         else:
             sns.lineplot(x=x_data, y=y_data)
-        
+
         plt.title(title, fontsize=16)
         plt.xlabel(xlabel, fontsize=12)
         plt.ylabel(ylabel, fontsize=12)
@@ -118,7 +118,7 @@ class PlottingUtilities:
         else:
             plt.show()
 
-    def plot_scatter(self, x_data, y_data, title: str, xlabel: str, ylabel: str, 
+    def plot_scatter(self, x_data, y_data, title: str, xlabel: str, ylabel: str,
                      hue_data=None, size_data=None, style_data=None,
                      figsize: tuple = (10, 6), save_path: str = None):
         """
@@ -153,7 +153,7 @@ class PlottingUtilities:
 # Example Usage
 if __name__ == "__main__":
     plot_util = PlottingUtilities()
-    
+
     # Create dummy data
     data_hist = pd.Series(np.random.randn(1000))
     df_corr = pd.DataFrame(np.random.rand(10, 4), columns=["A", "B", "C", "D"])
@@ -180,13 +180,13 @@ if __name__ == "__main__":
     plot_util.plot_line(x_line, y_line1, "Sine Wave", "X-axis", "Y-axis", save_path=None) # "plots/single_line.png")
 
     logger.info("Testing multiple line plot...")
-    plot_util.plot_line([x_line, x_line], [y_line1, y_line2], "Sine and Cosine Waves", 
+    plot_util.plot_line([x_line, x_line], [y_line1, y_line2], "Sine and Cosine Waves",
                         "X-axis", "Y-axis", labels=["Sine", "Cosine"], save_path=None) # "plots/multi_line.png")
 
     logger.info("Testing scatter plot...")
-    plot_util.plot_scatter(x_scatter, y_scatter, "Sample Scatter Plot", "X Value", "Y Value", 
+    plot_util.plot_scatter(x_scatter, y_scatter, "Sample Scatter Plot", "X Value", "Y Value",
                            hue_data=hue_scatter, save_path=None) # "plots/scatter_plot.png")
-    
+
     logger.info("Plotting examples complete.")
     # Need to import numpy for example to run (already added at the top)
 

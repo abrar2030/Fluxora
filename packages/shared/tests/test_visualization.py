@@ -203,4 +203,4 @@ def test_chart_error_handling():
             data=time_series_data,
             x='timestamp',
             y='category'  # Categorical data for y-axis
-        ) 
+        )

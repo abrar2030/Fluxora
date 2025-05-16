@@ -17,4 +17,4 @@ declare module '@jest/globals' {
 
 declare global {
   var jest: typeof jest;
-} 
+}

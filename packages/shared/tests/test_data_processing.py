@@ -141,4 +141,4 @@ def test_end_to_end_processing_with_edge_cases():
     
     assert isinstance(normalized_features, pd.DataFrame)
     assert not normalized_features.isnull().any().any()
-    assert normalized_features.shape[0] == 15 
+    assert normalized_features.shape[0] == 15

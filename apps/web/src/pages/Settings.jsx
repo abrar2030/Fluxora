@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useDataService } from '../utils/dataService';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Grid, 
-  TextField, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Grid,
+  TextField,
+  Button,
   Switch,
   FormControlLabel,
   Divider,
@@ -22,7 +22,7 @@ import {
   useTheme,
   Skeleton
 } from '@mui/material';
-import { 
+import {
   Save as SaveIcon,
   Notifications as NotificationsIcon,
   Security as SecurityIcon,
@@ -56,7 +56,7 @@ const Settings = () => {
       await new Promise(resolve => setTimeout(resolve, 1200));
       setLoading(false);
     };
-    
+
     loadSettings();
   }, []);
 
@@ -109,9 +109,9 @@ const Settings = () => {
         <ListItemIcon>
           <Skeleton variant="circular" width={24} height={24} />
         </ListItemIcon>
-        <ListItemText 
-          primary={<Skeleton variant="text" width={120} />} 
-          secondary={<Skeleton variant="text" width={200} />} 
+        <ListItemText
+          primary={<Skeleton variant="text" width={120} />}
+          secondary={<Skeleton variant="text" width={200} />}
         />
         <ListItemSecondaryAction>
           <Skeleton variant="rectangular" width={40} height={24} />
@@ -121,9 +121,9 @@ const Settings = () => {
         <ListItemIcon>
           <Skeleton variant="circular" width={24} height={24} />
         </ListItemIcon>
-        <ListItemText 
-          primary={<Skeleton variant="text" width={100} />} 
-          secondary={<Skeleton variant="text" width={180} />} 
+        <ListItemText
+          primary={<Skeleton variant="text" width={100} />}
+          secondary={<Skeleton variant="text" width={180} />}
         />
         <ListItemSecondaryAction>
           <Skeleton variant="rectangular" width={40} height={24} />
@@ -133,9 +133,9 @@ const Settings = () => {
         <ListItemIcon>
           <Skeleton variant="circular" width={24} height={24} />
         </ListItemIcon>
-        <ListItemText 
-          primary={<Skeleton variant="text" width={80} />} 
-          secondary={<Skeleton variant="text" width={160} />} 
+        <ListItemText
+          primary={<Skeleton variant="text" width={80} />}
+          secondary={<Skeleton variant="text" width={160} />}
         />
         <ListItemSecondaryAction>
           <Skeleton variant="rectangular" width={100} height={40} />
@@ -162,16 +162,16 @@ const Settings = () => {
                 General Settings
               </Typography>
               <Divider sx={{ mb: 3 }} />
-              
+
               {loading ? <SettingsSkeleton /> : (
                 <List>
                   <ListItem>
                     <ListItemIcon>
                       <NotificationsIcon />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Notifications" 
-                      secondary="Enable push notifications for alerts and updates" 
+                    <ListItemText
+                      primary="Notifications"
+                      secondary="Enable push notifications for alerts and updates"
                     />
                     <ListItemSecondaryAction>
                       <Switch
@@ -182,14 +182,14 @@ const Settings = () => {
                       />
                     </ListItemSecondaryAction>
                   </ListItem>
-                  
+
                   <ListItem>
                     <ListItemIcon>
                       <ThemeIcon />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Dark Mode" 
-                      secondary="Switch between light and dark theme" 
+                    <ListItemText
+                      primary="Dark Mode"
+                      secondary="Switch between light and dark theme"
                     />
                     <ListItemSecondaryAction>
                       <Switch
@@ -200,14 +200,14 @@ const Settings = () => {
                       />
                     </ListItemSecondaryAction>
                   </ListItem>
-                  
+
                   <ListItem>
                     <ListItemIcon>
                       <LanguageIcon />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Language" 
-                      secondary="Select your preferred language" 
+                    <ListItemText
+                      primary="Language"
+                      secondary="Select your preferred language"
                     />
                     <ListItemSecondaryAction>
                       <TextField
@@ -229,14 +229,14 @@ const Settings = () => {
                       </TextField>
                     </ListItemSecondaryAction>
                   </ListItem>
-                  
+
                   <ListItem>
                     <ListItemIcon>
                       <RefreshIcon />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary="Auto Refresh" 
-                      secondary="Automatically refresh data every minute" 
+                    <ListItemText
+                      primary="Auto Refresh"
+                      secondary="Automatically refresh data every minute"
                     />
                     <ListItemSecondaryAction>
                       <Switch
@@ -261,7 +261,7 @@ const Settings = () => {
                 Data & Security
               </Typography>
               <Divider sx={{ mb: 3 }} />
-              
+
               {loading ? <SettingsSkeleton /> : (
                 <>
                   <List>
@@ -269,9 +269,9 @@ const Settings = () => {
                       <ListItemIcon>
                         <StorageIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="Data Retention" 
-                        secondary="Number of days to keep historical data" 
+                      <ListItemText
+                        primary="Data Retention"
+                        secondary="Number of days to keep historical data"
                       />
                       <ListItemSecondaryAction>
                         <TextField
@@ -288,19 +288,19 @@ const Settings = () => {
                         />
                       </ListItemSecondaryAction>
                     </ListItem>
-                    
+
                     <ListItem>
                       <ListItemIcon>
                         <SecurityIcon />
                       </ListItemIcon>
-                      <ListItemText 
-                        primary="API Key" 
-                        secondary="Your secret API key for accessing the Fluxora API" 
+                      <ListItemText
+                        primary="API Key"
+                        secondary="Your secret API key for accessing the Fluxora API"
                       />
                       <ListItemSecondaryAction>
-                        <IconButton 
-                          edge="end" 
-                          aria-label="regenerate" 
+                        <IconButton
+                          edge="end"
+                          aria-label="regenerate"
                           onClick={handleResetApiKey}
                           color="primary"
                         >
@@ -308,7 +308,7 @@ const Settings = () => {
                         </IconButton>
                       </ListItemSecondaryAction>
                     </ListItem>
-                    
+
                     <ListItem>
                       <TextField
                         fullWidth
@@ -323,27 +323,27 @@ const Settings = () => {
                         }}
                       />
                     </ListItem>
-                    
+
                     <ListItem>
                       <Alert severity="warning" sx={{ width: '100%' }}>
                         Regenerating your API key will invalidate the previous key immediately.
                       </Alert>
                     </ListItem>
                   </List>
-                  
+
                   <Box sx={{ mt: 3 }}>
-                    <Button 
-                      variant="outlined" 
-                      color="error" 
+                    <Button
+                      variant="outlined"
+                      color="error"
                       startIcon={<DeleteIcon />}
                       sx={{ mr: 2 }}
                     >
                       Clear All Data
                     </Button>
-                    
-                    <Button 
-                      variant="contained" 
-                      color="primary" 
+
+                    <Button
+                      variant="contained"
+                      color="primary"
                       startIcon={<SaveIcon />}
                       onClick={handleSaveSettings}
                     >
@@ -356,10 +356,10 @@ const Settings = () => {
           </Card>
         </Grid>
       </Grid>
-      
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >

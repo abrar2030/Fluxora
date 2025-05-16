@@ -53,7 +53,7 @@ export const postPredictions = async (payload) => {
 export const getSummary = async () => {
   try {
     // Assuming a '/summary' endpoint exists on the backend
-    const response = await apiClient.get('/summary'); 
+    const response = await apiClient.get('/summary');
     return response.data; // Adjust based on actual response structure
   } catch (error) {
     console.error('Error fetching summary data:', error);
@@ -61,8 +61,8 @@ export const getSummary = async () => {
     // For now, let's return a placeholder or throw
     // throw new Error('Failed to fetch summary data from backend.');
     console.warn('Using placeholder summary data as /summary endpoint failed or is not implemented.');
-    return { 
-        totalPredictions: 125, 
+    return {
+        totalPredictions: 125,
         averageAccuracy: 0.92,
         lastPredictionTime: new Date().toLocaleTimeString()
     }; // Placeholder data
@@ -80,7 +80,7 @@ export const getHistoricalData = async (params) => {
   try {
     // Assuming a 	'/historical_data' endpoint exists
     // Params could include time range, meter_id etc.
-    const response = await apiClient.get(	'/historical_data	', { params }); 
+    const response = await apiClient.get(	'/historical_data	', { params });
     return response.data; // Adjust based on actual response structure
   } catch (error) {
     console.error(	'Error fetching historical data:	', error);

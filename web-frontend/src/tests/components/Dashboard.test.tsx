@@ -178,4 +178,4 @@ describe('Dashboard Component', () => {
       expect(screen.getByText('Export failed')).toBeInTheDocument();
     });
   });
-}); 
+});

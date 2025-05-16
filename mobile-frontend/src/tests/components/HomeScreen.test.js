@@ -184,4 +184,4 @@ describe('HomeScreen', () => {
       expect(getByText('Failed to update task status')).toBeTruthy();
     });
   });
-}); 
+});

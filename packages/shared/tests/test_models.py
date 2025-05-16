@@ -97,4 +97,4 @@ def test_user_model_relationships(db_session):
     # Test relationships are empty by default
     assert user.projects == []
     assert user.tasks == []
-    assert user.comments == [] 
+    assert user.comments == []

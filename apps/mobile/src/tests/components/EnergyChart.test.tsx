@@ -110,4 +110,4 @@ describe('EnergyChart Component', () => {
     
     expect(onExport).toHaveBeenCalled();
   });
-}); 
+});

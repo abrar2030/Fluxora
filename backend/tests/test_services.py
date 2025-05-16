@@ -180,4 +180,4 @@ def test_get_recommendations_with_type(recommendation_service, sample_energy_dat
     
     optimization_recs = recommendation_service.get_recommendations(type="optimization")
     assert len(optimization_recs) == 1
-    assert all(rec.type == "optimization" for rec in optimization_recs) 
+    assert all(rec.type == "optimization" for rec in optimization_recs)

@@ -25,10 +25,10 @@ def detect_data_drift(current_data: pd.DataFrame, reference_data: pd.DataFrame, 
         bool: True if dataset drift is detected, False otherwise.
     """
     logger.info("Starting data drift detection...")
-    
+
     # Use override if provided, otherwise use global config
     active_column_mapping = column_mapping_override if column_mapping_override is not None else config.column_mapping
-    
+
     if not active_column_mapping:
         logger.error("Column mapping is not defined. Cannot perform data drift detection.")
         # Potentially raise an error or return a specific status
@@ -41,7 +41,7 @@ def detect_data_drift(current_data: pd.DataFrame, reference_data: pd.DataFrame, 
             reference_data=reference_data,
             column_mapping=active_column_mapping
         )
-        
+
         # Check for dataset level drift
         # The exact key might depend on the Evidently version, adjust if necessary
         # Based on common Evidently report structure for DataDriftPreset
@@ -60,7 +60,7 @@ def detect_data_drift(current_data: pd.DataFrame, reference_data: pd.DataFrame, 
             )
         else:
             logger.info("No significant data drift detected at the dataset level.")
-            
+
         return data_drift_report, dataset_drift_detected
 
     except Exception as e:
@@ -75,7 +75,7 @@ def detect_data_drift(current_data: pd.DataFrame, reference_data: pd.DataFrame, 
 # Example Usage (assumes dummy data and config)
 if __name__ == "__main__":
     logger.info("Running drift_detection.py example...")
-    
+
     # Create dummy data for demonstration
     # Reference data (e.g., training data or a stable period)
     ref_data = pd.DataFrame({
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         config.column_mapping["categorical_features"][0]: ["B", "C", "B", "A", "C", "B", "A", "B", "C", "A", "B", "C", "B", "A", "C"], # Changed proportions
         config.column_mapping["target"]: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1] # Potentially different target distribution
     })
-    
+
     current_data_no_drift = ref_data.copy()
     current_data_no_drift[config.column_mapping["numerical_features"][0]] = current_data_no_drift[config.column_mapping["numerical_features"][0]] + 0.1 # Minor noise, no real drift
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     current_data_custom_names = current_data_drifted.copy()
     current_data_custom_names.columns = ["new_feature1_name", "new_feature2_name", "new_category_a_name", "new_target_name"]
-    
+
     ref_data_custom_names = ref_data.copy()
     ref_data_custom_names.columns = ["new_feature1_name", "new_feature2_name", "new_category_a_name", "new_target_name"]
 

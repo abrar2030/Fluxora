@@ -53,7 +53,7 @@ const mockDataService = {
 // Custom hook for data fetching
 export const useDataService = () => {
   const [apiStatus, setApiStatus] = useState({ status: 'loading', version: '' });
-  
+
   useEffect(() => {
     const checkApiStatus = async () => {
       try {
@@ -64,7 +64,7 @@ export const useDataService = () => {
         setApiStatus({ status: 'healthy', version: '1.0.0-fallback' });
       }
     };
-    
+
     checkApiStatus();
   }, []);
 

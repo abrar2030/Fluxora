@@ -52,15 +52,15 @@ const SettingsScreen = ({ navigation }) => {
 
         {/* Placeholder for other settings like Account, Data Usage etc. */}
         <List.Section title="Account">
-            <List.Item 
-                title="Profile" 
-                left={() => <List.Icon icon="account-circle-outline" />} 
-                onPress={() => alert('Navigate to Profile Screen (Not Implemented)')} 
+            <List.Item
+                title="Profile"
+                left={() => <List.Icon icon="account-circle-outline" />}
+                onPress={() => alert('Navigate to Profile Screen (Not Implemented)')}
             />
-            <List.Item 
-                title="Logout" 
-                left={() => <List.Icon icon="logout" />} 
-                onPress={() => alert('Logout Action (Not Implemented)')} 
+            <List.Item
+                title="Logout"
+                left={() => <List.Icon icon="logout" />}
+                onPress={() => alert('Logout Action (Not Implemented)')}
             />
         </List.Section>
 

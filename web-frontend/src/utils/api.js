@@ -10,7 +10,7 @@ const api = {
       version: '1.0.0-static'
     };
   },
-  
+
   getPredictions: async (data) => {
     return mockDataService.generatePredictionData(24);
   }

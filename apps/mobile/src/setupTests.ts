@@ -20,4 +20,4 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
 // Mock the InteractionManager
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(callback => callback()),
-})); 
+}));

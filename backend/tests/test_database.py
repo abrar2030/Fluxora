@@ -262,4 +262,4 @@ def test_foreign_key_constraints(db):
             implementation_difficulty="medium"
         )
         db.add(recommendation)
-        db.commit() 
+        db.commit()

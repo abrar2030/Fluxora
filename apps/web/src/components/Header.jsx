@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  IconButton, 
-  Typography, 
-  Badge, 
-  Avatar, 
-  Box, 
-  Menu, 
-  MenuItem, 
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Badge,
+  Avatar,
+  Box,
+  Menu,
+  MenuItem,
   Tooltip,
   InputBase,
   alpha,
   useTheme
 } from '@mui/material';
-import { 
-  Menu as MenuIcon, 
-  Notifications as NotificationsIcon, 
+import {
+  Menu as MenuIcon,
+  Notifications as NotificationsIcon,
   Search as SearchIcon,
   AccountCircle,
   Settings as SettingsIcon,
@@ -45,9 +45,9 @@ const Header = ({ handleDrawerToggle }) => {
   };
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
+    <AppBar
+      position="fixed"
+      sx={{
         zIndex: theme.zIndex.drawer + 1,
         backgroundColor: 'background.paper',
         color: 'text.primary',
@@ -64,8 +64,8 @@ const Header = ({ handleDrawerToggle }) => {
         >
           <MenuIcon />
         </IconButton>
-        
-        <Box sx={{ 
+
+        <Box sx={{
           position: 'relative',
           borderRadius: 2,
           backgroundColor: alpha(theme.palette.common.black, 0.04),
@@ -81,14 +81,14 @@ const Header = ({ handleDrawerToggle }) => {
             width: 'auto',
           },
         }}>
-          <Box sx={{ 
-            padding: theme.spacing(0, 2), 
-            height: '100%', 
-            position: 'absolute', 
-            pointerEvents: 'none', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center' 
+          <Box sx={{
+            padding: theme.spacing(0, 2),
+            height: '100%',
+            position: 'absolute',
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
             <SearchIcon />
           </Box>
@@ -106,13 +106,13 @@ const Header = ({ handleDrawerToggle }) => {
             }}
           />
         </Box>
-        
+
         <Box sx={{ flexGrow: 1 }} />
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Tooltip title="Notifications">
-            <IconButton 
-              color="inherit" 
+            <IconButton
+              color="inherit"
               onClick={handleNotificationsMenuOpen}
             >
               <Badge badgeContent={4} color="error">
@@ -120,7 +120,7 @@ const Header = ({ handleDrawerToggle }) => {
               </Badge>
             </IconButton>
           </Tooltip>
-          
+
           <Tooltip title="Account">
             <IconButton
               edge="end"
@@ -130,9 +130,9 @@ const Header = ({ handleDrawerToggle }) => {
               color="inherit"
               sx={{ ml: 1 }}
             >
-              <Avatar 
-                sx={{ 
-                  width: 32, 
+              <Avatar
+                sx={{
+                  width: 32,
                   height: 32,
                   backgroundColor: theme.palette.primary.main
                 }}
@@ -143,7 +143,7 @@ const Header = ({ handleDrawerToggle }) => {
           </Tooltip>
         </Box>
       </Toolbar>
-      
+
       {/* Profile Menu */}
       <Menu
         anchorEl={anchorEl}
@@ -172,7 +172,7 @@ const Header = ({ handleDrawerToggle }) => {
           Logout
         </MenuItem>
       </Menu>
-      
+
       {/* Notifications Menu */}
       <Menu
         anchorEl={notificationsAnchorEl}

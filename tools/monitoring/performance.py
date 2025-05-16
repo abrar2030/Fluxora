@@ -8,7 +8,7 @@ import time
 logger = get_logger(__name__)
 alert_handler = AlertHandler()
 
-# --- Core Metrics --- 
+# --- Core Metrics ---
 # Regression Metrics
 MODEL_MAE = Gauge("model_mean_absolute_error", "Model Mean Absolute Error over time")
 MODEL_MSE = Gauge("model_mean_squared_error", "Model Mean Squared Error over time")
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     y_true_reg = [3, -0.5, 2, 7, 4.2, 5.5, 6.1, 2.3, 8.0, 9.5]
     y_pred_reg_good = [2.5, 0.0, 2.1, 7.8, 4.0, 5.0, 6.5, 2.0, 7.5, 9.0]
     y_pred_reg_bad = [1.0, 2.0, 4.0, 5.0, 6.0, 3.0, 4.5, 5.0, 5.5, 6.5]
-    
+
     update_baseline_metric("mae", 0.5) # Set a baseline MAE
     update_baseline_metric("r2_score", 0.9)
 

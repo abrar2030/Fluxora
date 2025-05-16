@@ -164,4 +164,4 @@ def test_user_workflow(client):
     
     # Verify deletion
     final_get_response = client.get(f"/api/users/{user_id}")
-    assert final_get_response.status_code == status.HTTP_404_NOT_FOUND 
+    assert final_get_response.status_code == status.HTTP_404_NOT_FOUND

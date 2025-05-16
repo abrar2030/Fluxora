@@ -88,4 +88,4 @@ describe('Login Component', () => {
       expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
     });
   });
-}); 
+});

@@ -10,4 +10,4 @@ declare namespace jest {
 
 declare const global: {
   ResizeObserver: jest.Mock;
-}; 
+};

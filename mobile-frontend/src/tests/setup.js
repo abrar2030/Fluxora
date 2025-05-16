@@ -51,4 +51,4 @@ jest.mock('react-native-gesture-handler', () => {
     gestureHandlerRootHOC: jest.fn(),
     Directions: {},
   };
-}); 
+});
