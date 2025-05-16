@@ -1,53 +1,55 @@
-import os
-from typing import Dict, Any
+# packages/shared/utils/config.py
+"""Configuration settings for the application."""
 
-def get_config() -> Dict[str, Any]:
-    """
-    Simple configuration function to replace hydra dependency
-    
-    Returns:
-        Dict: Configuration dictionary
-    """
-    # Default configuration
-    config = {
-        "version": "1.0.0",
-        "model_version": "0.1.0-test",
-        "model": {
-            "type": "xgboost",
-            "params": {
-                "max_depth": 6,
-                "eta": 0.3,
-                "objective": "reg:squarederror"
-            }
-        },
-        "api": {
-            "host": "0.0.0.0",
-            "port": 8000
-        },
-        "feature_store": {
-            "path": "./config/feature_store"
-        },
-        "monitoring": {
-            "enabled": True,
-            "drift_threshold": 0.25
-        }
-    }
-    
-    return config
+from packages.shared.utils.logger import get_logger
 
-def save_config(config: Dict[str, Any], path: str):
-    """
-    Save configuration to file
+# Initialize logger for this module
+logger = get_logger(__name__)
+
+# Example column mapping for data drift and other processes
+# This should be customized based on the actual dataset structure
+column_mapping = {
+    "target": "target_variable_name", # Name of the target variable column
+    "prediction": "prediction_score_name", # Name of the prediction score column (if applicable)
+    "datetime": "timestamp_column_name", # Name of the datetime column for time-series data
     
-    Args:
-        config: Configuration dictionary
-        path: Path to save the configuration
-    """
-    import json
+    # List of numerical features
+    "numerical_features": [
+        "feature1", 
+        "feature2", 
+        # ... add other numerical feature names
+    ],
     
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    # List of categorical features
+    "categorical_features": [
+        "category_a", 
+        "category_b",
+        # ... add other categorical feature names
+    ],
     
-    # Save as JSON
-    with open(path, "w") as f:
-        json.dump(config, f, indent=2)
+    # Optional: ID column if applicable
+    "id_column": "unique_identifier_column"
+}
+
+# Example: Model training parameters
+model_params = {
+    "model_type": "RandomForestClassifier", # or "XGBoost", "LightGBM", etc.
+    "random_state": 42,
+    "n_estimators": 100,
+    "max_depth": 10
+}
+
+# Example: API settings
+api_settings = {
+    "host": "0.0.0.0",
+    "port": 8000
+}
+
+# Example: Feature Store settings (if used)
+feature_store_config = {
+    "type": "file_based", # or "feast", "tecton", "in_memory"
+    "path": "data/feature_store_db" # if file_based
+}
+
+logger.info("Configuration loaded.")
+
