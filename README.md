@@ -10,7 +10,7 @@
 Fluxora is an advanced energy forecasting and optimization platform that leverages machine learning to predict energy consumption patterns and optimize resource allocation. The system helps utilities, grid operators, and energy managers make data-driven decisions for improved efficiency and sustainability.
 
 <div align="center">
-  <img src="docs/fluxora_dashboard.png" alt="Fluxora Dashboard" width="80%">
+  <img src="docs/images/Fluxora_dashboard.bmp" alt="Fluxora Dashboard" width="80%">
 </div>
 
 > **Note**: This project is under active development. Features and functionalities are continuously being enhanced to improve accuracy and user experience.
