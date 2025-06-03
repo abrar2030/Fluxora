@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: fluxora
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+      
+      - job_name: 'fluxora-api'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: fluxora-api
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: 8000
+            action: keep
+      
+      - job_name: 'fluxora-prediction'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: fluxora-prediction
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: 8000
+            action: keep
+      
+      - job_name: 'fluxora-data'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: fluxora-data
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: 8000
+            action: keep
+    
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+
+    rule_files:
+      - /etc/prometheus/rules/*.yml

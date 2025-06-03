@@ -1,0 +1,50 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: fluxora-istio-config
+spec:
+  profile: default
+  components:
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: true
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+    pilot:
+      enabled: true
+  values:
+    global:
+      proxy:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      meshID: fluxora-mesh
+      multiCluster:
+        clusterName: fluxora-cluster
+      network: fluxora-network
+    pilot:
+      autoscaleEnabled: true
+      autoscaleMin: 2
+      autoscaleMax: 5
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2048Mi
+    gateways:
+      istio-ingressgateway:
+        autoscaleEnabled: true
+        autoscaleMin: 2
+        autoscaleMax: 5
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 1024Mi
