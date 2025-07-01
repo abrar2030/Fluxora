@@ -1,0 +1,371 @@
+# Financial Standards Compliance Alerting Rules
+# This file contains Prometheus alerting rules for PCI DSS, GDPR, SOC 2, and general financial compliance
+
+groups:
+  # PCI DSS Compliance Rules
+  - name: pci_dss_compliance
+    interval: 30s
+    rules:
+      # PCI DSS Requirement 1: Firewall Configuration
+      - alert: PCIFirewallConfigurationChanged
+        expr: increase(config_changes_total{resource_type="SecurityGroup"}[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: pci-dss
+          pci_requirement: "1"
+          category: network_security
+        annotations:
+          summary: "PCI DSS: Firewall configuration changed"
+          description: "Security group configuration has been modified. This may affect PCI DSS compliance requirement 1."
+          remediation: "Review firewall changes and ensure they comply with PCI DSS requirements"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-firewall"
+
+      # PCI DSS Requirement 2: Default Passwords
+      - alert: PCIDefaultPasswordDetected
+        expr: default_credentials_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: pci-dss
+          pci_requirement: "2"
+          category: authentication
+        annotations:
+          summary: "PCI DSS: Default credentials detected"
+          description: "Default passwords or credentials detected in the system"
+          remediation: "Change all default passwords immediately"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-credentials"
+
+      # PCI DSS Requirement 3: Cardholder Data Protection
+      - alert: PCIUnencryptedCardholderData
+        expr: unencrypted_cardholder_data_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: pci-dss
+          pci_requirement: "3"
+          category: data_protection
+        annotations:
+          summary: "PCI DSS: Unencrypted cardholder data detected"
+          description: "Unencrypted cardholder data has been detected in storage or transmission"
+          remediation: "Encrypt all cardholder data immediately"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-encryption"
+
+      # PCI DSS Requirement 4: Encryption in Transit
+      - alert: PCIUnencryptedTransmission
+        expr: unencrypted_transmission_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: pci-dss
+          pci_requirement: "4"
+          category: data_transmission
+        annotations:
+          summary: "PCI DSS: Unencrypted data transmission detected"
+          description: "Cardholder data transmitted without encryption"
+          remediation: "Enable TLS/SSL for all cardholder data transmissions"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-transmission"
+
+      # PCI DSS Requirement 8: User Authentication
+      - alert: PCIWeakAuthentication
+        expr: weak_authentication_detected > 0
+        for: 0m
+        labels:
+          severity: warning
+          compliance: pci-dss
+          pci_requirement: "8"
+          category: authentication
+        annotations:
+          summary: "PCI DSS: Weak authentication mechanism detected"
+          description: "Weak or insufficient authentication mechanisms in use"
+          remediation: "Implement strong authentication controls"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-authentication"
+
+      # PCI DSS Requirement 10: Access Logging
+      - alert: PCIAccessLogMissing
+        expr: rate(access_log_entries_total[5m]) == 0
+        for: 2m
+        labels:
+          severity: warning
+          compliance: pci-dss
+          pci_requirement: "10"
+          category: logging
+        annotations:
+          summary: "PCI DSS: Access logging not functioning"
+          description: "No access log entries detected for cardholder data systems"
+          remediation: "Verify and restore access logging functionality"
+          runbook_url: "https://wiki.fluxora.com/runbooks/pci-dss-logging"
+
+  # GDPR Compliance Rules
+  - name: gdpr_compliance
+    interval: 30s
+    rules:
+      # GDPR Data Breach Detection
+      - alert: GDPRDataBreachDetected
+        expr: data_breach_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: gdpr
+          category: data_breach
+          data_category: personal_data
+        annotations:
+          summary: "GDPR: Potential data breach detected"
+          description: "Unauthorized access to personal data detected"
+          data_protection_impact: "High - Personal data may have been compromised"
+          remediation: "Initiate data breach response procedure within 72 hours"
+          runbook_url: "https://wiki.fluxora.com/runbooks/gdpr-breach-response"
+
+      # GDPR Data Retention Violation
+      - alert: GDPRDataRetentionViolation
+        expr: data_retention_violation_detected > 0
+        for: 0m
+        labels:
+          severity: warning
+          compliance: gdpr
+          category: data_retention
+          data_category: personal_data
+        annotations:
+          summary: "GDPR: Data retention policy violation"
+          description: "Personal data retained beyond permitted period"
+          data_protection_impact: "Medium - Data retention compliance issue"
+          remediation: "Review and delete data exceeding retention period"
+          runbook_url: "https://wiki.fluxora.com/runbooks/gdpr-retention"
+
+      # GDPR Consent Management
+      - alert: GDPRConsentViolation
+        expr: consent_violation_detected > 0
+        for: 0m
+        labels:
+          severity: warning
+          compliance: gdpr
+          category: consent_management
+          data_category: personal_data
+        annotations:
+          summary: "GDPR: Consent management violation"
+          description: "Processing personal data without valid consent"
+          data_protection_impact: "Medium - Consent compliance issue"
+          remediation: "Verify consent status and cease processing if invalid"
+          runbook_url: "https://wiki.fluxora.com/runbooks/gdpr-consent"
+
+      # GDPR Data Subject Rights
+      - alert: GDPRDataSubjectRequestOverdue
+        expr: overdue_data_subject_requests > 0
+        for: 0m
+        labels:
+          severity: warning
+          compliance: gdpr
+          category: data_subject_rights
+        annotations:
+          summary: "GDPR: Data subject request overdue"
+          description: "Data subject request not processed within 30-day limit"
+          data_protection_impact: "Medium - Data subject rights compliance"
+          remediation: "Process pending data subject requests immediately"
+          runbook_url: "https://wiki.fluxora.com/runbooks/gdpr-data-subject-rights"
+
+  # SOC 2 Trust Service Criteria Rules
+  - name: soc2_compliance
+    interval: 30s
+    rules:
+      # SOC 2 Security Criteria
+      - alert: SOC2SecurityControlFailure
+        expr: security_control_failure_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: soc2
+          trust_criteria: security
+          category: access_control
+        annotations:
+          summary: "SOC 2: Security control failure"
+          description: "Critical security control has failed or been bypassed"
+          control_objective: "Logical and physical access controls"
+          remediation: "Investigate and restore security controls immediately"
+          runbook_url: "https://wiki.fluxora.com/runbooks/soc2-security"
+
+      # SOC 2 Availability Criteria
+      - alert: SOC2AvailabilityBreach
+        expr: (up{job=~"fluxora-.*"} == 0) or (rate(http_requests_total{status=~"5.."}[5m]) > 0.1)
+        for: 2m
+        labels:
+          severity: critical
+          compliance: soc2
+          trust_criteria: availability
+          category: system_availability
+        annotations:
+          summary: "SOC 2: System availability compromised"
+          description: "System availability below committed levels"
+          control_objective: "System availability and performance monitoring"
+          remediation: "Restore system availability and investigate root cause"
+          runbook_url: "https://wiki.fluxora.com/runbooks/soc2-availability"
+
+      # SOC 2 Processing Integrity
+      - alert: SOC2ProcessingIntegrityFailure
+        expr: data_processing_integrity_failure > 0
+        for: 0m
+        labels:
+          severity: warning
+          compliance: soc2
+          trust_criteria: processing_integrity
+          category: data_processing
+        annotations:
+          summary: "SOC 2: Processing integrity failure"
+          description: "Data processing integrity controls have failed"
+          control_objective: "System processing integrity"
+          remediation: "Verify data processing accuracy and completeness"
+          runbook_url: "https://wiki.fluxora.com/runbooks/soc2-processing-integrity"
+
+      # SOC 2 Confidentiality
+      - alert: SOC2ConfidentialityBreach
+        expr: confidential_data_exposure_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: soc2
+          trust_criteria: confidentiality
+          category: data_confidentiality
+        annotations:
+          summary: "SOC 2: Confidentiality breach detected"
+          description: "Confidential information has been exposed or accessed inappropriately"
+          control_objective: "Confidential information protection"
+          remediation: "Investigate exposure and implement containment measures"
+          runbook_url: "https://wiki.fluxora.com/runbooks/soc2-confidentiality"
+
+  # General Security Rules
+  - name: security_monitoring
+    interval: 15s
+    rules:
+      # Unauthorized Access Attempts
+      - alert: UnauthorizedAccessAttempt
+        expr: increase(failed_login_attempts_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+          category: security
+          type: authentication_failure
+        annotations:
+          summary: "Multiple failed login attempts detected"
+          description: "{{ $value }} failed login attempts in the last 5 minutes from {{ $labels.instance }}"
+          remediation: "Investigate potential brute force attack"
+          runbook_url: "https://wiki.fluxora.com/runbooks/failed-logins"
+
+      # Malware Detection
+      - alert: MalwareDetected
+        expr: malware_detected > 0
+        for: 0m
+        labels:
+          severity: critical
+          category: security
+          type: malware
+        annotations:
+          summary: "Malware detected on system"
+          description: "Malware has been detected on {{ $labels.instance }}"
+          remediation: "Isolate system and initiate malware removal procedures"
+          runbook_url: "https://wiki.fluxora.com/runbooks/malware-response"
+
+      # Suspicious Network Activity
+      - alert: SuspiciousNetworkActivity
+        expr: increase(suspicious_network_connections_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+          type: network_anomaly
+        annotations:
+          summary: "Suspicious network activity detected"
+          description: "Unusual network connections detected from {{ $labels.instance }}"
+          remediation: "Investigate network traffic and potential data exfiltration"
+          runbook_url: "https://wiki.fluxora.com/runbooks/network-anomaly"
+
+  # Infrastructure Health Rules
+  - name: infrastructure_health
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          type: cpu
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% on {{ $labels.instance }}"
+          remediation: "Investigate high CPU usage and scale resources if needed"
+          dashboard_url: "https://grafana.fluxora.com/d/node-exporter/node-exporter"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          type: memory
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% on {{ $labels.instance }}"
+          remediation: "Investigate memory usage and scale resources if needed"
+          dashboard_url: "https://grafana.fluxora.com/d/node-exporter/node-exporter"
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: storage
+          type: disk_space
+        annotations:
+          summary: "Low disk space detected"
+          description: "Disk space is below 10% on {{ $labels.instance }} filesystem {{ $labels.mountpoint }}"
+          remediation: "Clean up disk space or expand storage capacity"
+          dashboard_url: "https://grafana.fluxora.com/d/node-exporter/node-exporter"
+
+  # Application Performance Rules
+  - name: application_performance
+    interval: 30s
+    rules:
+      # High Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+          type: latency
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 2 seconds for {{ $labels.service }}"
+          remediation: "Investigate application performance issues"
+          dashboard_url: "https://grafana.fluxora.com/d/application/application-performance"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: reliability
+          type: error_rate
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for {{ $labels.service }}"
+          remediation: "Investigate application errors and fix underlying issues"
+          dashboard_url: "https://grafana.fluxora.com/d/application/application-performance"
+
+      # Low Throughput
+      - alert: LowThroughput
+        expr: rate(http_requests_total[5m]) < 10
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+          type: throughput
+        annotations:
+          summary: "Low throughput detected"
+          description: "Request throughput is below 10 requests/second for {{ $labels.service }}"
+          remediation: "Investigate low traffic or potential service issues"
+          dashboard_url: "https://grafana.fluxora.com/d/application/application-performance"
+

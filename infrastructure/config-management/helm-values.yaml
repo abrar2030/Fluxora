@@ -1,0 +1,626 @@
+# Helm Values Configuration for Financial Standards Compliance
+# This file provides environment-specific configurations for the Fluxora application
+
+# Global Configuration
+global:
+  # Application Metadata
+  appName: fluxora
+  version: "1.0.0"
+  environment: production  # Override per environment
+  
+  # Compliance and Security
+  compliance:
+    frameworks: ["pci-dss", "gdpr", "soc2"]
+    dataClassification: "restricted"
+    auditLogging: true
+    encryptionRequired: true
+  
+  # Image Configuration
+  imageRegistry: "ghcr.io/fluxora"
+  imagePullPolicy: "Always"
+  imagePullSecrets: "fluxora-registry-secret"
+  
+  # Networking
+  domain: "fluxora.com"
+  tlsEnabled: true
+  ingressClass: "nginx"
+  
+  # Storage
+  storageClass: "gp3-encrypted"
+  backupEnabled: true
+  
+  # Monitoring
+  monitoring:
+    enabled: true
+    namespace: "monitoring"
+    prometheus:
+      enabled: true
+      retention: "90d"
+    grafana:
+      enabled: true
+    alertmanager:
+      enabled: true
+  
+  # Logging
+  logging:
+    enabled: true
+    namespace: "logging"
+    elasticsearch:
+      enabled: true
+      retention: "2555d"  # 7 years for compliance
+    kibana:
+      enabled: true
+    logstash:
+      enabled: true
+
+# Backend Service Configuration
+backend:
+  # Deployment Configuration
+  replicaCount: 3
+  minReplicas: 3
+  maxReplicas: 50
+  
+  # Image Configuration
+  image:
+    repository: "ghcr.io/fluxora/backend"
+    tag: "latest"
+    pullPolicy: "Always"
+  
+  # Service Configuration
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:us-east-1:ACCOUNT:certificate/CERT-ID"
+  
+  # Ingress Configuration
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+      nginx.ingress.kubernetes.io/rate-limit: "100"
+      nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+    - host: api.fluxora.com
+      paths:
+      - path: /
+        pathType: Prefix
+    tls:
+    - secretName: api-fluxora-com-tls
+      hosts:
+      - api.fluxora.com
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+      ephemeral-storage: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+      ephemeral-storage: 1Gi
+  
+  # Auto-scaling Configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 70
+    metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: requests_per_second
+        target:
+          type: AverageValue
+          averageValue: 500
+  
+  # Security Configuration
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+  
+  # Health Checks
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  startupProbe:
+    httpGet:
+      path: /health/startup
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 30
+  
+  # Environment Variables
+  env:
+    NODE_ENV: "production"
+    LOG_LEVEL: "INFO"
+    LOG_FORMAT: "json"
+    METRICS_ENABLED: "true"
+    TRACING_ENABLED: "true"
+    AUDIT_LOGGING: "true"
+    COMPLIANCE_MODE: "financial"
+    PCI_DSS_MODE: "true"
+    GDPR_MODE: "true"
+    SOC2_MODE: "true"
+  
+  # Volume Mounts
+  volumeMounts:
+  - name: tmp-volume
+    mountPath: /tmp
+  - name: app-cache
+    mountPath: /app/cache
+  - name: app-logs
+    mountPath: /app/logs
+  - name: app-config
+    mountPath: /app/config
+    readOnly: true
+  
+  # Volumes
+  volumes:
+  - name: tmp-volume
+    emptyDir:
+      sizeLimit: 1Gi
+  - name: app-cache
+    emptyDir:
+      sizeLimit: 2Gi
+  - name: app-logs
+    emptyDir:
+      sizeLimit: 1Gi
+  - name: app-config
+    configMap:
+      name: backend-config
+
+# Frontend Service Configuration
+frontend:
+  # Deployment Configuration
+  replicaCount: 3
+  minReplicas: 3
+  maxReplicas: 20
+  
+  # Image Configuration
+  image:
+    repository: "ghcr.io/fluxora/frontend"
+    tag: "latest"
+    pullPolicy: "Always"
+  
+  # Service Configuration
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  
+  # Ingress Configuration
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+      nginx.ingress.kubernetes.io/rate-limit: "1000"
+      nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+    - host: fluxora.com
+      paths:
+      - path: /
+        pathType: Prefix
+    - host: www.fluxora.com
+      paths:
+      - path: /
+        pathType: Prefix
+    tls:
+    - secretName: fluxora-com-tls
+      hosts:
+      - fluxora.com
+      - www.fluxora.com
+  
+  # Resource Configuration
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  
+  # Auto-scaling Configuration
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Database Configuration
+database:
+  # MySQL Configuration
+  mysql:
+    enabled: true
+    architecture: "replication"
+    auth:
+      rootPassword: ""  # Set via secret
+      username: "fluxora"
+      password: ""  # Set via secret
+      database: "fluxora"
+    
+    primary:
+      persistence:
+        enabled: true
+        storageClass: "io2-encrypted-database"
+        size: 500Gi
+      resources:
+        limits:
+          cpu: 4000m
+          memory: 8Gi
+        requests:
+          cpu: 2000m
+          memory: 4Gi
+    
+    secondary:
+      replicaCount: 2
+      persistence:
+        enabled: true
+        storageClass: "io2-encrypted-database"
+        size: 500Gi
+      resources:
+        limits:
+          cpu: 2000m
+          memory: 4Gi
+        requests:
+          cpu: 1000m
+          memory: 2Gi
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: "monitoring"
+  
+  # Redis Configuration
+  redis:
+    enabled: true
+    architecture: "replication"
+    auth:
+      enabled: true
+      password: ""  # Set via secret
+    
+    master:
+      persistence:
+        enabled: true
+        storageClass: "gp3-encrypted-cache"
+        size: 50Gi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 3Gi
+        requests:
+          cpu: 500m
+          memory: 2Gi
+    
+    replica:
+      replicaCount: 2
+      persistence:
+        enabled: true
+        storageClass: "gp3-encrypted-cache"
+        size: 50Gi
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 3Gi
+        requests:
+          cpu: 500m
+          memory: 2Gi
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        namespace: "monitoring"
+
+# Security Configuration
+security:
+  # Network Policies
+  networkPolicies:
+    enabled: true
+    ingress:
+      enabled: true
+      allowedNamespaces: ["ingress-nginx", "monitoring"]
+    egress:
+      enabled: true
+      allowedDestinations: ["database", "cache", "external-apis"]
+  
+  # Pod Security Standards
+  podSecurityStandards:
+    enforced: true
+    level: "restricted"
+    version: "latest"
+  
+  # Service Mesh (Istio)
+  serviceMesh:
+    enabled: true
+    mtls:
+      mode: "STRICT"
+    authorizationPolicies:
+      enabled: true
+  
+  # Secrets Management
+  secretsManagement:
+    provider: "vault"
+    vaultAddress: "https://vault.encryption.svc.cluster.local:8200"
+    authMethod: "kubernetes"
+    role: "fluxora-app"
+
+# Monitoring Configuration
+monitoring:
+  # Prometheus
+  prometheus:
+    enabled: true
+    retention: "90d"
+    storageClass: "gp3-encrypted"
+    storageSize: "100Gi"
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 8Gi
+      requests:
+        cpu: 1000m
+        memory: 4Gi
+    
+    # Service Monitors
+    serviceMonitors:
+      backend: true
+      frontend: true
+      database: true
+      cache: true
+  
+  # Grafana
+  grafana:
+    enabled: true
+    adminPassword: ""  # Set via secret
+    persistence:
+      enabled: true
+      storageClass: "gp3-encrypted"
+      size: "10Gi"
+    
+    # Dashboards
+    dashboards:
+      enabled: true
+      provider:
+        folder: "/var/lib/grafana/dashboards"
+        type: "file"
+  
+  # Alertmanager
+  alertmanager:
+    enabled: true
+    config:
+      global:
+        smtp_smarthost: "smtp.fluxora.com:587"
+        smtp_from: "alerts@fluxora.com"
+      route:
+        group_by: ["alertname", "cluster", "service"]
+        group_wait: "30s"
+        group_interval: "5m"
+        repeat_interval: "4h"
+        receiver: "default"
+      receivers:
+      - name: "default"
+        slack_configs:
+        - api_url: ""  # Set via secret
+          channel: "#alerts"
+          title: "{{ .Status | toUpper }}: {{ .CommonLabels.alertname }}"
+
+# Logging Configuration
+logging:
+  # Elasticsearch
+  elasticsearch:
+    enabled: true
+    replicas: 3
+    persistence:
+      enabled: true
+      storageClass: "gp3-encrypted"
+      size: "100Gi"
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+  
+  # Kibana
+  kibana:
+    enabled: true
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+  
+  # Logstash
+  logstash:
+    enabled: true
+    replicas: 2
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+# Backup Configuration
+backup:
+  # Velero
+  velero:
+    enabled: true
+    provider: "aws"
+    bucket: "fluxora-disaster-recovery-backups"
+    region: "us-east-1"
+    kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/BACKUP-KEY-ID"
+    
+    schedules:
+      daily:
+        schedule: "0 2 * * *"
+        ttl: "2555h"  # 7 years
+      hourly:
+        schedule: "0 * * * *"
+        ttl: "168h"   # 7 days
+  
+  # Database Backups
+  database:
+    mysql:
+      enabled: true
+      schedule: "0 1 * * *"
+      retention: "2555d"  # 7 years
+      encryption: true
+    redis:
+      enabled: true
+      schedule: "0 3 * * *"
+      retention: "30d"
+      encryption: true
+
+# Compliance Configuration
+compliance:
+  # Audit Logging
+  auditLogging:
+    enabled: true
+    retention: "2555d"  # 7 years
+    encryption: true
+    
+  # Data Retention Policies
+  dataRetention:
+    logs: "2555d"      # 7 years
+    metrics: "90d"     # 3 months
+    traces: "30d"      # 1 month
+    backups: "2555d"   # 7 years
+  
+  # Compliance Reporting
+  reporting:
+    enabled: true
+    schedule: "0 0 1 * *"  # Monthly
+    recipients:
+    - "compliance@fluxora.com"
+    - "security@fluxora.com"
+  
+  # Data Classification
+  dataClassification:
+    default: "internal"
+    sensitive: "confidential"
+    financial: "restricted"
+
+# Environment-Specific Overrides
+environments:
+  development:
+    global:
+      environment: "development"
+      domain: "dev.fluxora.com"
+    backend:
+      replicaCount: 1
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 2Gi
+        requests:
+          cpu: 500m
+          memory: 1Gi
+    database:
+      mysql:
+        primary:
+          persistence:
+            size: 50Gi
+        secondary:
+          replicaCount: 1
+    monitoring:
+      prometheus:
+        retention: "7d"
+    logging:
+      elasticsearch:
+        replicas: 1
+    compliance:
+      dataRetention:
+        logs: "7d"
+        metrics: "7d"
+        traces: "7d"
+  
+  staging:
+    global:
+      environment: "staging"
+      domain: "staging.fluxora.com"
+    backend:
+      replicaCount: 2
+      resources:
+        limits:
+          cpu: 1500m
+          memory: 3Gi
+        requests:
+          cpu: 750m
+          memory: 1.5Gi
+    database:
+      mysql:
+        primary:
+          persistence:
+            size: 100Gi
+        secondary:
+          replicaCount: 1
+    monitoring:
+      prometheus:
+        retention: "30d"
+    logging:
+      elasticsearch:
+        replicas: 2
+    compliance:
+      dataRetention:
+        logs: "30d"
+        metrics: "30d"
+        traces: "30d"
+  
+  production:
+    global:
+      environment: "production"
+      domain: "fluxora.com"
+    # Production uses default values defined above
+

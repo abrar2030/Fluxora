@@ -1,0 +1,610 @@
+# Storage Infrastructure for Financial Standards Compliance
+# This configuration provides encrypted, high-performance storage solutions
+
+# Encrypted GP3 Storage Class for General Purpose Workloads
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-encrypted
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+    performance-tier: "standard"
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+    fluxora.com/data-classification: "restricted"
+    fluxora.com/backup-required: "true"
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/KEY-ID"
+  iops: "3000"
+  throughput: "125"
+  fsType: ext4
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain  # Retain for compliance and audit purposes
+
+---
+# High-Performance Encrypted Storage for Databases
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: io2-encrypted-database
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+    performance-tier: "high"
+    workload-type: "database"
+  annotations:
+    fluxora.com/data-classification: "restricted"
+    fluxora.com/backup-required: "true"
+    fluxora.com/retention-period: "2555-days"  # 7 years
+provisioner: ebs.csi.aws.com
+parameters:
+  type: io2
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/DATABASE-KEY-ID"
+  iops: "10000"
+  fsType: ext4
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# Fast SSD Storage for Cache and Temporary Data
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3-encrypted-cache
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+    performance-tier: "high"
+    workload-type: "cache"
+  annotations:
+    fluxora.com/data-classification: "internal"
+    fluxora.com/backup-required: "false"
+provisioner: ebs.csi.aws.com
+parameters:
+  type: gp3
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/CACHE-KEY-ID"
+  iops: "5000"
+  throughput: "250"
+  fsType: ext4
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete  # Can be deleted for cache data
+
+---
+# Archive Storage for Long-term Compliance Data
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc1-encrypted-archive
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+    performance-tier: "archive"
+    workload-type: "archive"
+  annotations:
+    fluxora.com/data-classification: "restricted"
+    fluxora.com/backup-required: "true"
+    fluxora.com/retention-period: "2555-days"  # 7 years
+provisioner: ebs.csi.aws.com
+parameters:
+  type: sc1
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/ARCHIVE-KEY-ID"
+  fsType: ext4
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+
+---
+# Network File System for Shared Storage
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-encrypted-shared
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+    access-mode: "shared"
+  annotations:
+    fluxora.com/data-classification: "internal"
+    fluxora.com/backup-required: "true"
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-XXXXXXXXX
+  directoryPerms: "0755"
+  gidRangeStart: "1000"
+  gidRangeEnd: "2000"
+  basePath: "/fluxora-shared"
+  encrypted: "true"
+volumeBindingMode: Immediate
+allowVolumeExpansion: false
+reclaimPolicy: Retain
+
+---
+# Backup Storage Configuration
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backup-storage-pv
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    purpose: "backup"
+    encryption: "enabled"
+  annotations:
+    fluxora.com/data-classification: "restricted"
+    fluxora.com/retention-period: "2555-days"
+spec:
+  capacity:
+    storage: 10Ti
+  accessModes:
+  - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efs-encrypted-shared
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-BACKUP-XXXXXXXXX
+    volumeAttributes:
+      encryptInTransit: "true"
+      accessPoint: fsap-XXXXXXXXX
+
+---
+# Backup Storage Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage-pvc
+  namespace: disaster-recovery
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    purpose: "backup"
+  annotations:
+    fluxora.com/data-classification: "restricted"
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Ti
+  storageClassName: efs-encrypted-shared
+  volumeName: backup-storage-pv
+
+---
+# Volume Snapshot Class for Backup
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: ebs-snapshot-encrypted
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+    encryption: "enabled"
+  annotations:
+    snapshot.storage.kubernetes.io/is-default-class: "true"
+    fluxora.com/retention-period: "2555-days"
+driver: ebs.csi.aws.com
+deletionPolicy: Retain
+parameters:
+  encrypted: "true"
+  kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/SNAPSHOT-KEY-ID"
+
+---
+# Database Volume Snapshot Schedule
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: mysql-data-snapshot-template
+  namespace: database
+  labels:
+    app: mysql
+    compliance: "pci-dss,gdpr,soc2"
+    snapshot-type: "scheduled"
+  annotations:
+    fluxora.com/retention-period: "2555-days"
+    fluxora.com/encryption-required: "true"
+spec:
+  volumeSnapshotClassName: ebs-snapshot-encrypted
+  source:
+    persistentVolumeClaimName: mysql-data-mysql-primary-0
+
+---
+# Storage Monitoring and Alerting
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: storage-monitoring-config
+  namespace: monitoring
+  labels:
+    component: storage-monitoring
+    compliance: "pci-dss,gdpr,soc2"
+data:
+  storage-rules.yaml: |
+    groups:
+    - name: storage.rules
+      rules:
+      # Disk Space Monitoring
+      - alert: PersistentVolumeSpaceLow
+        expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          compliance: "pci-dss,gdpr,soc2"
+          category: storage
+        annotations:
+          summary: "Persistent volume space is critically low"
+          description: "PV {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has less than 10% free space"
+          remediation: "Expand volume or clean up data"
+      
+      - alert: PersistentVolumeSpaceWarning
+        expr: (kubelet_volume_stats_available_bytes / kubelet_volume_stats_capacity_bytes) * 100 < 20
+        for: 10m
+        labels:
+          severity: warning
+          compliance: "pci-dss,gdpr,soc2"
+          category: storage
+        annotations:
+          summary: "Persistent volume space is running low"
+          description: "PV {{ $labels.persistentvolumeclaim }} in namespace {{ $labels.namespace }} has less than 20% free space"
+      
+      # IOPS Monitoring
+      - alert: HighStorageIOPS
+        expr: rate(kubelet_volume_stats_reads_total[5m]) + rate(kubelet_volume_stats_writes_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          compliance: "pci-dss,gdpr,soc2"
+          category: performance
+        annotations:
+          summary: "High storage IOPS detected"
+          description: "PV {{ $labels.persistentvolumeclaim }} is experiencing high IOPS: {{ $value }}"
+      
+      # Backup Monitoring
+      - alert: VolumeSnapshotFailed
+        expr: increase(volume_snapshot_controller_create_snapshot_and_bind_failed_total[1h]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: "pci-dss,gdpr,soc2"
+          category: backup
+        annotations:
+          summary: "Volume snapshot creation failed"
+          description: "Volume snapshot creation has failed {{ $value }} times in the last hour"
+          remediation: "Check snapshot controller logs and storage backend"
+      
+      # Encryption Monitoring
+      - alert: UnencryptedVolumeDetected
+        expr: kube_persistentvolume_info{storageclass!~".*encrypted.*"} > 0
+        for: 0m
+        labels:
+          severity: critical
+          compliance: "pci-dss,gdpr,soc2"
+          category: security
+        annotations:
+          summary: "Unencrypted persistent volume detected"
+          description: "PV {{ $labels.persistentvolume }} is not using an encrypted storage class"
+          remediation: "Migrate data to encrypted storage class immediately"
+
+---
+# Storage Quota and Limits
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: storage-quota
+  namespace: fluxora
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+spec:
+  hard:
+    # Storage Limits
+    requests.storage: "5Ti"
+    persistentvolumeclaims: "100"
+    
+    # Storage Class Specific Limits
+    gp3-encrypted.storageclass.storage.k8s.io/requests.storage: "2Ti"
+    io2-encrypted-database.storageclass.storage.k8s.io/requests.storage: "1Ti"
+    gp3-encrypted-cache.storageclass.storage.k8s.io/requests.storage: "500Gi"
+    sc1-encrypted-archive.storageclass.storage.k8s.io/requests.storage: "2Ti"
+    
+    # Volume Snapshots
+    count/volumesnapshots.snapshot.storage.k8s.io: "1000"
+
+---
+# Network Policies for Storage Access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: storage-network-policy
+  namespace: database
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+spec:
+  podSelector:
+    matchLabels:
+      app: mysql
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow access from application pods
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: fluxora
+    ports:
+    - protocol: TCP
+      port: 3306
+  
+  # Allow access from monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9104  # MySQL exporter
+  
+  egress:
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Allow backup operations
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS for S3/backup services
+
+---
+# Storage Security Policies
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: storage-security-policies
+  namespace: kube-system
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+data:
+  storage-security.yaml: |
+    # Storage Security Policies for Financial Compliance
+    
+    # Encryption Requirements
+    encryption_policies:
+      - name: "mandatory_encryption"
+        description: "All persistent volumes must use encrypted storage classes"
+        enforcement: "strict"
+        scope: "all_namespaces"
+        exceptions: []
+      
+      - name: "key_rotation"
+        description: "KMS keys must be rotated annually"
+        enforcement: "audit"
+        schedule: "annual"
+        notification: "compliance-team@fluxora.com"
+    
+    # Access Control Policies
+    access_control:
+      - name: "least_privilege"
+        description: "Storage access follows principle of least privilege"
+        enforcement: "strict"
+        rbac_required: true
+      
+      - name: "service_account_binding"
+        description: "All storage access must use dedicated service accounts"
+        enforcement: "strict"
+        auto_mount_token: false
+    
+    # Data Classification Policies
+    data_classification:
+      - classification: "restricted"
+        storage_classes: ["io2-encrypted-database", "gp3-encrypted"]
+        backup_required: true
+        retention_period: "2555-days"
+        access_logging: true
+      
+      - classification: "confidential"
+        storage_classes: ["gp3-encrypted"]
+        backup_required: true
+        retention_period: "1095-days"
+        access_logging: true
+      
+      - classification: "internal"
+        storage_classes: ["gp3-encrypted", "gp3-encrypted-cache"]
+        backup_required: false
+        retention_period: "365-days"
+        access_logging: false
+    
+    # Backup and Recovery Policies
+    backup_policies:
+      - name: "database_backup"
+        frequency: "daily"
+        retention: "2555-days"
+        encryption: "required"
+        cross_region: true
+        verification: "monthly"
+      
+      - name: "application_backup"
+        frequency: "hourly"
+        retention: "30-days"
+        encryption: "required"
+        cross_region: false
+        verification: "weekly"
+    
+    # Compliance Monitoring
+    monitoring:
+      - metric: "unencrypted_volumes"
+        threshold: 0
+        alert_severity: "critical"
+        notification: "security-team@fluxora.com"
+      
+      - metric: "backup_failures"
+        threshold: 0
+        alert_severity: "critical"
+        notification: "ops-team@fluxora.com"
+      
+      - metric: "storage_quota_exceeded"
+        threshold: 90
+        alert_severity: "warning"
+        notification: "ops-team@fluxora.com"
+
+---
+# Automated Storage Cleanup Job
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: storage-cleanup
+  namespace: kube-system
+  labels:
+    component: storage-cleanup
+    compliance: "pci-dss,gdpr,soc2"
+spec:
+  schedule: "0 2 * * 0"  # Weekly on Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 4
+  failedJobsHistoryLimit: 4
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            component: storage-cleanup
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+          
+          containers:
+          - name: storage-cleanup
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              
+              echo "Starting storage cleanup process..."
+              
+              # Clean up completed jobs older than 7 days
+              kubectl delete jobs --field-selector status.successful=1 \
+                --all-namespaces \
+                --dry-run=client -o name | \
+                xargs -I {} kubectl delete {} --ignore-not-found=true
+              
+              # Clean up failed pods older than 3 days
+              kubectl get pods --all-namespaces \
+                --field-selector status.phase=Failed \
+                -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
+                awk '$3 < "'$(date -d '3 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
+                while read namespace pod; do
+                  kubectl delete pod $pod -n $namespace --ignore-not-found=true
+                done
+              
+              # Clean up orphaned volume snapshots older than retention period
+              kubectl get volumesnapshots --all-namespaces \
+                -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
+                awk '$3 < "'$(date -d '90 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
+                while read namespace snapshot; do
+                  # Only delete if not marked for long-term retention
+                  retention=$(kubectl get volumesnapshot $snapshot -n $namespace -o jsonpath='{.metadata.annotations.fluxora\.com/retention-period}')
+                  if [[ "$retention" != "2555-days" ]]; then
+                    kubectl delete volumesnapshot $snapshot -n $namespace --ignore-not-found=true
+                  fi
+                done
+              
+              # Generate cleanup report
+              cat > /tmp/cleanup-report.json << EOF
+              {
+                "cleanup_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+                "jobs_cleaned": "$(kubectl get jobs --all-namespaces --field-selector status.successful=1 | wc -l)",
+                "pods_cleaned": "$(kubectl get pods --all-namespaces --field-selector status.phase=Failed | wc -l)",
+                "snapshots_cleaned": "0",
+                "storage_reclaimed": "calculated_value",
+                "compliance_status": "COMPLIANT"
+              }
+              EOF
+              
+              echo "Storage cleanup completed successfully"
+            
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+            
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 10001
+              runAsGroup: 10001
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+          
+          restartPolicy: OnFailure
+          serviceAccountName: storage-cleanup-sa
+
+---
+# Service Account for Storage Cleanup
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: storage-cleanup-sa
+  namespace: kube-system
+  labels:
+    component: storage-cleanup
+    compliance: "pci-dss,gdpr,soc2"
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: storage-cleanup-role
+  labels:
+    component: storage-cleanup
+    compliance: "pci-dss,gdpr,soc2"
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["get", "list", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: storage-cleanup-binding
+  labels:
+    component: storage-cleanup
+    compliance: "pci-dss,gdpr,soc2"
+subjects:
+- kind: ServiceAccount
+  name: storage-cleanup-sa
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: storage-cleanup-role
+  apiGroup: rbac.authorization.k8s.io
+

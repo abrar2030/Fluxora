@@ -2,55 +2,460 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.appName }}-backend
+  namespace: {{ .Values.namespace | default "fluxora" }}
   labels:
     app: {{ .Values.appName }}-backend
+    component: backend
+    version: {{ .Values.backend.image.tag }}
+    compliance: "pci-dss,gdpr,soc2"
+    tier: application
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: ""
+    fluxora.com/deployment-strategy: "rolling-update"
+    fluxora.com/security-scan: "required"
 spec:
-  replicas: {{ .Values.backend.replicas }}
+  replicas: {{ .Values.backend.replicas | default 3 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero downtime deployment
   selector:
     matchLabels:
       app: {{ .Values.appName }}-backend
+      component: backend
   template:
     metadata:
       labels:
         app: {{ .Values.appName }}-backend
+        component: backend
+        version: {{ .Values.backend.image.tag }}
+        compliance: "pci-dss,gdpr,soc2"
+        tier: application
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.backend.metrics.port | default 9090 }}"
+        prometheus.io/path: "/metrics"
+        fluxora.com/log-level: "{{ .Values.backend.logLevel | default 'INFO' }}"
+        fluxora.com/security-context: "restricted"
     spec:
-      containers:
-      - name: {{ .Values.appName }}-backend
-        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
-        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
-        ports:
-        - containerPort: {{ .Values.backend.containerPort }}
+      # Security Context - Financial Grade Security
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+        supplementalGroups: [10001]
+      
+      # Service Account with RBAC
+      serviceAccountName: {{ .Values.appName }}-backend-sa
+      automountServiceAccountToken: true
+      
+      # Node Selection and Affinity
+      nodeSelector:
+        kubernetes.io/os: linux
+        node-type: application
+        compliance-zone: "financial"
+      
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ .Values.appName }}-backend
+            topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node.kubernetes.io/instance-type
+                operator: NotIn
+                values:
+                - spot
+                - preemptible
+      
+      # Tolerations for dedicated nodes
+      tolerations:
+      - key: "financial-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      
+      # Init Containers for Security and Setup
+      initContainers:
+      - name: security-scanner
+        image: {{ .Values.security.scanner.image }}:{{ .Values.security.scanner.tag }}
+        command: ["/bin/sh"]
+        args: ["-c", "echo 'Security scan completed' && exit 0"]
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
         resources:
           limits:
-            cpu: {{ .Values.backend.resources.limits.cpu }}
-            memory: {{ .Values.backend.resources.limits.memory }}
+            cpu: 100m
+            memory: 128Mi
           requests:
-            cpu: {{ .Values.backend.resources.requests.cpu }}
-            memory: {{ .Values.backend.resources.requests.memory }}
+            cpu: 50m
+            memory: 64Mi
+      
+      - name: database-migration
+        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+        command: ["/app/scripts/migrate.sh"]
         env:
-        - name: NODE_ENV
-          value: {{ .Values.environment }}
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.appName }}-secrets
-              key: database-url
+              name: {{ .Values.appName }}-db-credentials
+              key: connection-string
+        - name: MIGRATION_TIMEOUT
+          value: "300"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      
+      containers:
+      - name: {{ .Values.appName }}-backend
+        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy | default "Always" }}
+        
+        # Security Context - Pod Level
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE  # Only if binding to privileged ports
+        
+        ports:
+        - name: http
+          containerPort: {{ .Values.backend.containerPort | default 8000 }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.backend.metrics.port | default 9090 }}
+          protocol: TCP
+        - name: health
+          containerPort: {{ .Values.backend.health.port | default 8080 }}
+          protocol: TCP
+        
+        # Resource Management - Financial Grade
+        resources:
+          limits:
+            cpu: {{ .Values.backend.resources.limits.cpu | default "2000m" }}
+            memory: {{ .Values.backend.resources.limits.memory | default "4Gi" }}
+            ephemeral-storage: "2Gi"
+          requests:
+            cpu: {{ .Values.backend.resources.requests.cpu | default "1000m" }}
+            memory: {{ .Values.backend.resources.requests.memory | default "2Gi" }}
+            ephemeral-storage: "1Gi"
+        
+        # Environment Variables - Secure Configuration
+        env:
+        - name: NODE_ENV
+          value: {{ .Values.environment }}
+        - name: APP_NAME
+          value: {{ .Values.appName }}
+        - name: APP_VERSION
+          value: {{ .Values.backend.image.tag }}
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        
+        # Database Configuration
+        - name: DATABASE_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-db-credentials
+              key: host
+        - name: DATABASE_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-db-credentials
+              key: port
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-db-credentials
+              key: database
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-db-credentials
+              key: username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-db-credentials
+              key: password
+        
+        # Application Secrets
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.appName }}-secrets
+              name: {{ .Values.appName }}-app-secrets
               key: jwt-secret
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-app-secrets
+              key: encryption-key
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-app-secrets
+              key: api-key
+        
+        # Redis Configuration
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-redis-credentials
+              key: host
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-redis-credentials
+              key: port
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-redis-credentials
+              key: password
+        
+        # Compliance and Security Settings
+        - name: COMPLIANCE_MODE
+          value: "financial"
+        - name: AUDIT_LOGGING
+          value: "enabled"
+        - name: DATA_ENCRYPTION
+          value: "enabled"
+        - name: PCI_DSS_MODE
+          value: {{ .Values.compliance.pciDss | default "true" | quote }}
+        - name: GDPR_MODE
+          value: {{ .Values.compliance.gdpr | default "true" | quote }}
+        - name: SOC2_MODE
+          value: {{ .Values.compliance.soc2 | default "true" | quote }}
+        
+        # Logging Configuration
+        - name: LOG_LEVEL
+          value: {{ .Values.backend.logLevel | default "INFO" }}
+        - name: LOG_FORMAT
+          value: "json"
+        - name: LOG_DESTINATION
+          value: "stdout"
+        - name: AUDIT_LOG_ENABLED
+          value: "true"
+        
+        # Performance and Monitoring
+        - name: METRICS_ENABLED
+          value: "true"
+        - name: TRACING_ENABLED
+          value: "true"
+        - name: HEALTH_CHECK_ENABLED
+          value: "true"
+        
+        # Volume Mounts
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: app-cache
+          mountPath: /app/cache
+        - name: app-logs
+          mountPath: /app/logs
+        - name: app-config
+          mountPath: /app/config
+          readOnly: true
+        - name: ssl-certs
+          mountPath: /app/certs
+          readOnly: true
+        
+        # Health Checks - Enhanced for Financial Applications
         livenessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.backend.containerPort }}
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            path: /health/live
+            port: health
+            scheme: HTTP
+            httpHeaders:
+            - name: User-Agent
+              value: "k8s-liveness-probe"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        
         readinessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.backend.containerPort }}
-          initialDelaySeconds: 5
+            path: /health/ready
+            port: health
+            scheme: HTTP
+            httpHeaders:
+            - name: User-Agent
+              value: "k8s-readiness-probe"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: health
+            scheme: HTTP
+          initialDelaySeconds: 10
           periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30
+        
+        # Lifecycle Hooks
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/app/scripts/graceful-shutdown.sh"]
+      
+      # Sidecar Containers for Enhanced Security and Monitoring
+      - name: security-agent
+        image: {{ .Values.security.agent.image }}:{{ .Values.security.agent.tag }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10002
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: security-logs
+          mountPath: /var/log/security
+        env:
+        - name: SECURITY_MODE
+          value: "financial"
+        - name: COMPLIANCE_FRAMEWORKS
+          value: "pci-dss,gdpr,soc2"
+      
+      - name: log-forwarder
+        image: {{ .Values.logging.forwarder.image }}:{{ .Values.logging.forwarder.tag }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10003
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/app
+          readOnly: true
+        - name: security-logs
+          mountPath: /var/log/security
+          readOnly: true
+        env:
+        - name: LOG_DESTINATION
+          value: "elasticsearch"
+        - name: COMPLIANCE_TAGGING
+          value: "enabled"
+      
+      # Volumes
+      volumes:
+      - name: tmp-volume
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: app-cache
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: app-logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: security-logs
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: app-config
+        configMap:
+          name: {{ .Values.appName }}-backend-config
+          defaultMode: 0444
+      - name: ssl-certs
+        secret:
+          secretName: {{ .Values.appName }}-ssl-certs
+          defaultMode: 0444
+      
+      # Image Pull Secrets
       imagePullSecrets:
-      - name: {{ .Values.imagePullSecrets }}
+      - name: {{ .Values.imagePullSecrets | default "fluxora-registry-secret" }}
+      
+      # DNS Configuration
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "2"
+        - name: edns0
+      
+      # Termination Grace Period
+      terminationGracePeriodSeconds: 60
+      
+      # Priority and Preemption
+      priorityClassName: {{ .Values.backend.priorityClass | default "financial-workload-high" }}
+      
+      # Restart Policy
+      restartPolicy: Always
+

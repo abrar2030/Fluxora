@@ -1,0 +1,701 @@
+# Centralized Logging Infrastructure for Financial Standards Compliance
+# This configuration deploys Elasticsearch, Logstash, and Kibana (ELK Stack) with security enhancements
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logging
+  labels:
+    name: logging
+    compliance: "pci-dss,gdpr,soc2"
+---
+# Elasticsearch StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: logging
+  labels:
+    app: elasticsearch
+    component: logging
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+        component: logging
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+      - name: increase-vm-max-map
+        image: busybox:1.35
+        command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
+        securityContext:
+          privileged: true
+      - name: increase-fd-ulimit
+        image: busybox:1.35
+        command: ['sh', '-c', 'ulimit -n 65536']
+        securityContext:
+          privileged: true
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: inter-node
+          protocol: TCP
+        volumeMounts:
+        - name: data
+          mountPath: /usr/share/elasticsearch/data
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+        - name: certs
+          mountPath: /usr/share/elasticsearch/config/certs
+          readOnly: true
+        env:
+        - name: cluster.name
+          value: fluxora-logging-cluster
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+        - name: cluster.initial_master_nodes
+          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+        - name: ES_JAVA_OPTS
+          value: "-Xms2g -Xmx2g"
+        - name: xpack.security.enabled
+          value: "true"
+        - name: xpack.security.http.ssl.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.enabled
+          value: "true"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: password
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+            scheme: HTTPS
+          initialDelaySeconds: 90
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health?wait_for_status=yellow&timeout=5s
+            port: 9200
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: elasticsearch-config
+      - name: certs
+        secret:
+          secretName: elasticsearch-certs
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      labels:
+        app: elasticsearch
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "gp3-encrypted"
+      resources:
+        requests:
+          storage: 100Gi
+---
+# Elasticsearch Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: logging
+  labels:
+    app: elasticsearch
+spec:
+  clusterIP: None
+  selector:
+    app: elasticsearch
+  ports:
+  - port: 9200
+    name: rest
+  - port: 9300
+    name: inter-node
+---
+# Elasticsearch Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-config
+  namespace: logging
+data:
+  elasticsearch.yml: |
+    cluster.name: fluxora-logging-cluster
+    network.host: 0.0.0.0
+    
+    # Security Configuration
+    xpack.security.enabled: true
+    xpack.security.http.ssl.enabled: true
+    xpack.security.http.ssl.key: certs/elasticsearch.key
+    xpack.security.http.ssl.certificate: certs/elasticsearch.crt
+    xpack.security.http.ssl.certificate_authorities: certs/ca.crt
+    xpack.security.transport.ssl.enabled: true
+    xpack.security.transport.ssl.key: certs/elasticsearch.key
+    xpack.security.transport.ssl.certificate: certs/elasticsearch.crt
+    xpack.security.transport.ssl.certificate_authorities: certs/ca.crt
+    
+    # Audit Logging for Compliance
+    xpack.security.audit.enabled: true
+    xpack.security.audit.logfile.events.include:
+      - access_denied
+      - access_granted
+      - anonymous_access_denied
+      - authentication_failed
+      - authentication_success
+      - change_password
+      - connection_denied
+      - connection_granted
+      - tampered_request
+      - run_as_denied
+      - run_as_granted
+    
+    # Index Management
+    action.auto_create_index: false
+    action.destructive_requires_name: true
+    
+    # Memory and Performance
+    bootstrap.memory_lock: true
+    indices.memory.index_buffer_size: 20%
+    
+    # Data Retention (90 days for compliance)
+    cluster.routing.allocation.disk.watermark.low: 85%
+    cluster.routing.allocation.disk.watermark.high: 90%
+    cluster.routing.allocation.disk.watermark.flood_stage: 95%
+---
+# Logstash Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: logging
+  labels:
+    app: logstash
+    component: logging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+        component: logging
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:8.11.0
+        ports:
+        - containerPort: 5044
+          name: beats
+        - containerPort: 9600
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /usr/share/logstash/config/logstash.yml
+          subPath: logstash.yml
+        - name: pipeline
+          mountPath: /usr/share/logstash/pipeline
+        - name: patterns
+          mountPath: /usr/share/logstash/patterns
+        - name: certs
+          mountPath: /usr/share/logstash/config/certs
+          readOnly: true
+        env:
+        - name: LS_JAVA_OPTS
+          value: "-Xmx2g -Xms2g"
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch:9200"
+        - name: ELASTICSEARCH_USERNAME
+          value: "logstash_writer"
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: logstash_password
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: logstash-config
+      - name: pipeline
+        configMap:
+          name: logstash-pipeline
+      - name: patterns
+        configMap:
+          name: logstash-patterns
+      - name: certs
+        secret:
+          secretName: elasticsearch-certs
+---
+# Logstash Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: logging
+  labels:
+    app: logstash
+spec:
+  selector:
+    app: logstash
+  ports:
+  - port: 5044
+    name: beats
+    protocol: TCP
+  - port: 9600
+    name: http
+    protocol: TCP
+---
+# Logstash Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: logging
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+    path.logs: /usr/share/logstash/logs
+    
+    # Security Configuration
+    xpack.monitoring.enabled: true
+    xpack.monitoring.elasticsearch.hosts: ["https://elasticsearch:9200"]
+    xpack.monitoring.elasticsearch.username: logstash_system
+    xpack.monitoring.elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+    xpack.monitoring.elasticsearch.ssl.certificate_authority: /usr/share/logstash/config/certs/ca.crt
+    
+    # Pipeline Configuration
+    pipeline.workers: 4
+    pipeline.batch.size: 1000
+    pipeline.batch.delay: 50
+    
+    # Queue Configuration for Reliability
+    queue.type: persisted
+    queue.max_bytes: 2gb
+    queue.checkpoint.writes: 1024
+---
+# Logstash Pipeline Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+  namespace: logging
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+        ssl => true
+        ssl_certificate => "/usr/share/logstash/config/certs/logstash.crt"
+        ssl_key => "/usr/share/logstash/config/certs/logstash.key"
+        ssl_certificate_authorities => ["/usr/share/logstash/config/certs/ca.crt"]
+      }
+      
+      # Kubernetes logs
+      http {
+        port => 8080
+        codec => json
+        additional_codecs => {
+          "application/json" => "json"
+        }
+      }
+      
+      # Syslog input for infrastructure logs
+      syslog {
+        port => 5514
+        codec => cef
+      }
+    }
+    
+    filter {
+      # Add timestamp
+      if ![timestamp] {
+        mutate {
+          add_field => { "timestamp" => "%{@timestamp}" }
+        }
+      }
+      
+      # Parse Kubernetes logs
+      if [kubernetes] {
+        mutate {
+          add_field => { "log_type" => "kubernetes" }
+        }
+        
+        # Extract namespace and pod information
+        if [kubernetes][namespace_name] {
+          mutate {
+            add_field => { "k8s_namespace" => "%{[kubernetes][namespace_name]}" }
+          }
+        }
+        
+        if [kubernetes][pod_name] {
+          mutate {
+            add_field => { "k8s_pod" => "%{[kubernetes][pod_name]}" }
+          }
+        }
+      }
+      
+      # Parse application logs
+      if [fields][app] == "fluxora-api" {
+        grok {
+          match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{DATA:logger} - %{GREEDYDATA:log_message}" }
+        }
+        
+        mutate {
+          add_field => { "log_type" => "application" }
+          add_field => { "service" => "fluxora-api" }
+        }
+        
+        # Parse JSON logs if applicable
+        if [log_message] =~ /^\{.*\}$/ {
+          json {
+            source => "log_message"
+            target => "parsed_json"
+          }
+        }
+      }
+      
+      # Security event parsing
+      if [tags] and "security" in [tags] {
+        mutate {
+          add_field => { "log_type" => "security" }
+          add_field => { "compliance_relevant" => "true" }
+        }
+        
+        # Parse security events
+        grok {
+          match => { "message" => "%{WORD:event_type} %{WORD:action} from %{IP:source_ip} to %{IP:dest_ip}:%{INT:dest_port}" }
+        }
+      }
+      
+      # Compliance log parsing
+      if [tags] and ("pci-dss" in [tags] or "gdpr" in [tags] or "soc2" in [tags]) {
+        mutate {
+          add_field => { "compliance_log" => "true" }
+        }
+        
+        # Add compliance framework tags
+        if "pci-dss" in [tags] {
+          mutate { add_field => { "compliance_framework" => "pci-dss" } }
+        }
+        if "gdpr" in [tags] {
+          mutate { add_field => { "compliance_framework" => "gdpr" } }
+        }
+        if "soc2" in [tags] {
+          mutate { add_field => { "compliance_framework" => "soc2" } }
+        }
+      }
+      
+      # Audit log parsing
+      if [log_type] == "audit" {
+        mutate {
+          add_field => { "audit_log" => "true" }
+          add_field => { "retention_period" => "2555" }  # 7 years in days
+        }
+        
+        # Parse audit events
+        grok {
+          match => { "message" => "%{TIMESTAMP_ISO8601:audit_timestamp} %{WORD:audit_action} by %{WORD:user} on %{WORD:resource}" }
+        }
+      }
+      
+      # Add GeoIP information for security analysis
+      if [source_ip] {
+        geoip {
+          source => "source_ip"
+          target => "geoip"
+        }
+      }
+      
+      # Anonymize PII for GDPR compliance
+      if [compliance_framework] == "gdpr" {
+        mutate {
+          gsub => [
+            "message", "(?i)email:\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", "email: [REDACTED]",
+            "message", "(?i)phone:\s*[\+]?[1-9]?[0-9]{7,15}", "phone: [REDACTED]",
+            "message", "(?i)ssn:\s*\d{3}-?\d{2}-?\d{4}", "ssn: [REDACTED]"
+          ]
+        }
+      }
+      
+      # Add data classification
+      if [compliance_log] == "true" or [audit_log] == "true" {
+        mutate {
+          add_field => { "data_classification" => "restricted" }
+        }
+      } else if [log_type] == "security" {
+        mutate {
+          add_field => { "data_classification" => "confidential" }
+        }
+      } else {
+        mutate {
+          add_field => { "data_classification" => "internal" }
+        }
+      }
+    }
+    
+    output {
+      # Main Elasticsearch output
+      elasticsearch {
+        hosts => ["https://elasticsearch:9200"]
+        user => "${ELASTICSEARCH_USERNAME}"
+        password => "${ELASTICSEARCH_PASSWORD}"
+        ssl => true
+        ssl_certificate_verification => true
+        cacert => "/usr/share/logstash/config/certs/ca.crt"
+        
+        # Index strategy based on log type and compliance requirements
+        index => "fluxora-%{log_type}-%{+YYYY.MM.dd}"
+        
+        # Use different indices for compliance logs
+        if [compliance_log] == "true" {
+          index => "compliance-%{compliance_framework}-%{+YYYY.MM.dd}"
+        }
+        
+        if [audit_log] == "true" {
+          index => "audit-logs-%{+YYYY.MM.dd}"
+        }
+        
+        # Document type
+        document_type => "_doc"
+        
+        # Template for index settings
+        template_name => "fluxora-logs"
+        template_pattern => "fluxora-*"
+        template => "/usr/share/logstash/templates/fluxora-template.json"
+        template_overwrite => true
+      }
+      
+      # SIEM integration output (if configured)
+      if [log_type] == "security" or [compliance_log] == "true" {
+        http {
+          url => "https://siem.fluxora.com/api/events"
+          http_method => "post"
+          headers => {
+            "Authorization" => "Bearer ${SIEM_API_TOKEN}"
+            "Content-Type" => "application/json"
+          }
+          format => "json"
+          ssl_certificate_verification => true
+        }
+      }
+      
+      # Debug output (remove in production)
+      if [log_level] == "debug" {
+        stdout {
+          codec => rubydebug
+        }
+      }
+    }
+---
+# Kibana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: logging
+  labels:
+    app: kibana
+    component: logging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+        component: logging
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.11.0
+        ports:
+        - containerPort: 5601
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /usr/share/kibana/config/kibana.yml
+          subPath: kibana.yml
+        - name: certs
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch:9200"
+        - name: ELASTICSEARCH_USERNAME
+          value: "kibana_system"
+        - name: ELASTICSEARCH_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch-credentials
+              key: kibana_password
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: kibana-config
+      - name: certs
+        secret:
+          secretName: elasticsearch-certs
+---
+# Kibana Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: logging
+  labels:
+    app: kibana
+spec:
+  selector:
+    app: kibana
+  ports:
+  - port: 5601
+    name: http
+    protocol: TCP
+  type: ClusterIP
+---
+# Kibana Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config
+  namespace: logging
+data:
+  kibana.yml: |
+    server.name: kibana
+    server.host: "0.0.0.0"
+    server.port: 5601
+    
+    # Elasticsearch Configuration
+    elasticsearch.hosts: ["https://elasticsearch:9200"]
+    elasticsearch.username: "${ELASTICSEARCH_USERNAME}"
+    elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+    elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/certs/ca.crt"]
+    elasticsearch.ssl.verificationMode: certificate
+    
+    # Security Configuration
+    server.ssl.enabled: true
+    server.ssl.certificate: /usr/share/kibana/config/certs/kibana.crt
+    server.ssl.key: /usr/share/kibana/config/certs/kibana.key
+    
+    # Kibana Security
+    xpack.security.enabled: true
+    xpack.security.encryptionKey: "something_at_least_32_characters_long"
+    xpack.security.session.idleTimeout: "1h"
+    xpack.security.session.lifespan: "8h"
+    
+    # Monitoring
+    xpack.monitoring.ui.container.elasticsearch.enabled: true
+    
+    # Compliance and Audit
+    xpack.security.audit.enabled: true
+    xpack.security.audit.appender.type: file
+    xpack.security.audit.appender.fileName: /usr/share/kibana/logs/kibana_audit.log
+    xpack.security.audit.appender.layout.type: json
+    
+    # Index Patterns
+    kibana.defaultAppId: "discover"
+    
+    # Data Views (Index Patterns)
+    data.search.timeout: 600000
+    
+    # Reporting
+    xpack.reporting.enabled: true
+    xpack.reporting.encryptionKey: "something_at_least_32_characters_long"
+    
+    # Canvas
+    xpack.canvas.enabled: true
+    
+    # Maps
+    xpack.maps.enabled: true
+    
+    # Machine Learning (if licensed)
+    xpack.ml.enabled: false
+    
+    # Alerting
+    xpack.alerting.enabled: true
+    xpack.actions.enabled: true
+

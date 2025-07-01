@@ -3,20 +3,48 @@ kind: ConfigMap
 metadata:
   name: prometheus-config
   namespace: fluxora
+  labels:
+    app: prometheus
+    component: monitoring
+    compliance: "pci-dss,gdpr,soc2"
 data:
   prometheus.yml: |
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
+      external_labels:
+        cluster: 'fluxora-production'
+        environment: 'production'
+        compliance: 'financial-grade'
+    
+    # Remote write configuration for long-term storage and compliance
+    remote_write:
+      - url: "http://thanos-receive:19291/api/v1/receive"
+        queue_config:
+          max_samples_per_send: 10000
+          batch_send_deadline: 5s
+          min_shards: 4
+          max_shards: 200
+    
+    # Remote read configuration for historical data
+    remote_read:
+      - url: "http://thanos-query:9090/api/v1/query"
+        read_recent: true
     
     scrape_configs:
+      # Core Prometheus monitoring
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-      
+        scrape_interval: 30s
+        metrics_path: /metrics
+        
+      # Application monitoring
       - job_name: 'fluxora-api'
         kubernetes_sd_configs:
           - role: pod
+            namespaces:
+              names: ['fluxora', 'fluxora-staging', 'fluxora-dev']
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: fluxora-api
@@ -24,10 +52,18 @@ data:
           - source_labels: [__meta_kubernetes_pod_container_port_number]
             regex: 8000
             action: keep
-      
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: environment
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: instance
+        scrape_interval: 15s
+        metrics_path: /metrics
+        
       - job_name: 'fluxora-prediction'
         kubernetes_sd_configs:
           - role: pod
+            namespaces:
+              names: ['fluxora', 'fluxora-staging', 'fluxora-dev']
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: fluxora-prediction
@@ -35,10 +71,17 @@ data:
           - source_labels: [__meta_kubernetes_pod_container_port_number]
             regex: 8000
             action: keep
-      
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: environment
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: instance
+        scrape_interval: 15s
+        
       - job_name: 'fluxora-data'
         kubernetes_sd_configs:
           - role: pod
+            namespaces:
+              names: ['fluxora', 'fluxora-staging', 'fluxora-dev']
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: fluxora-data
@@ -46,12 +89,150 @@ data:
           - source_labels: [__meta_kubernetes_pod_container_port_number]
             regex: 8000
             action: keep
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: environment
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: instance
+        scrape_interval: 15s
+    
+      # Infrastructure monitoring
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+        scrape_interval: 30s
+        
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics
+        scrape_interval: 30s
+        
+      - job_name: 'kubernetes-cadvisor'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+        scrape_interval: 30s
+        
+      # Database monitoring
+      - job_name: 'mysql-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: mysql-exporter
+            action: keep
+        scrape_interval: 30s
+        
+      - job_name: 'redis-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: redis-exporter
+            action: keep
+        scrape_interval: 30s
+        
+      # Security monitoring
+      - job_name: 'falco-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: falco-exporter
+            action: keep
+        scrape_interval: 15s
+        
+      # Network monitoring
+      - job_name: 'blackbox-exporter'
+        static_configs:
+          - targets:
+            - http://fluxora-api:8000/health
+            - http://fluxora-prediction:8000/health
+            - http://fluxora-data:8000/health
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: blackbox-exporter:9115
+        scrape_interval: 30s
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+          
+      # Load balancer monitoring
+      - job_name: 'nginx-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: nginx-exporter
+            action: keep
+        scrape_interval: 30s
+        
+      # Certificate monitoring
+      - job_name: 'cert-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: cert-exporter
+            action: keep
+        scrape_interval: 300s  # 5 minutes
     
     alerting:
       alertmanagers:
-      - static_configs:
-        - targets:
-          - alertmanager:9093
+        - kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app]
+              regex: alertmanager
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_container_port_number]
+              regex: 9093
+              action: keep
+          alert_relabel_configs:
+            - source_labels: [__meta_kubernetes_namespace]
+              target_label: kubernetes_namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              target_label: kubernetes_pod_name
 
     rule_files:
       - /etc/prometheus/rules/*.yml
+      - /etc/prometheus/compliance-rules/*.yml
+      - /etc/prometheus/security-rules/*.yml
+      - /etc/prometheus/business-rules/*.yml
+

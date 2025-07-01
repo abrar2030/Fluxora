@@ -1,0 +1,456 @@
+# SIEM Integration Configuration for Financial Standards Compliance
+# This configuration integrates with Security Information and Event Management (SIEM) systems
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: siem-integration-config
+  namespace: logging
+  labels:
+    app: siem-integration
+    component: security
+    compliance: "pci-dss,gdpr,soc2"
+data:
+  siem-config.yaml: |
+    # SIEM Integration Configuration
+    siem:
+      enabled: true
+      provider: "splunk"  # Options: splunk, qradar, sentinel, elastic-siem
+      endpoint: "https://siem.fluxora.com:8088/services/collector/event"
+      authentication:
+        type: "token"
+        token_file: "/etc/siem/token"
+      
+      # Event Categories for SIEM
+      event_categories:
+        - authentication
+        - authorization
+        - data_access
+        - network_security
+        - malware_detection
+        - compliance_violations
+        - audit_events
+        - system_changes
+      
+      # Compliance Framework Mapping
+      compliance_mapping:
+        pci_dss:
+          requirements:
+            - "10.1"  # Audit trails
+            - "10.2"  # Automated audit trails
+            - "10.3"  # Audit trail entries
+            - "11.4"  # Intrusion detection
+        gdpr:
+          articles:
+            - "32"    # Security of processing
+            - "33"    # Notification of breach
+            - "34"    # Communication of breach
+        soc2:
+          criteria:
+            - "CC6.1"  # Logical access security
+            - "CC6.2"  # Authentication
+            - "CC6.3"  # Authorization
+            - "CC7.1"  # System monitoring
+      
+      # Real-time Event Streaming
+      streaming:
+        enabled: true
+        batch_size: 100
+        flush_interval: "30s"
+        retry_attempts: 3
+        retry_delay: "5s"
+      
+      # Event Enrichment
+      enrichment:
+        geo_ip: true
+        threat_intelligence: true
+        user_context: true
+        asset_context: true
+---
+# SIEM Event Forwarder Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: siem-forwarder
+  namespace: logging
+  labels:
+    app: siem-forwarder
+    component: security
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: siem-forwarder
+  template:
+    metadata:
+      labels:
+        app: siem-forwarder
+        component: security
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: siem-forwarder
+        image: fluxora/siem-forwarder:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        volumeMounts:
+        - name: config
+          mountPath: /etc/siem-forwarder/config.yaml
+          subPath: siem-config.yaml
+        - name: siem-credentials
+          mountPath: /etc/siem
+          readOnly: true
+        - name: tls-certs
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        env:
+        - name: SIEM_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: siem-integration-config
+              key: siem.endpoint
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: METRICS_ENABLED
+          value: "true"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: siem-integration-config
+      - name: siem-credentials
+        secret:
+          secretName: siem-credentials
+      - name: tls-certs
+        secret:
+          secretName: siem-tls-certs
+---
+# SIEM Forwarder Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: siem-forwarder
+  namespace: logging
+  labels:
+    app: siem-forwarder
+spec:
+  selector:
+    app: siem-forwarder
+  ports:
+  - port: 8080
+    name: http
+    protocol: TCP
+  - port: 9090
+    name: metrics
+    protocol: TCP
+---
+# Security Event Rules ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-event-rules
+  namespace: logging
+  labels:
+    app: siem-integration
+    component: security
+data:
+  security-rules.yaml: |
+    # Security Event Detection Rules
+    rules:
+      # Authentication Anomalies
+      - name: "multiple_failed_logins"
+        description: "Detect multiple failed login attempts"
+        condition: "failed_login_count > 5 in 5m"
+        severity: "medium"
+        category: "authentication"
+        compliance_frameworks: ["pci-dss", "soc2"]
+        actions:
+          - "alert"
+          - "block_ip"
+        
+      - name: "impossible_travel"
+        description: "Detect impossible travel scenarios"
+        condition: "login_locations_distance > 1000km in 1h"
+        severity: "high"
+        category: "authentication"
+        compliance_frameworks: ["soc2"]
+        actions:
+          - "alert"
+          - "require_mfa"
+      
+      # Data Access Anomalies
+      - name: "unusual_data_access"
+        description: "Detect unusual data access patterns"
+        condition: "data_access_volume > baseline * 3"
+        severity: "medium"
+        category: "data_access"
+        compliance_frameworks: ["gdpr", "soc2"]
+        actions:
+          - "alert"
+          - "audit_user"
+        
+      - name: "after_hours_access"
+        description: "Detect after hours data access"
+        condition: "data_access_time not in business_hours"
+        severity: "low"
+        category: "data_access"
+        compliance_frameworks: ["pci-dss", "soc2"]
+        actions:
+          - "alert"
+      
+      # Network Security Events
+      - name: "suspicious_network_traffic"
+        description: "Detect suspicious network traffic patterns"
+        condition: "network_anomaly_score > 0.8"
+        severity: "high"
+        category: "network_security"
+        compliance_frameworks: ["pci-dss", "soc2"]
+        actions:
+          - "alert"
+          - "isolate_host"
+        
+      - name: "data_exfiltration_attempt"
+        description: "Detect potential data exfiltration"
+        condition: "outbound_data_volume > threshold and destination = external"
+        severity: "critical"
+        category: "network_security"
+        compliance_frameworks: ["gdpr", "pci-dss", "soc2"]
+        actions:
+          - "alert"
+          - "block_traffic"
+          - "notify_incident_team"
+      
+      # Malware Detection
+      - name: "malware_detected"
+        description: "Malware signature detected"
+        condition: "malware_signature_match = true"
+        severity: "critical"
+        category: "malware_detection"
+        compliance_frameworks: ["pci-dss", "soc2"]
+        actions:
+          - "alert"
+          - "quarantine_host"
+          - "notify_security_team"
+      
+      # Compliance Violations
+      - name: "pci_dss_violation"
+        description: "PCI DSS compliance violation detected"
+        condition: "pci_compliance_check = failed"
+        severity: "high"
+        category: "compliance_violations"
+        compliance_frameworks: ["pci-dss"]
+        actions:
+          - "alert"
+          - "notify_compliance_team"
+          - "generate_report"
+        
+      - name: "gdpr_violation"
+        description: "GDPR compliance violation detected"
+        condition: "gdpr_compliance_check = failed"
+        severity: "high"
+        category: "compliance_violations"
+        compliance_frameworks: ["gdpr"]
+        actions:
+          - "alert"
+          - "notify_dpo"
+          - "assess_breach_risk"
+      
+      # System Changes
+      - name: "unauthorized_system_change"
+        description: "Unauthorized system configuration change"
+        condition: "config_change = true and authorized = false"
+        severity: "medium"
+        category: "system_changes"
+        compliance_frameworks: ["soc2"]
+        actions:
+          - "alert"
+          - "revert_change"
+          - "notify_admin"
+        
+      - name: "privilege_escalation"
+        description: "Privilege escalation attempt detected"
+        condition: "privilege_change = elevated and approval = none"
+        severity: "high"
+        category: "system_changes"
+        compliance_frameworks: ["pci-dss", "soc2"]
+        actions:
+          - "alert"
+          - "revoke_privileges"
+          - "notify_security_team"
+---
+# SIEM Dashboard Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: siem-dashboard-config
+  namespace: logging
+  labels:
+    app: siem-integration
+    component: dashboard
+data:
+  dashboard-config.json: |
+    {
+      "dashboards": [
+        {
+          "name": "Security Overview",
+          "description": "High-level security metrics and alerts",
+          "widgets": [
+            {
+              "type": "metric",
+              "title": "Security Alerts (24h)",
+              "query": "security_alerts_total{severity!='info'}[24h]",
+              "visualization": "single_stat"
+            },
+            {
+              "type": "chart",
+              "title": "Alert Trends",
+              "query": "rate(security_alerts_total[1h])",
+              "visualization": "line_chart",
+              "time_range": "7d"
+            },
+            {
+              "type": "table",
+              "title": "Top Security Events",
+              "query": "topk(10, security_events_by_type)",
+              "visualization": "table"
+            }
+          ]
+        },
+        {
+          "name": "Compliance Dashboard",
+          "description": "Compliance monitoring for PCI DSS, GDPR, and SOC 2",
+          "widgets": [
+            {
+              "type": "gauge",
+              "title": "PCI DSS Compliance Score",
+              "query": "pci_dss_compliance_score",
+              "visualization": "gauge",
+              "thresholds": {
+                "green": 95,
+                "yellow": 85,
+                "red": 75
+              }
+            },
+            {
+              "type": "gauge",
+              "title": "GDPR Compliance Score",
+              "query": "gdpr_compliance_score",
+              "visualization": "gauge",
+              "thresholds": {
+                "green": 95,
+                "yellow": 85,
+                "red": 75
+              }
+            },
+            {
+              "type": "gauge",
+              "title": "SOC 2 Compliance Score",
+              "query": "soc2_compliance_score",
+              "visualization": "gauge",
+              "thresholds": {
+                "green": 95,
+                "yellow": 85,
+                "red": 75
+              }
+            },
+            {
+              "type": "chart",
+              "title": "Compliance Violations Trend",
+              "query": "compliance_violations_total by (framework)",
+              "visualization": "stacked_area",
+              "time_range": "30d"
+            }
+          ]
+        },
+        {
+          "name": "Threat Intelligence",
+          "description": "Threat intelligence and IOC monitoring",
+          "widgets": [
+            {
+              "type": "map",
+              "title": "Attack Sources (Geographic)",
+              "query": "attack_sources_by_country",
+              "visualization": "world_map"
+            },
+            {
+              "type": "chart",
+              "title": "Threat Actor Activity",
+              "query": "threat_actor_activity by (actor)",
+              "visualization": "heatmap",
+              "time_range": "7d"
+            },
+            {
+              "type": "table",
+              "title": "Active IOCs",
+              "query": "active_iocs{status='detected'}",
+              "visualization": "table"
+            }
+          ]
+        }
+      ],
+      "alerts": [
+        {
+          "name": "Critical Security Alert",
+          "condition": "security_alerts_total{severity='critical'} > 0",
+          "notification_channels": [
+            "security-team-pager",
+            "security-team-slack",
+            "security-team-email"
+          ],
+          "escalation_policy": "security-escalation"
+        },
+        {
+          "name": "Compliance Violation",
+          "condition": "compliance_violations_total > 0",
+          "notification_channels": [
+            "compliance-team-email",
+            "compliance-team-slack"
+          ],
+          "escalation_policy": "compliance-escalation"
+        }
+      ]
+    }
+---
+# ServiceMonitor for Prometheus Integration
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: siem-forwarder
+  namespace: logging
+  labels:
+    app: siem-forwarder
+    component: security
+spec:
+  selector:
+    matchLabels:
+      app: siem-forwarder
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scheme: http
+

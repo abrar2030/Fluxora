@@ -1,0 +1,679 @@
+# GitOps Configuration with ArgoCD for Financial Standards Compliance
+# This configuration implements automated, auditable deployments
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    name: argocd
+    compliance: "pci-dss,gdpr,soc2"
+    gitops: "enabled"
+
+---
+# ArgoCD Application for Development Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fluxora-development
+  namespace: argocd
+  labels:
+    environment: development
+    compliance: "pci-dss,gdpr,soc2"
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    fluxora.com/environment: "development"
+    fluxora.com/auto-sync: "enabled"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: fluxora
+  
+  source:
+    repoURL: https://github.com/fluxora/infrastructure
+    targetRevision: develop
+    path: infrastructure/environment-configs/overlays/development
+    
+    # Kustomize configuration
+    kustomize:
+      namePrefix: dev-
+      nameSuffix: -dev
+      commonLabels:
+        environment: development
+        managed-by: argocd
+      commonAnnotations:
+        argocd.argoproj.io/tracking-id: fluxora-development
+      
+      # Environment-specific patches
+      patches:
+      - target:
+          kind: Deployment
+          name: fluxora-backend
+        patch: |-
+          - op: replace
+            path: /spec/replicas
+            value: 1
+      
+      # Images
+      images:
+      - fluxora-backend=ghcr.io/fluxora/backend:dev-latest
+      - fluxora-frontend=ghcr.io/fluxora/frontend:dev-latest
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fluxora-dev
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ApplyOutOfSyncOnly=true
+    - RespectIgnoreDifferences=true
+    
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  
+  revisionHistoryLimit: 10
+  
+  # Health checks
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas
+  - group: ""
+    kind: Secret
+    jsonPointers:
+    - /data
+
+---
+# ArgoCD Application for Staging Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fluxora-staging
+  namespace: argocd
+  labels:
+    environment: staging
+    compliance: "pci-dss,gdpr,soc2"
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    fluxora.com/environment: "staging"
+    fluxora.com/auto-sync: "enabled"
+    fluxora.com/approval-required: "false"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: fluxora
+  
+  source:
+    repoURL: https://github.com/fluxora/infrastructure
+    targetRevision: staging
+    path: infrastructure/environment-configs/overlays/staging
+    
+    kustomize:
+      namePrefix: staging-
+      nameSuffix: -staging
+      commonLabels:
+        environment: staging
+        managed-by: argocd
+      commonAnnotations:
+        argocd.argoproj.io/tracking-id: fluxora-staging
+      
+      patches:
+      - target:
+          kind: Deployment
+          name: fluxora-backend
+        patch: |-
+          - op: replace
+            path: /spec/replicas
+            value: 2
+      
+      images:
+      - fluxora-backend=ghcr.io/fluxora/backend:staging-latest
+      - fluxora-frontend=ghcr.io/fluxora/frontend:staging-latest
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fluxora-staging
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ApplyOutOfSyncOnly=true
+    
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 5m
+  
+  revisionHistoryLimit: 20
+
+---
+# ArgoCD Application for Production Environment
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: fluxora-production
+  namespace: argocd
+  labels:
+    environment: production
+    compliance: "pci-dss,gdpr,soc2"
+    criticality: high
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    fluxora.com/environment: "production"
+    fluxora.com/auto-sync: "disabled"  # Manual approval required
+    fluxora.com/approval-required: "true"
+    fluxora.com/change-window: "sunday-02:00-06:00-utc"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: fluxora
+  
+  source:
+    repoURL: https://github.com/fluxora/infrastructure
+    targetRevision: main
+    path: infrastructure/environment-configs/overlays/production
+    
+    kustomize:
+      commonLabels:
+        environment: production
+        managed-by: argocd
+        compliance: "pci-dss,gdpr,soc2"
+      commonAnnotations:
+        argocd.argoproj.io/tracking-id: fluxora-production
+        fluxora.com/deployment-strategy: "blue-green"
+      
+      images:
+      - fluxora-backend=ghcr.io/fluxora/backend:v1.0.0
+      - fluxora-frontend=ghcr.io/fluxora/frontend:v1.0.0
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fluxora
+  
+  syncPolicy:
+    # Manual sync for production
+    automated: null
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - ApplyOutOfSyncOnly=true
+    - Validate=true
+    
+    retry:
+      limit: 2
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+  
+  revisionHistoryLimit: 50  # Extended history for compliance
+
+---
+# ArgoCD Project for Fluxora
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: fluxora
+  namespace: argocd
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+  annotations:
+    fluxora.com/project-owner: "platform-team@fluxora.com"
+    fluxora.com/security-contact: "security-team@fluxora.com"
+spec:
+  description: "Fluxora Financial Platform Project"
+  
+  # Source repositories
+  sourceRepos:
+  - https://github.com/fluxora/infrastructure
+  - https://github.com/fluxora/application
+  - https://helm.fluxora.com/*
+  
+  # Destination clusters and namespaces
+  destinations:
+  - namespace: fluxora
+    server: https://kubernetes.default.svc
+  - namespace: fluxora-dev
+    server: https://kubernetes.default.svc
+  - namespace: fluxora-staging
+    server: https://kubernetes.default.svc
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: logging
+    server: https://kubernetes.default.svc
+  - namespace: database
+    server: https://kubernetes.default.svc
+  - namespace: encryption
+    server: https://kubernetes.default.svc
+  
+  # Cluster resource whitelist
+  clusterResourceWhitelist:
+  - group: ""
+    kind: Namespace
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  - group: storage.k8s.io
+    kind: StorageClass
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: policy
+    kind: PodSecurityPolicy
+  - group: admissionregistration.k8s.io
+    kind: ValidatingAdmissionWebhook
+  - group: admissionregistration.k8s.io
+    kind: MutatingAdmissionWebhook
+  
+  # Namespace resource whitelist
+  namespaceResourceWhitelist:
+  - group: ""
+    kind: "*"
+  - group: apps
+    kind: "*"
+  - group: batch
+    kind: "*"
+  - group: extensions
+    kind: "*"
+  - group: networking.k8s.io
+    kind: "*"
+  - group: autoscaling
+    kind: "*"
+  - group: monitoring.coreos.com
+    kind: "*"
+  - group: external-secrets.io
+    kind: "*"
+  - group: velero.io
+    kind: "*"
+  
+  # RBAC roles
+  roles:
+  - name: admin
+    description: "Full access to Fluxora project"
+    policies:
+    - p, proj:fluxora:admin, applications, *, fluxora/*, allow
+    - p, proj:fluxora:admin, repositories, *, *, allow
+    - p, proj:fluxora:admin, certificates, *, *, allow
+    groups:
+    - fluxora:platform-team
+    - fluxora:devops-team
+  
+  - name: developer
+    description: "Developer access to non-production environments"
+    policies:
+    - p, proj:fluxora:developer, applications, get, fluxora/fluxora-development, allow
+    - p, proj:fluxora:developer, applications, sync, fluxora/fluxora-development, allow
+    - p, proj:fluxora:developer, applications, get, fluxora/fluxora-staging, allow
+    - p, proj:fluxora:developer, repositories, get, *, allow
+    groups:
+    - fluxora:developers
+  
+  - name: readonly
+    description: "Read-only access for monitoring and compliance"
+    policies:
+    - p, proj:fluxora:readonly, applications, get, fluxora/*, allow
+    - p, proj:fluxora:readonly, repositories, get, *, allow
+    groups:
+    - fluxora:compliance-team
+    - fluxora:security-team
+    - fluxora:monitoring-team
+  
+  # Sync windows for production deployments
+  syncWindows:
+  - kind: allow
+    schedule: "0 2-6 * * 0"  # Sunday 2-6 AM UTC
+    duration: 4h
+    applications:
+    - fluxora-production
+    manualSync: true
+    timeZone: "UTC"
+  
+  - kind: deny
+    schedule: "0 0-23 * * 1-6"  # Monday-Saturday (block production deployments)
+    duration: 24h
+    applications:
+    - fluxora-production
+    manualSync: false
+    timeZone: "UTC"
+
+---
+# ArgoCD Repository Configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fluxora-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+    compliance: "pci-dss,gdpr,soc2"
+  annotations:
+    fluxora.com/managed-by: "external-secrets"
+stringData:
+  type: git
+  url: https://github.com/fluxora/infrastructure
+  password: ""  # Set via external secrets
+  username: ""  # Set via external secrets
+
+---
+# ArgoCD Notifications Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+data:
+  # Notification services
+  service.slack: |
+    token: $slack-token
+    username: ArgoCD
+    icon: ":argo:"
+  
+  service.email: |
+    host: smtp.fluxora.com
+    port: 587
+    from: argocd@fluxora.com
+    username: $email-username
+    password: $email-password
+  
+  service.webhook: |
+    url: https://webhook.fluxora.com/argocd
+    headers:
+    - name: Authorization
+      value: Bearer $webhook-token
+  
+  # Notification templates
+  template.app-deployed: |
+    email:
+      subject: "Application {{.app.metadata.name}} deployed to {{.app.spec.destination.namespace}}"
+      body: |
+        Application {{.app.metadata.name}} has been successfully deployed to {{.app.spec.destination.namespace}}.
+        
+        Details:
+        - Environment: {{.app.metadata.labels.environment}}
+        - Revision: {{.app.status.sync.revision}}
+        - Sync Status: {{.app.status.sync.status}}
+        - Health Status: {{.app.status.health.status}}
+        - Deployed At: {{.app.status.operationState.finishedAt}}
+        
+        View in ArgoCD: https://argocd.fluxora.com/applications/{{.app.metadata.name}}
+    
+    slack:
+      attachments: |
+        [{
+          "title": "Application Deployed",
+          "title_link": "https://argocd.fluxora.com/applications/{{.app.metadata.name}}",
+          "color": "good",
+          "fields": [
+            {
+              "title": "Application",
+              "value": "{{.app.metadata.name}}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{.app.metadata.labels.environment}}",
+              "short": true
+            },
+            {
+              "title": "Revision",
+              "value": "{{.app.status.sync.revision}}",
+              "short": true
+            },
+            {
+              "title": "Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            }
+          ]
+        }]
+  
+  template.app-health-degraded: |
+    email:
+      subject: "ALERT: Application {{.app.metadata.name}} health degraded"
+      body: |
+        ALERT: Application {{.app.metadata.name}} health has degraded.
+        
+        Details:
+        - Environment: {{.app.metadata.labels.environment}}
+        - Health Status: {{.app.status.health.status}}
+        - Health Message: {{.app.status.health.message}}
+        - Last Sync: {{.app.status.sync.revision}}
+        
+        Immediate action required for production environments.
+        
+        View in ArgoCD: https://argocd.fluxora.com/applications/{{.app.metadata.name}}
+    
+    slack:
+      attachments: |
+        [{
+          "title": "Application Health Degraded",
+          "title_link": "https://argocd.fluxora.com/applications/{{.app.metadata.name}}",
+          "color": "danger",
+          "fields": [
+            {
+              "title": "Application",
+              "value": "{{.app.metadata.name}}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{.app.metadata.labels.environment}}",
+              "short": true
+            },
+            {
+              "title": "Health Status",
+              "value": "{{.app.status.health.status}}",
+              "short": true
+            },
+            {
+              "title": "Message",
+              "value": "{{.app.status.health.message}}",
+              "short": false
+            }
+          ]
+        }]
+  
+  template.app-sync-failed: |
+    email:
+      subject: "ALERT: Application {{.app.metadata.name}} sync failed"
+      body: |
+        ALERT: Application {{.app.metadata.name}} synchronization has failed.
+        
+        Details:
+        - Environment: {{.app.metadata.labels.environment}}
+        - Sync Status: {{.app.status.sync.status}}
+        - Error Message: {{.app.status.operationState.message}}
+        - Revision: {{.app.status.sync.revision}}
+        
+        Please investigate and resolve the sync issues.
+        
+        View in ArgoCD: https://argocd.fluxora.com/applications/{{.app.metadata.name}}
+    
+    slack:
+      attachments: |
+        [{
+          "title": "Application Sync Failed",
+          "title_link": "https://argocd.fluxora.com/applications/{{.app.metadata.name}}",
+          "color": "danger",
+          "fields": [
+            {
+              "title": "Application",
+              "value": "{{.app.metadata.name}}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{.app.metadata.labels.environment}}",
+              "short": true
+            },
+            {
+              "title": "Sync Status",
+              "value": "{{.app.status.sync.status}}",
+              "short": true
+            },
+            {
+              "title": "Error",
+              "value": "{{.app.status.operationState.message}}",
+              "short": false
+            }
+          ]
+        }]
+  
+  # Notification triggers
+  trigger.on-deployed: |
+    - description: Application is synced and healthy
+      send:
+      - app-deployed
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+  
+  trigger.on-health-degraded: |
+    - description: Application has degraded health
+      send:
+      - app-health-degraded
+      when: app.status.health.status == 'Degraded'
+  
+  trigger.on-sync-failed: |
+    - description: Application sync is failed
+      send:
+      - app-sync-failed
+      when: app.status.operationState.phase in ['Error', 'Failed']
+  
+  # Subscriptions
+  subscriptions: |
+    # Development environment notifications
+    - recipients:
+      - slack:dev-deployments
+      - email:dev-team@fluxora.com
+      triggers:
+      - on-deployed
+      - on-sync-failed
+      selector: app.metadata.labels.environment == 'development'
+    
+    # Staging environment notifications
+    - recipients:
+      - slack:staging-deployments
+      - email:qa-team@fluxora.com
+      - email:dev-team@fluxora.com
+      triggers:
+      - on-deployed
+      - on-health-degraded
+      - on-sync-failed
+      selector: app.metadata.labels.environment == 'staging'
+    
+    # Production environment notifications
+    - recipients:
+      - slack:production-deployments
+      - email:ops-team@fluxora.com
+      - email:platform-team@fluxora.com
+      - email:executives@fluxora.com
+      - webhook:compliance-webhook
+      triggers:
+      - on-deployed
+      - on-health-degraded
+      - on-sync-failed
+      selector: app.metadata.labels.environment == 'production'
+    
+    # Compliance notifications for all environments
+    - recipients:
+      - email:compliance-team@fluxora.com
+      - email:security-team@fluxora.com
+      triggers:
+      - on-deployed
+      - on-health-degraded
+      - on-sync-failed
+      selector: app.metadata.labels.compliance contains 'pci-dss'
+
+---
+# ArgoCD RBAC Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+  labels:
+    compliance: "pci-dss,gdpr,soc2"
+data:
+  # RBAC policy
+  policy.default: role:readonly
+  policy.csv: |
+    # Platform Team - Full Access
+    p, role:admin, applications, *, */*, allow
+    p, role:admin, clusters, *, *, allow
+    p, role:admin, repositories, *, *, allow
+    p, role:admin, certificates, *, *, allow
+    p, role:admin, projects, *, *, allow
+    g, fluxora:platform-team, role:admin
+    g, fluxora:devops-team, role:admin
+    
+    # Development Team - Limited Access
+    p, role:developer, applications, get, */*, allow
+    p, role:developer, applications, sync, */fluxora-development, allow
+    p, role:developer, applications, sync, */fluxora-staging, allow
+    p, role:developer, repositories, get, *, allow
+    p, role:developer, projects, get, *, allow
+    g, fluxora:developers, role:developer
+    
+    # Production Team - Production Access
+    p, role:production, applications, *, */fluxora-production, allow
+    p, role:production, applications, get, */*, allow
+    p, role:production, repositories, get, *, allow
+    p, role:production, projects, get, *, allow
+    g, fluxora:production-team, role:production
+    
+    # Security Team - Read-only Access
+    p, role:security, applications, get, */*, allow
+    p, role:security, repositories, get, *, allow
+    p, role:security, projects, get, *, allow
+    p, role:security, clusters, get, *, allow
+    g, fluxora:security-team, role:security
+    
+    # Compliance Team - Audit Access
+    p, role:compliance, applications, get, */*, allow
+    p, role:compliance, repositories, get, *, allow
+    p, role:compliance, projects, get, *, allow
+    p, role:compliance, clusters, get, *, allow
+    g, fluxora:compliance-team, role:compliance
+    
+    # Read-only Role
+    p, role:readonly, applications, get, */*, allow
+    p, role:readonly, repositories, get, *, allow
+    p, role:readonly, projects, get, *, allow
+  
+  # OIDC configuration
+  oidc.config: |
+    name: Fluxora SSO
+    issuer: https://auth.fluxora.com
+    clientId: argocd
+    clientSecret: $oidc.fluxora.clientSecret
+    requestedScopes: ["openid", "profile", "email", "groups"]
+    requestedIDTokenClaims: {"groups": {"essential": true}}
+  
+  # SCIM configuration for user provisioning
+  scim.config: |
+    enabled: true
+    endpoint: https://auth.fluxora.com/scim/v2
+    token: $scim.token
+
