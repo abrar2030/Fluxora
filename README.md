@@ -1,8 +1,7 @@
 # Fluxora
 
-[![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/ci-cd.yml?branch=main&label=CI/CD&logo=github)](https://github.com/abrar2030/Fluxora/actions)
+![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/cicd.yml?branch=main&label=CI/CD&logo=github)
 [![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/abrar2030/Fluxora/actions)
-[![Model Quality](https://img.shields.io/badge/model%20quality-0.92%20MAE-blue)](https://github.com/abrar2030/Fluxora/tree/main/notebooks)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🔋 Energy Forecasting & Optimization Platform
