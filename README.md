@@ -16,6 +16,7 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 
 ## 📋 Table of Contents
 - [Features](#features)
+- [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [API Reference](#api-reference)
@@ -36,6 +37,20 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 - **API Integration**: Connect with existing energy management systems
 - **Mobile Access**: Monitor and manage on the go with mobile application
 - **Alerting System**: Receive notifications for critical events and anomalies
+
+## 🛠️ Tech Stack
+
+Fluxora is built on a modern, robust, and scalable technology stack.
+
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Backend API** | Python, FastAPI, Uvicorn | High-performance API for serving predictions and data |
+| **Machine Learning** | TensorFlow, XGBoost, Prophet | Core forecasting and anomaly detection models |
+| **MLOps** | MLflow, Optuna, DVC, Prefect | Model tracking, hyperparameter tuning, data versioning, and workflow orchestration |
+| **Feature Store** | Feast | Managing, serving, and versioning machine learning features |
+| **Frontend** | Node.js (Web & Mobile) | Interactive web dashboard and mobile application |
+| **Database** | PostgreSQL, Redis | Persistent data storage and caching/session management |
+| **Infrastructure** | Docker, Kubernetes, Terraform | Containerization, orchestration, and Infrastructure as Code |
 
 ## 🚀 Quick Start
 
@@ -137,10 +152,12 @@ curl -X GET http://api/data/consumption \
 
 Fluxora includes a comprehensive monitoring stack:
 
-- **Prometheus**: Metrics collection and storage
-- **Grafana**: Visualization and dashboards
-- **Alertmanager**: Alert routing and notifications
-- **Loki**: Log aggregation and querying
+| Tool | Purpose | Access URL (Local) |
+| :--- | :--- | :--- |
+| **Prometheus** | Metrics collection and storage | N/A (Backend) |
+| **Grafana** | Visualization and dashboards | `http://localhost:3000` |
+| **Alertmanager** | Alert routing and notifications | N/A (Backend) |
+| **Loki** | Log aggregation and querying | N/A (Backend) |
 
 Access the monitoring dashboard at http://localhost:3000 when running locally.
 
@@ -151,12 +168,12 @@ The project maintains comprehensive test coverage across all components to ensur
 ### Test Coverage
 
 | Component | Coverage | Status |
-|-----------|----------|--------|
+| :--- | :--- | :--- |
 | API Services | 89% | ✅ |
 | Data Processing | 85% | ✅ |
 | ML Models | 78% | ✅ |
 | Frontend | 80% | ✅ |
-| Overall | 83% | ✅ |
+| **Overall** | **83%** | **✅** |
 
 ### Running Tests
 
@@ -176,12 +193,16 @@ pytest -m integration
 
 ## 🧠 Model Training
 
-Fluxora uses several machine learning models for energy forecasting:
+Fluxora uses several machine learning models for energy forecasting and optimization. The training pipeline is orchestrated and tracked using MLOps tools.
 
-- LSTM networks for time-series prediction
-- Random Forests for classification tasks
-- Gradient Boosting for feature importance
-- Anomaly detection using isolation forests
+### Forecasting Models
+
+| Model Type | Primary Use Case | Key Benefit |
+| :--- | :--- | :--- |
+| **LSTM Networks** | Time-series prediction | Captures long-term dependencies in sequential data |
+| **XGBoost** | General regression/forecasting | High performance, handles complex feature interactions |
+| **Prophet** | Baseline forecasting | Handles seasonality and holidays out-of-the-box |
+| **Isolation Forest** | Anomaly detection | Effective for identifying outliers in high-dimensional data |
 
 To train models:
 
@@ -193,6 +214,16 @@ python train.py --config=configs/lstm_config.yaml
 Model performance metrics are tracked using MLflow and can be viewed at http://localhost:5000 when running locally.
 
 ## 🚢 Deployment
+
+Fluxora supports deployment across various platforms using Infrastructure as Code (IaC) principles.
+
+### Deployment Targets
+
+| Target | Tooling | Description |
+| :--- | :--- | :--- |
+| **Containerization** | Docker, Docker Compose | Local development and staging environments |
+| **Orchestration** | Kubernetes (k8s) | Production-grade container management and scaling |
+| **Cloud (AWS, GCP, Azure)** | Terraform | Provisioning and managing cloud infrastructure |
 
 ### Kubernetes Deployment
 
@@ -216,30 +247,19 @@ terraform apply
 
 ## 📂 Project Structure
 
-```
-fluxora/
-├── apps/                # Application modules
-├── backend/tests/       # Backend test suites
-├── config/              # Configuration files
-├── data/                # Data processing pipelines
-├── deployments/         # Kubernetes manifests
-├── docs/                # Documentation
-├── infrastructure/      # Infrastructure as code
-├── logs/                # Log files
-├── mobile-frontend/     # Mobile application
-├── monitoring/          # Monitoring configurations
-├── notebooks/           # Jupyter notebooks
-├── packages/shared/     # Shared packages
-├── scripts/             # Utility scripts
-├── src/                 # Core source code
-│   ├── api/             # FastAPI service
-│   ├── data/            # ETL pipelines
-│   ├── models/          # Model architectures
-│   ├── monitoring/      # Data drift detection
-│   └── visualization/   # Plotting utilities
-├── tools/               # Development tools
-└── web-frontend/        # Web dashboard
-```
+The project follows a modular and domain-driven structure to ensure maintainability and scalability.
+
+| Directory | Content | Description |
+| :--- | :--- | :--- |
+| `code/backend/` | FastAPI API | Core business logic and API endpoints |
+| `code/models/` | ML Models | Training, prediction, and versioning logic |
+| `code/data/` | ETL/Pipelines | Data ingestion, cleaning, and feature engineering |
+| `config/` | Configuration | YAML files for models, features, and environment settings |
+| `frontend/` | Web/Mobile UI | Source code for the web dashboard and mobile app |
+| `infrastructure/` | IaC | Terraform and Kubernetes manifests for deployment |
+| `notebooks/` | Exploratory Analysis | Jupyter notebooks for research and experimentation |
+| `tests/` | Test Suites | Unit, integration, and end-to-end tests |
+| `scripts/` | Utility Scripts | Helper scripts for setup, linting, and maintenance |
 
 ## 📄 License
 
