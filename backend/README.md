@@ -1,79 +1,99 @@
-# Backend Directory
+# Fluxora Backend
+
+## Energy Forecasting Platform - Backend Components and Testing
+
+The `backend` directory is a crucial part of the Fluxora project's testing and deployment infrastructure, primarily housing the comprehensive test suite for the core services. The actual backend application logic, which handles the energy forecasting API, data processing, and machine learning models, is located in the parent directory's `src/` and `packages/` folders.
+
+This document provides an overview of the backend's architecture, technology stack, and how the tests in this directory validate the system.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture & Technology Stack](#architecture--technology-stack)
+  - [Core Technologies](#core-technologies)
+  - [MLOps Components](#mlops-components)
+- [Backend Structure](#backend-structure)
+- [Test Suite Detail](#test-suite-detail)
+  - [Test File Breakdown](#test-file-breakdown)
+- [Getting Started](#getting-started)
+
+---
 
 ## Overview
 
-The `backend` directory contains the core backend components and tests for the Fluxora energy forecasting platform. This directory houses the server-side logic, API implementations, and testing infrastructure that powers the Fluxora system.
+The Fluxora backend is built around a **Python-based data science and machine learning pipeline**, exposed via a high-performance **FastAPI** web framework. Its primary function is to ingest energy data, run advanced forecasting models, and serve predictions through a robust API.
 
-## Structure
+## Architecture & Technology Stack
 
-Currently, the directory contains:
+The backend employs a modern, Python-centric stack, heavily leveraging libraries for data manipulation, machine learning, and MLOps.
 
-- **tests/**: A comprehensive test suite for validating backend functionality
+### Core Technologies
 
-## Test Suite
+| Category | Technology | Purpose | Key Dependencies |
+| :--- | :--- | :--- | :--- |
+| **API Framework** | **FastAPI** | High-performance, asynchronous API for serving predictions and managing data. | `fastapi`, `uvicorn` |
+| **Data Processing** | **Python** | Core language for all backend logic, data transformation, and model execution. | `numpy`, `pandas` |
+| **Machine Learning** | **Scikit-learn, XGBoost, Prophet, TensorFlow** | Implementation of various forecasting models and general-purpose machine learning. | `scikit-learn`, `xgboost`, `prophet`, `tensorflow` |
+| **Configuration** | **Hydra** | Manages complex configuration for experiments, models, and deployment environments. | `hydra-core` |
 
-The test suite is organized by component type and covers the following areas:
+### MLOps Components
 
-- **API Tests**: Validates the RESTful API endpoints and their responses
-- **Authentication Tests**: Ensures secure user authentication and authorization
-- **Configuration Tests**: Verifies proper loading and application of configuration settings
-- **Database Tests**: Tests database connections, queries, and data integrity
-- **Middleware Tests**: Validates request/response processing middleware
-- **Model Tests**: Ensures data models function correctly
-- **Service Tests**: Tests business logic services
-- **Utility Tests**: Validates helper functions and utilities
+The system incorporates several specialized tools to manage the end-to-end Machine Learning Operations (MLOps) lifecycle.
 
-### Key Test Files
+| Component | Tool/Library | Function |
+| :--- | :--- | :--- |
+| **Workflow Orchestration** | **Prefect** | Defines, schedules, and monitors the data processing and model training pipelines. |
+| **Experiment Tracking** | **MLflow** | Logs model parameters, metrics, and artifacts for experiment reproducibility and management. |
+| **Data Versioning** | **DVC (Data Version Control)** | Manages versions of datasets and models, ensuring reproducibility across the project. |
+| **Feature Store** | **Feast** | Serves features consistently for both training (offline) and inference (online) environments. |
+| **Model Monitoring** | **Evidently** | Tracks model drift, data quality, and performance in production. |
+| **Metrics** | **Prometheus Client** | Exposes application and model performance metrics for external monitoring systems. |
 
-- `test_api.py`: Tests for API endpoints and responses
-- `test_auth.py`: Authentication and authorization tests
-- `test_config.py`: Configuration loading and validation tests
-- `test_database.py`: Database connection and query tests
-- `test_middleware.py`: Request/response middleware tests
-- `test_models.py`: Data model tests
-- `test_services.py`: Business logic service tests
-- `test_utils.py`: Utility function tests
+## Backend Structure
 
-## Development
+While this directory (`Fluxora/backend`) is primarily for testing, the core logic is distributed across the following directories in the project root:
 
-When developing backend components:
+| Directory | Content | Description |
+| :--- | :--- | :--- |
+| `src/api/` | `app.py`, `schemas.py`, `middleware.py` | Contains the core **FastAPI application**, Pydantic schemas, and API-level middleware. |
+| `src/features/` | `build_features.py`, `feature_store.py` | Logic for **feature engineering**, including temporal and domain-specific features, and interaction with the Feature Store. |
+| `src/models/` | `train.py`, `predict.py`, `model_selector.py` | Contains the **model training, prediction, and selection logic** for the energy forecasting tasks. |
+| `packages/shared/` | `utils/`, `logger.py`, `config.py` | **Shared utilities** and common code used across the entire backend application, including logging and configuration handling. |
+| `backend/` | `tests/` | **Comprehensive test suite** for the API, database, and core utilities. |
 
-1. Ensure all new functionality has corresponding tests
-2. Run the test suite before submitting changes
-3. Follow the project's coding standards as defined in the development guidelines
+## Test Suite Detail
+
+The `backend/tests` directory contains a comprehensive suite of unit and integration tests written using **Pytest**. These tests ensure the reliability and correctness of the backend services.
+
+### Test File Breakdown
+
+| Test File | Component Tested | Primary Focus |
+| :--- | :--- | :--- |
+| `test_api.py` | API Endpoints | Validates RESTful API behavior, request/response schemas, and error handling. |
+| `test_auth.py` | Authentication | Ensures secure user authentication, token validation, and authorization mechanisms. |
+| `test_config.py` | Configuration | Verifies correct loading, parsing, and application of configuration settings (e.g., from Hydra). |
+| `test_database.py` | Data Access | Tests database connections, ORM queries, and data integrity checks. |
+| `test_middleware.py` | Middleware | Validates the functionality of request/response processing middleware (e.g., logging, security, rate-limiting). |
+| `test_models.py` | Data Models | Ensures Pydantic and ORM data models are correctly defined and validated. |
+| `test_services.py` | Business Logic | Validates the core business logic and service layers (e.g., forecasting service). |
+| `test_utils.py` | Utility Functions | Tests helper functions, logging, and custom exception handling. |
+
+## Getting Started
+
+To run the backend application and its tests, you should refer to the main project's `README.md` and the `requirements.txt` file for environment setup.
 
 ### Running Tests
 
-To run the backend tests:
+Tests are executed using `pytest`.
 
 ```bash
-# From the project root
+# From the project root directory (/home/ubuntu/Fluxora)
 pytest backend/tests/
 
-# To run specific test files
+# To run a specific test file
 pytest backend/tests/test_api.py
 ```
 
-## Integration with Other Components
-
-The backend integrates with:
-
-- **Data Processing Pipeline**: For processing and transforming energy data
-- **Machine Learning Models**: For generating energy forecasts
-- **API Layer**: For exposing functionality to frontend applications
-- **Monitoring**: For tracking system health and performance
-
-## Deployment
-
-Backend components are deployed using the configuration in the `deployments` directory. Refer to the deployment documentation for details on deploying backend services to production environments.
-
-## Contributing
-
-When contributing to the backend:
-
-1. Follow the project's coding standards
-2. Write comprehensive tests for new functionality
-3. Document API changes
-4. Update relevant documentation
-
-For more information on contributing, see the `CONTRIBUTING.md` file in the `docs` directory.
+---
