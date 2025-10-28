@@ -9,7 +9,7 @@ from io import StringIO
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils.logging_framework import JsonFormatter, setup_logging, set_request_context, get_request_id, get_correlation_id, clear_request_context
+from fluxora.core.logging_framework import JsonFormatter, setup_logging, set_request_context, get_request_id, get_correlation_id, clear_request_context
 
 class TestLoggingFramework(unittest.TestCase):
     def setUp(self):

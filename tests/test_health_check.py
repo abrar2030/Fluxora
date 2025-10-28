@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock, Mock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils.health_check import HealthCheck, HealthStatus, DependencyStatus, add_health_check_endpoints
+from fluxora.core.health_check import HealthCheck, HealthStatus, DependencyStatus, add_health_check_endpoints
 from fastapi import FastAPI, Response
 from fastapi.testclient import TestClient
 

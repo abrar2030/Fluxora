@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils.retry import retry, RetryableError, NonRetryableError
+from fluxora.core.retry import retry, RetryableError, NonRetryableError
 
 class TestRetry(unittest.TestCase):
     def test_successful_call(self):

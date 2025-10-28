@@ -2,7 +2,7 @@ import json
 
 import websockets
 
-from src.data.make_dataset import process_real_time_data
+from fluxora.data.make_dataset import process_real_time_data
 
 
 async def stream_energy_data():

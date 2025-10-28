@@ -8,10 +8,10 @@ from unittest.mock import patch, MagicMock, Mock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.utils.metrics import MetricsCollector
-from src.utils.logging_framework import setup_logging, set_request_context, clear_request_context
-from src.utils.health_check import HealthCheck, HealthStatus, DependencyStatus
-from src.utils.tracing import TracingManager
+from fluxora.core.metrics import MetricsCollector
+from fluxora.core.logging_framework import setup_logging, set_request_context, clear_request_context
+from fluxora.core.health_check import HealthCheck, HealthStatus, DependencyStatus
+from fluxora.core.tracing import TracingManager
 
 class TestMonitoringIntegration(unittest.TestCase):
     """

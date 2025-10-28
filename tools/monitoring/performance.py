@@ -1,8 +1,8 @@
 # tools/monitoring/performance.py
 from prometheus_client import Gauge, Counter, Histogram, Summary
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, precision_score, recall_score, f1_score
-from packages.shared.utils.logger import get_logger
-from packages.shared.utils.alert_handler import AlertHandler
+from fluxora.core.logger import get_logger
+from fluxora.core.alert_handler import AlertHandler
 import time
 
 logger = get_logger(__name__)

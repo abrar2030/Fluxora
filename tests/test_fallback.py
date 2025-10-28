@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils.fallback import FallbackStrategy, CachedDataFallback, DefaultValueFallback, ChainedFallback, with_fallback
+from fluxora.core.fallback import FallbackStrategy, CachedDataFallback, DefaultValueFallback, ChainedFallback, with_fallback
 
 class TestFallback(unittest.TestCase):
     def test_fallback_strategy_base_class(self):

@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock, Mock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils.metrics import MetricsCollector
+from fluxora.core.metrics import MetricsCollector
 
 class TestMetrics(unittest.TestCase):
     def setUp(self):

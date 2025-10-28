@@ -43,8 +43,8 @@ logger = logging.getLogger("drift_detector")
 
 # Import project-specific modules
 try:
-    from src.utils.config import get_config
-    from src.utils.alert_handler import AlertHandler
+    from fluxora.core.config import get_config
+    from fluxora.core.alert_handler import AlertHandler
     config = get_config()
     alert_handler = AlertHandler()
 except ImportError:

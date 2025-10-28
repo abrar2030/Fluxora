@@ -8,10 +8,10 @@ from unittest.mock import patch, MagicMock, Mock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.utils.circuit_breaker import CircuitBreaker, CircuitState
-from src.utils.retry import retry, RetryableError
-from src.utils.fallback import DefaultValueFallback, with_fallback
-from src.utils.transaction_coordinator import TransactionCoordinator, TransactionStatus
+from fluxora.core.circuit_breaker import CircuitBreaker, CircuitState
+from fluxora.core.retry import retry, RetryableError
+from fluxora.core.fallback import DefaultValueFallback, with_fallback
+from fluxora.core.transaction_coordinator import TransactionCoordinator, TransactionStatus
 
 class TestErrorHandlingIntegration(unittest.TestCase):
     """
