@@ -128,5 +128,3 @@ The mobile frontend interacts with:
 - **Backend API**: For data retrieval and updates
 - **Authentication Services**: For user authentication
 - **Analytics**: For usage tracking and analysis
-
-For more information on mobile development standards and practices, refer to the `DEVELOPMENT_GUIDELINES.md` file in the `docs` directory.
