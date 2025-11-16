@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 import numpy as np
 import pandas as pd
 
-from fluxora.core.config import get_config
+from code.core.config import get_config
 
 
 class FeaturePipeline:

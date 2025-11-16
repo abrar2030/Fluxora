@@ -7,8 +7,8 @@ import optuna
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from fluxora.features.build_features import FeaturePipeline
-from fluxora.core.config import get_config
+from code.features.build_features import FeaturePipeline
+from code.core.config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def prepare_training_data(data):
     pipeline = FeaturePipeline()
 
     # Prepare data in the format expected by the pipeline
-    from fluxora.backend.schemas import PredictionRequest
+    from code.backend.schemas import PredictionRequest
 
     # Convert data to format expected by feature pipeline
     request_data = PredictionRequest(

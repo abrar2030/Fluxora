@@ -157,3 +157,16 @@ def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck):
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         
         return health_status
+
+# Mock functions for dependencies
+def check_feature_store_connection() -> str:
+    """Mock check for feature store connection."""
+    return "ok"
+
+def check_model_versions() -> str:
+    """Mock check for model versions in cache."""
+    return "ok"
+
+def check_database_connections() -> str:
+    """Mock check for database connections."""
+    return "ok"

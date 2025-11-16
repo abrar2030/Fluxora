@@ -1,10 +1,10 @@
 import numpy as np
 from fastapi import Depends, FastAPI
 
-from fluxora.backend.schemas import PredictionRequest, PredictionResponse
-from fluxora.features.build_features import FeaturePipeline
-from fluxora.models.predict import get_model, predict_with_model
-from fluxora.core.config import get_config
+from .schemas import PredictionRequest, PredictionResponse
+from code.features.build_features import FeaturePipeline
+from code.models.predict import get_model, predict_with_model
+from code.core.config import get_config
 
 app = FastAPI(title="Fluxora API", description="Energy prediction API")
 
@@ -16,12 +16,9 @@ feature_pipeline = FeaturePipeline()
 model = get_model()
 
 
-@app.get("/health")
-async def health_check():
-    """
-    Health check endpoint
-    """
-    return {"status": "healthy", "version": config.get("version", "0.1.0")}
+# Register health check router
+from .health_check import router as health_router
+app.include_router(health_router)
 
 
 @app.post("/predict", response_model=PredictionResponse)
