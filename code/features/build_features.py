@@ -1,9 +1,8 @@
+from code.core.config import get_config
 from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
-
-from code.core.config import get_config
 
 
 class FeaturePipeline:

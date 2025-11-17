@@ -1,14 +1,13 @@
 import logging
 import os
+from code.core.config import get_config
+from code.features.build_features import FeaturePipeline
 
 import mlflow
 import numpy as np
 import optuna
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
-from code.features.build_features import FeaturePipeline
-from code.core.config import get_config
 
 logger = logging.getLogger(__name__)
 

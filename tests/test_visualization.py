@@ -5,9 +5,9 @@ Tests for visualization components.
 import numpy as np
 import pandas as pd
 import pytest
-
 from fluxora.visualization.charts import (create_bar_chart, create_heatmap,
-                                      create_line_chart, create_scatter_plot)
+                                          create_line_chart,
+                                          create_scatter_plot)
 
 
 @pytest.fixture

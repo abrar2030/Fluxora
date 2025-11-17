@@ -1,13 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+
 class TransactionRequest(BaseModel):
     transaction_id: str
+
 
 def add_transaction_endpoints(app: FastAPI, resource_manager):
     """
     Add transaction participant endpoints to the FastAPI application
     """
+
     @app.post("/transaction/prepare")
     async def prepare_transaction(request: TransactionRequest):
         """
@@ -19,7 +22,7 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
             return {"status": "prepared"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.post("/transaction/commit")
     async def commit_transaction(request: TransactionRequest):
         """
@@ -31,7 +34,7 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
             return {"status": "committed"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.post("/transaction/abort")
     async def abort_transaction(request: TransactionRequest):
         """

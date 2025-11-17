@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from code.core.health_check import (check_database_connections,
+                                    check_feature_store_connection,
+                                    check_model_versions)
 
-from code.core.health_check import check_feature_store_connection, check_model_versions, check_database_connections
+from fastapi import APIRouter
 
 router = APIRouter()
 

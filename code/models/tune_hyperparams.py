@@ -1,8 +1,9 @@
+from code.models.train import load_data, prepare_training_data
+
 import mlflow
 import numpy as np
 import xgboost as xgb
 from sklearn.metrics import mean_absolute_error
-from code.models.train import load_data, prepare_training_data
 
 # Mock data loading for standalone execution
 data = load_data()

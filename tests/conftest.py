@@ -4,12 +4,11 @@ Common test fixtures for Fluxora backend tests.
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from fluxora.backend.dependencies import get_db
 from fluxora.backend.main import app
 from fluxora.models.base import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # Test database URL
 TEST_DATABASE_URL = "sqlite:///./test.db"

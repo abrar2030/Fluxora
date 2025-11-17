@@ -1,9 +1,8 @@
+from code.core.config import get_config
+from code.features.feature_store import get_feature_store
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-
-from code.features.feature_store import get_feature_store
-from code.core.config import get_config
 
 
 def get_model():

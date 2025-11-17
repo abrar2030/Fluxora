@@ -1,7 +1,6 @@
 import json
 
 import websockets
-
 from fluxora.data.make_dataset import process_real_time_data
 
 

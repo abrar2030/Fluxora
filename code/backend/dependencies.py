@@ -2,8 +2,11 @@
 Dependencies module for API tests.
 This is a stub implementation to allow tests to run.
 """
+
 from typing import Generator
+
 from sqlalchemy.orm import Session
+
 
 def get_db() -> Generator[Session, None, None]:
     """

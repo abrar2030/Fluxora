@@ -1,10 +1,11 @@
+from code.core.config import get_config
+from code.features.build_features import FeaturePipeline
+from code.models.predict import get_model, predict_with_model
+
 import numpy as np
 from fastapi import Depends, FastAPI
 
 from .schemas import PredictionRequest, PredictionResponse
-from code.features.build_features import FeaturePipeline
-from code.models.predict import get_model, predict_with_model
-from code.core.config import get_config
 
 app = FastAPI(title="Fluxora API", description="Energy prediction API")
 
@@ -18,6 +19,7 @@ model = get_model()
 
 # Register health check router
 from .health_check import router as health_router
+
 app.include_router(health_router)
 
 

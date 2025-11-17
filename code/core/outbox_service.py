@@ -1,13 +1,15 @@
 import asyncio
-import uuid
+import json
 import time
+import uuid
 from enum import Enum
 from typing import Dict, List, Optional
-import json
+
 import requests
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, String, Text, Float, Boolean, Integer
+from sqlalchemy import (Boolean, Column, Float, Integer, String, Text,
+                        create_engine)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -17,9 +19,10 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 class OutboxMessage(Base):
     __tablename__ = "outbox_messages"
-    
+
     id = Column(String, primary_key=True, index=True)
     destination_service = Column(String, index=True)
     payload = Column(Text)
@@ -28,19 +31,24 @@ class OutboxMessage(Base):
     processed_at = Column(Float, nullable=True)
     retry_count = Column(Integer, default=0)
 
+
 # Create tables
 Base.metadata.create_all(bind=engine)
+
 
 class MessageStatus(Enum):
     PENDING = "PENDING"
     DELIVERED = "DELIVERED"
     FAILED = "FAILED"
 
+
 class OutboxMessageModel(BaseModel):
     destination_service: str
     payload: Dict
-    
+
+
 app = FastAPI(title="Outbox Service")
+
 
 @app.post("/messages")
 async def create_message(message: OutboxMessageModel):
@@ -57,13 +65,14 @@ async def create_message(message: OutboxMessageModel):
             created_at=time.time(),
             processed=False,
             processed_at=None,
-            retry_count=0
+            retry_count=0,
         )
         db.add(db_message)
         db.commit()
         return {"message_id": message_id, "status": MessageStatus.PENDING.value}
     finally:
         db.close()
+
 
 @app.get("/messages/{message_id}")
 async def get_message(message_id: str):
@@ -75,7 +84,7 @@ async def get_message(message_id: str):
         message = db.query(OutboxMessage).filter(OutboxMessage.id == message_id).first()
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
-        
+
         return {
             "message_id": message.id,
             "destination_service": message.destination_service,
@@ -84,10 +93,15 @@ async def get_message(message_id: str):
             "processed": message.processed,
             "processed_at": message.processed_at,
             "retry_count": message.retry_count,
-            "status": MessageStatus.DELIVERED.value if message.processed else MessageStatus.PENDING.value
+            "status": (
+                MessageStatus.DELIVERED.value
+                if message.processed
+                else MessageStatus.PENDING.value
+            ),
         }
     finally:
         db.close()
+
 
 @app.get("/health")
 async def health_check():
@@ -96,12 +110,14 @@ async def health_check():
     """
     return {"status": "healthy"}
 
+
 @app.on_event("startup")
 async def start_message_processor():
     """
     Start the background message processor
     """
     asyncio.create_task(process_messages())
+
 
 async def process_messages():
     """
@@ -111,23 +127,26 @@ async def process_messages():
         try:
             db = SessionLocal()
             # Get unprocessed messages
-            messages = db.query(OutboxMessage).filter(
-                OutboxMessage.processed == False
-            ).order_by(OutboxMessage.created_at).limit(10).all()
-            
+            messages = (
+                db.query(OutboxMessage)
+                .filter(OutboxMessage.processed == False)
+                .order_by(OutboxMessage.created_at)
+                .limit(10)
+                .all()
+            )
+
             for message in messages:
                 try:
                     # Get service URL from service registry
                     service_url = get_service_url(message.destination_service)
                     if not service_url:
                         continue
-                    
+
                     # Send message to destination service
                     response = requests.post(
-                        f"{service_url}/messages",
-                        json=json.loads(message.payload)
+                        f"{service_url}/messages", json=json.loads(message.payload)
                     )
-                    
+
                     if response.status_code == 200:
                         # Mark message as processed
                         message.processed = True
@@ -138,15 +157,16 @@ async def process_messages():
                 except Exception as e:
                     print(f"Error processing message {message.id}: {str(e)}")
                     message.retry_count += 1
-            
+
             db.commit()
         except Exception as e:
             print(f"Error in message processor: {str(e)}")
         finally:
             db.close()
-        
+
         # Sleep before next processing cycle
         await asyncio.sleep(1)
+
 
 def get_service_url(service_name: str) -> Optional[str]:
     """
@@ -165,6 +185,8 @@ def get_service_url(service_name: str) -> Optional[str]:
         print(f"Error getting service URL: {str(e)}")
         return None
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
