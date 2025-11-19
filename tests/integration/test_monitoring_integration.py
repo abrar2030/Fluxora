@@ -1,19 +1,15 @@
 import os
 import sys
-import threading
-import time
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from fluxora.core.health_check import DependencyStatus, HealthCheck, HealthStatus
-from fluxora.core.logging_framework import (
-    clear_request_context,
-    set_request_context,
-    setup_logging,
-)
+from fluxora.core.health_check import (DependencyStatus, HealthCheck,
+                                       HealthStatus)
+from fluxora.core.logging_framework import (clear_request_context,
+                                            set_request_context, setup_logging)
 from fluxora.core.metrics import MetricsCollector
 from fluxora.core.tracing import TracingManager
 

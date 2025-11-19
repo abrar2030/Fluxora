@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import mlflow
 from mlflow.tracking import MlflowClient
 
 

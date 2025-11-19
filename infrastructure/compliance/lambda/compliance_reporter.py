@@ -2,7 +2,7 @@ import csv
 import io
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import boto3
 

@@ -4,7 +4,7 @@ import sys
 import traceback
 import uuid
 from contextvars import ContextVar
-from typing import Any, Dict, Optional
+from typing import Optional
 
 # Context variables for request tracking
 request_id_var = ContextVar("request_id", default=None)

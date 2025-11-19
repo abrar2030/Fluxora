@@ -2,23 +2,15 @@
 Unit tests for the model training logic.
 """
 
-import os
-import tempfile
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
 import pytest
-
 # Import the functions to test
-from fluxora.models.train import (
-    load_data,
-    objective,
-    prepare_training_data,
-    train_lstm_model,
-    train_model,
-    train_xgboost_model,
-)
+from fluxora.models.train import (objective, prepare_training_data,
+                                  train_lstm_model, train_model,
+                                  train_xgboost_model)
 
 
 @pytest.fixture

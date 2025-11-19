@@ -2,7 +2,6 @@ import os
 
 import requests
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 
 def register_service(app: FastAPI, service_name: str, service_version: str):

@@ -1,5 +1,3 @@
-import json
-import os
 import socket
 import time
 from enum import Enum

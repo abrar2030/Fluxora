@@ -1,7 +1,7 @@
 import functools
 import random
 import time
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import Any, Callable, List, Type, Union
 
 
 def retry(
@@ -53,12 +53,8 @@ class RetryableError(Exception):
     Base class for errors that should be retried
     """
 
-    pass
-
 
 class NonRetryableError(Exception):
     """
     Base class for errors that should not be retried
     """
-
-    pass

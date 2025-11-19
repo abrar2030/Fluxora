@@ -3,7 +3,7 @@ from code.features.build_features import FeaturePipeline
 from code.models.predict import get_model, predict_with_model
 
 import numpy as np
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from .schemas import PredictionRequest, PredictionResponse
 

@@ -16,8 +16,6 @@ class CircuitBreakerError(Exception):
     Exception raised when a circuit breaker is open
     """
 
-    pass
-
 
 class CircuitBreaker:
     def __init__(
@@ -67,7 +65,7 @@ class CircuitBreaker:
             except CircuitBreakerError:
                 # Re-raise CircuitBreakerError without modifying circuit state
                 raise
-            except Exception as e:
+            except Exception:
                 # Record the failure
                 self.failure_count += 1
                 self.last_failure_time = time.time()

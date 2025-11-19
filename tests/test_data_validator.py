@@ -2,7 +2,6 @@
 Unit tests for the data validation logic using Great Expectations.
 """
 
-import numpy as np
 import pandas as pd
 import pytest
 from fluxora.data.data_validator import validate_raw_data

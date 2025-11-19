@@ -1,9 +1,7 @@
-import asyncio
-import json
 import time
 import uuid
 from enum import Enum
-from typing import Callable, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import requests
 from fastapi import BackgroundTasks, FastAPI, HTTPException

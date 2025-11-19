@@ -14,7 +14,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -22,11 +22,7 @@ import pandas as pd
 # Import evidently for drift detection
 try:
     from evidently.metric_preset import DataDriftPreset
-    from evidently.metrics import DataDriftTable
     from evidently.report import Report
-    from evidently.test_preset import DataDriftTestPreset
-    from evidently.test_suite import TestSuite
-    from evidently.tests import *
 except ImportError:
     logging.error("Evidently not installed. Please install with: pip install evidently")
     sys.exit(1)

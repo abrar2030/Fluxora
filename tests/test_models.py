@@ -5,7 +5,6 @@ Model tests for Fluxora backend.
 from datetime import datetime
 
 import pytest
-from fluxora.models.base import Base
 from fluxora.models.user import User
 
 

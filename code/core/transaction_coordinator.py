@@ -1,7 +1,7 @@
 import time
 import uuid
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 
 class TransactionStatus(Enum):
@@ -93,7 +93,7 @@ class TransactionCoordinator:
                     return False
 
                 prepared_participants.append(participant)
-            except Exception as e:
+            except Exception:
                 # If any participant throws an exception, abort all participants
                 for p in transaction["participants"]:
                     p.abort(transaction_id)
@@ -125,7 +125,7 @@ class TransactionCoordinator:
                     # If any participant fails to commit, we're in an inconsistent state
                     # In a real system, we would need a recovery mechanism here
                     return False
-            except Exception as e:
+            except Exception:
                 # If any participant throws an exception, we're in an inconsistent state
                 # In a real system, we would need a recovery mechanism here
                 return False
@@ -147,7 +147,7 @@ class TransactionCoordinator:
         for participant in transaction["participants"]:
             try:
                 participant.abort(transaction_id)
-            except Exception as e:
+            except Exception:
                 # Log the exception but continue aborting other participants
                 pass
 

@@ -3,16 +3,10 @@ import time
 
 from fluxora.core.alert_handler import AlertHandler
 from fluxora.core.logger import get_logger
-from prometheus_client import Counter, Gauge, Histogram, Summary
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
+from prometheus_client import Counter, Gauge, Histogram
+from sklearn.metrics import (accuracy_score, f1_score, mean_absolute_error,
+                             mean_squared_error, precision_score, r2_score,
+                             recall_score)
 
 logger = get_logger(__name__)
 alert_handler = AlertHandler()
@@ -250,8 +244,6 @@ def update_prediction_latency(
 # Example Usage (can be run if prometheus_client is installed and an endpoint is exposed)
 if __name__ == "__main__":
     import random
-
-    from prometheus_client import start_http_server
 
     logger.info("Starting performance monitoring example...")
     # Start up the server to expose the metrics.

@@ -3,12 +3,13 @@ import json
 import time
 import uuid
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import requests
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_engine
+from sqlalchemy import (Boolean, Column, Float, Integer, String, Text,
+                        create_engine)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 

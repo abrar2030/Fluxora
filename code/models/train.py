@@ -24,7 +24,7 @@ def load_data():
 
     if data_source.startswith("s3://"):
         # Load from S3
-        from io import StringIO
+        pass
 
         import boto3
 
