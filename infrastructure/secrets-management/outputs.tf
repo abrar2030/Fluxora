@@ -212,4 +212,3 @@ output "compliance_status" {
     backup_recovery    = true
   }
 }
-

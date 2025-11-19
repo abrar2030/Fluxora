@@ -49,7 +49,7 @@ The `web-frontend` directory contains a placeholder structure for a React applic
 ```bash
 cd web-frontend
 # Install frontend dependencies (e.g., using npm or yarn)
-# npm install 
+# npm install
 # or
 # yarn install
 cd ..
@@ -84,7 +84,7 @@ This project is primarily a collection of utilities and scripts rather than a si
 - **Web Frontend**: If developed, the frontend would be started typically with:
   ```bash
   # cd web-frontend
-  # npm start 
+  # npm start
   # or
   # yarn start
   ```
@@ -112,4 +112,3 @@ This project is primarily a collection of utilities and scripts rather than a si
 - [API Documentation](API_DOCS.md) (Review for relevance to current structure)
 - [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
 - [System Architecture](ARCHITECTURE.md) (Reflects the new structure)
-

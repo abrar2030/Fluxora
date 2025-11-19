@@ -106,13 +106,13 @@ class CircuitBreaker:
         self.failure_count = 0
         self.last_failure_time = 0
         self.lock = threading.RLock()
-    
+
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return self.call(func, *args, **kwargs)
         return wrapper
-    
+
     def call(self, func: Callable, *args, **kwargs) -> Any:
         with self.lock:
             if self.state == CircuitState.OPEN:
@@ -124,35 +124,35 @@ class CircuitBreaker:
                     if self.fallback_function:
                         return self.fallback_function(*args, **kwargs)
                     raise CircuitBreakerError("Circuit is open")
-            
+
             try:
                 result = func(*args, **kwargs)
-                
+
                 # If the call succeeded and the circuit was half-open, close it
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
-                
+
                 return result
-            
+
             except Exception as e:
                 # Record the failure
                 self.failure_count += 1
                 self.last_failure_time = time.time()
-                
+
                 # If we've reached the failure threshold, open the circuit
                 if self.state == CircuitState.CLOSED and self.failure_count >= self.failure_threshold:
                     self.state = CircuitState.OPEN
-                
+
                 # If the circuit is half-open and we failed, open it again
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.OPEN
-                
+
                 # Use fallback if available, otherwise re-raise the exception
                 if self.fallback_function:
                     return self.fallback_function(*args, **kwargs)
                 raise
-    
+
     def reset(self):
         """
         Reset the circuit breaker to its initial state
@@ -161,7 +161,7 @@ class CircuitBreaker:
             self.state = CircuitState.CLOSED
             self.failure_count = 0
             self.last_failure_time = 0
-    
+
     def get_state(self) -> Dict:
         """
         Get the current state of the circuit breaker
@@ -205,30 +205,30 @@ def retry(
         def wrapper(*args, **kwargs) -> Any:
             last_exception = None
             delay = base_delay
-            
+
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
                 except retry_exceptions as e:
                     last_exception = e
-                    
+
                     # Don't sleep on the last attempt
                     if attempt < max_attempts - 1:
                         # Calculate sleep time with exponential backoff
                         sleep_time = min(delay * (backoff_factor ** attempt), max_delay)
-                        
+
                         # Add jitter if enabled
                         if jitter:
                             sleep_time = sleep_time * (0.5 + random.random())
-                        
+
                         # Sleep before next attempt
                         time.sleep(sleep_time)
-            
+
             # If we get here, all attempts failed
             raise last_exception
-        
+
         return wrapper
-    
+
     return decorator
 
 class RetryableError(Exception):
@@ -267,7 +267,7 @@ class CachedDataFallback(FallbackStrategy):
     """
     def __init__(self, cache_provider: Callable[[], Any]):
         self.cache_provider = cache_provider
-    
+
     def execute(self, *args, **kwargs) -> Any:
         """
         Return cached data from the cache provider
@@ -280,7 +280,7 @@ class DefaultValueFallback(FallbackStrategy):
     """
     def __init__(self, default_value: Any):
         self.default_value = default_value
-    
+
     def execute(self, *args, **kwargs) -> Any:
         """
         Return the default value
@@ -293,19 +293,19 @@ class ChainedFallback(FallbackStrategy):
     """
     def __init__(self, strategies: List[FallbackStrategy]):
         self.strategies = strategies
-    
+
     def execute(self, *args, **kwargs) -> Any:
         """
         Try each strategy in sequence until one succeeds
         """
         last_exception = None
-        
+
         for strategy in self.strategies:
             try:
                 return strategy.execute(*args, **kwargs)
             except Exception as e:
                 last_exception = e
-        
+
         # If we get here, all strategies failed
         if last_exception:
             raise last_exception
@@ -322,9 +322,9 @@ def with_fallback(fallback_strategy: FallbackStrategy):
                 return func(*args, **kwargs)
             except Exception:
                 return fallback_strategy.execute(*args, **kwargs)
-        
+
         return wrapper
-    
+
     return decorator
 ```
 
@@ -355,7 +355,7 @@ class ErrorDetail:
         self.message = message
         self.detail = detail
         self.context = context or {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert to dictionary representation
@@ -364,13 +364,13 @@ class ErrorDetail:
             "code": self.code,
             "message": self.message
         }
-        
+
         if self.detail:
             result["detail"] = self.detail
-        
+
         if self.context:
             result["context"] = self.context
-        
+
         return result
 
 class ErrorResponse:
@@ -386,7 +386,7 @@ class ErrorResponse:
         self.error = error
         self.request_id = request_id
         self.status_code = status_code
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert to dictionary representation
@@ -394,10 +394,10 @@ class ErrorResponse:
         result = {
             "error": self.error.to_dict()
         }
-        
+
         if self.request_id:
             result["request_id"] = self.request_id
-        
+
         return result
 
 def add_error_handlers(app: FastAPI):
@@ -415,18 +415,18 @@ def add_error_handlers(app: FastAPI):
             detail=str(exc),
             context={"errors": exc.errors()}
         )
-        
+
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=400
         )
-        
+
         return JSONResponse(
             status_code=400,
             content=error_response.to_dict()
         )
-    
+
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
         """
@@ -437,18 +437,18 @@ def add_error_handlers(app: FastAPI):
             message=exc.detail,
             context=getattr(exc, "headers", None)
         )
-        
+
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=exc.status_code
         )
-        
+
         return JSONResponse(
             status_code=exc.status_code,
             content=error_response.to_dict()
         )
-    
+
     @app.exception_handler(Exception)
     async def generic_exception_handler(request: Request, exc: Exception):
         """
@@ -460,13 +460,13 @@ def add_error_handlers(app: FastAPI):
             detail=str(exc),
             context={"traceback": traceback.format_exc()}
         )
-        
+
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=500
         )
-        
+
         return JSONResponse(
             status_code=500,
             content=error_response.to_dict()
@@ -497,7 +497,7 @@ Base = declarative_base()
 
 class DeadLetteredMessage(Base):
     __tablename__ = "dead_lettered_messages"
-    
+
     id = Column(String, primary_key=True, index=True)
     source_queue = Column(String, index=True)
     destination_service = Column(String, index=True)
@@ -562,18 +562,18 @@ async def retry_message(message_id: str, background_tasks: BackgroundTasks):
         message = db.query(DeadLetteredMessage).filter(DeadLetteredMessage.id == message_id).first()
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
-        
+
         if message.resolved:
             raise HTTPException(status_code=400, detail="Message already resolved")
-        
+
         # Update retry count and timestamp
         message.retry_count += 1
         message.last_retry_at = time.time()
         db.commit()
-        
+
         # Start retry in background
         background_tasks.add_task(retry_message_delivery, message_id)
-        
+
         return {"message_id": message_id, "status": MessageStatus.RETRYING.value}
     finally:
         db.close()
@@ -588,11 +588,11 @@ async def resolve_message(message_id: str):
         message = db.query(DeadLetteredMessage).filter(DeadLetteredMessage.id == message_id).first()
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
-        
+
         message.resolved = True
         message.resolved_at = time.time()
         db.commit()
-        
+
         return {"message_id": message_id, "status": MessageStatus.RESOLVED.value}
     finally:
         db.close()
@@ -607,9 +607,9 @@ async def get_message(message_id: str):
         message = db.query(DeadLetteredMessage).filter(DeadLetteredMessage.id == message_id).first()
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
-        
+
         status = MessageStatus.RESOLVED.value if message.resolved else MessageStatus.PENDING.value
-        
+
         return {
             "message_id": message.id,
             "source_queue": message.source_queue,
@@ -640,20 +640,20 @@ async def list_messages(
     db = SessionLocal()
     try:
         query = db.query(DeadLetteredMessage)
-        
+
         if source_queue:
             query = query.filter(DeadLetteredMessage.source_queue == source_queue)
-        
+
         if destination_service:
             query = query.filter(DeadLetteredMessage.destination_service == destination_service)
-        
+
         if resolved is not None:
             query = query.filter(DeadLetteredMessage.resolved == resolved)
-        
+
         total = query.count()
-        
+
         messages = query.order_by(DeadLetteredMessage.created_at.desc()).offset(offset).limit(limit).all()
-        
+
         return {
             "total": total,
             "offset": offset,
@@ -691,20 +691,20 @@ async def retry_message_delivery(message_id: str):
         message = db.query(DeadLetteredMessage).filter(DeadLetteredMessage.id == message_id).first()
         if not message or message.resolved:
             return
-        
+
         try:
             # Get service URL from service registry
             service_url = get_service_url(message.destination_service)
             if not service_url:
                 return
-            
+
             # Send message to destination service
             import requests
             response = requests.post(
                 f"{service_url}/messages",
                 json=json.loads(message.payload)
             )
-            
+
             if response.status_code == 200:
                 # Mark message as resolved
                 message.resolved = True

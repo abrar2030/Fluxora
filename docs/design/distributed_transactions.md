@@ -168,10 +168,10 @@ async def create_transaction(background_tasks: BackgroundTasks):
         updated_at=time.time()
     )
     transactions[transaction_id] = transaction
-    
+
     # Start transaction timeout monitor
     background_tasks.add_task(monitor_transaction_timeout, transaction_id)
-    
+
     return {"transaction_id": transaction_id, "state": transaction.state.value}
 
 @app.post("/transactions/{transaction_id}/participants")
@@ -181,15 +181,15 @@ async def add_participant(transaction_id: str, participant: Participant):
     """
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     transaction = transactions[transaction_id]
     if transaction.state != TransactionState.STARTED:
         raise HTTPException(status_code=400, detail="Transaction already in progress")
-    
+
     participant.state = ParticipantState.PREPARING
     transaction.participants.append(participant)
     transaction.updated_at = time.time()
-    
+
     return {"transaction_id": transaction_id, "participant_added": participant.service_name}
 
 @app.post("/transactions/{transaction_id}/prepare")
@@ -199,17 +199,17 @@ async def prepare_transaction(transaction_id: str, background_tasks: BackgroundT
     """
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     transaction = transactions[transaction_id]
     if transaction.state != TransactionState.STARTED:
         raise HTTPException(status_code=400, detail="Transaction in invalid state")
-    
+
     transaction.state = TransactionState.PREPARING
     transaction.updated_at = time.time()
-    
+
     # Start prepare phase in background
     background_tasks.add_task(execute_prepare_phase, transaction_id)
-    
+
     return {"transaction_id": transaction_id, "state": transaction.state.value}
 
 @app.post("/transactions/{transaction_id}/commit")
@@ -219,22 +219,22 @@ async def commit_transaction(transaction_id: str, background_tasks: BackgroundTa
     """
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     transaction = transactions[transaction_id]
     if transaction.state != TransactionState.PREPARED:
         raise HTTPException(status_code=400, detail="Transaction not prepared")
-    
+
     # Check if all participants are prepared
     all_prepared = all(p.state == ParticipantState.PREPARED for p in transaction.participants)
     if not all_prepared:
         raise HTTPException(status_code=400, detail="Not all participants are prepared")
-    
+
     transaction.state = TransactionState.COMMITTING
     transaction.updated_at = time.time()
-    
+
     # Start commit phase in background
     background_tasks.add_task(execute_commit_phase, transaction_id)
-    
+
     return {"transaction_id": transaction_id, "state": transaction.state.value}
 
 @app.post("/transactions/{transaction_id}/abort")
@@ -244,17 +244,17 @@ async def abort_transaction(transaction_id: str, background_tasks: BackgroundTas
     """
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     transaction = transactions[transaction_id]
     if transaction.state in [TransactionState.COMMITTED, TransactionState.ABORTED]:
         raise HTTPException(status_code=400, detail="Transaction already completed")
-    
+
     transaction.state = TransactionState.ABORTING
     transaction.updated_at = time.time()
-    
+
     # Start abort phase in background
     background_tasks.add_task(execute_abort_phase, transaction_id)
-    
+
     return {"transaction_id": transaction_id, "state": transaction.state.value}
 
 @app.get("/transactions/{transaction_id}")
@@ -264,7 +264,7 @@ async def get_transaction(transaction_id: str):
     """
     if transaction_id not in transactions:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
     transaction = transactions[transaction_id]
     return {
         "transaction_id": transaction.id,
@@ -286,7 +286,7 @@ async def execute_prepare_phase(transaction_id: str):
     """
     transaction = transactions[transaction_id]
     all_prepared = True
-    
+
     for participant in transaction.participants:
         try:
             response = requests.post(
@@ -301,14 +301,14 @@ async def execute_prepare_phase(transaction_id: str):
         except Exception:
             participant.state = ParticipantState.FAILED
             all_prepared = False
-    
+
     if all_prepared:
         transaction.state = TransactionState.PREPARED
     else:
         # If any participant failed to prepare, abort the transaction
         transaction.state = TransactionState.ABORTING
         await execute_abort_phase(transaction_id)
-    
+
     transaction.updated_at = time.time()
 
 async def execute_commit_phase(transaction_id: str):
@@ -317,7 +317,7 @@ async def execute_commit_phase(transaction_id: str):
     """
     transaction = transactions[transaction_id]
     all_committed = True
-    
+
     for participant in transaction.participants:
         if participant.state == ParticipantState.PREPARED:
             try:
@@ -333,14 +333,14 @@ async def execute_commit_phase(transaction_id: str):
             except Exception:
                 participant.state = ParticipantState.FAILED
                 all_committed = False
-    
+
     if all_committed:
         transaction.state = TransactionState.COMMITTED
     else:
         # In a real system, this would require manual intervention
         # as we're in an inconsistent state
         transaction.state = TransactionState.FAILED
-    
+
     transaction.updated_at = time.time()
 
 async def execute_abort_phase(transaction_id: str):
@@ -348,7 +348,7 @@ async def execute_abort_phase(transaction_id: str):
     Execute the abort phase of the transaction
     """
     transaction = transactions[transaction_id]
-    
+
     for participant in transaction.participants:
         if participant.state in [ParticipantState.PREPARING, ParticipantState.PREPARED]:
             try:
@@ -360,7 +360,7 @@ async def execute_abort_phase(transaction_id: str):
                     participant.state = ParticipantState.ABORTED
             except Exception:
                 participant.state = ParticipantState.FAILED
-    
+
     transaction.state = TransactionState.ABORTED
     transaction.updated_at = time.time()
 
@@ -370,11 +370,11 @@ async def monitor_transaction_timeout(transaction_id: str):
     """
     while transaction_id in transactions:
         transaction = transactions[transaction_id]
-        
+
         # If transaction is completed, stop monitoring
         if transaction.state in [TransactionState.COMMITTED, TransactionState.ABORTED]:
             break
-        
+
         # Check for timeout
         current_time = time.time()
         if current_time - transaction.updated_at > transaction.timeout_seconds:
@@ -382,7 +382,7 @@ async def monitor_transaction_timeout(transaction_id: str):
             transaction.state = TransactionState.ABORTING
             await execute_abort_phase(transaction_id)
             break
-        
+
         # Sleep for a short time before checking again
         await asyncio.sleep(1)
 ```
@@ -412,7 +412,7 @@ Base = declarative_base()
 
 class OutboxMessage(Base):
     __tablename__ = "outbox_messages"
-    
+
     id = Column(String, primary_key=True, index=True)
     destination_service = Column(String, index=True)
     payload = Column(Text)
@@ -432,7 +432,7 @@ class MessageStatus(Enum):
 class OutboxMessageModel(BaseModel):
     destination_service: str
     payload: Dict
-    
+
 app = FastAPI(title="Outbox Service")
 
 @app.post("/messages")
@@ -468,7 +468,7 @@ async def get_message(message_id: str):
         message = db.query(OutboxMessage).filter(OutboxMessage.id == message_id).first()
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
-        
+
         return {
             "message_id": message.id,
             "destination_service": message.destination_service,
@@ -500,20 +500,20 @@ async def process_messages():
             messages = db.query(OutboxMessage).filter(
                 OutboxMessage.processed == False
             ).order_by(OutboxMessage.created_at).limit(10).all()
-            
+
             for message in messages:
                 try:
                     # Get service URL from service registry
                     service_url = get_service_url(message.destination_service)
                     if not service_url:
                         continue
-                    
+
                     # Send message to destination service
                     response = requests.post(
                         f"{service_url}/messages",
                         json=json.loads(message.payload)
                     )
-                    
+
                     if response.status_code == 200:
                         # Mark message as processed
                         message.processed = True
@@ -524,13 +524,13 @@ async def process_messages():
                 except Exception as e:
                     print(f"Error processing message {message.id}: {str(e)}")
                     message.retry_count += 1
-            
+
             db.commit()
         except Exception as e:
             print(f"Error in message processor: {str(e)}")
         finally:
             db.close()
-        
+
         # Sleep before next processing cycle
         await asyncio.sleep(1)
 
@@ -610,7 +610,7 @@ async def create_saga(name: str, steps: List[Dict], background_tasks: Background
     Create a new saga with the specified steps
     """
     saga_id = str(uuid.uuid4())
-    
+
     saga_steps = []
     for i, step_data in enumerate(steps):
         step = SagaStep(
@@ -622,7 +622,7 @@ async def create_saga(name: str, steps: List[Dict], background_tasks: Background
             payload=step_data["payload"]
         )
         saga_steps.append(step)
-    
+
     saga = Saga(
         id=saga_id,
         name=name,
@@ -632,12 +632,12 @@ async def create_saga(name: str, steps: List[Dict], background_tasks: Background
         created_at=time.time(),
         updated_at=time.time()
     )
-    
+
     sagas[saga_id] = saga
-    
+
     # Start saga execution in background
     background_tasks.add_task(execute_saga, saga_id)
-    
+
     return {"saga_id": saga_id, "state": saga.state.value}
 
 @app.get("/sagas/{saga_id}")
@@ -647,7 +647,7 @@ async def get_saga(saga_id: str):
     """
     if saga_id not in sagas:
         raise HTTPException(status_code=404, detail="Saga not found")
-    
+
     saga = sagas[saga_id]
     return {
         "saga_id": saga.id,
@@ -673,11 +673,11 @@ async def execute_saga(saga_id: str):
     """
     saga = sagas[saga_id]
     saga.state = SagaState.EXECUTING
-    
+
     while saga.current_step_index < len(saga.steps):
         step = saga.steps[saga.current_step_index]
         step.state = StepState.EXECUTING
-        
+
         try:
             # Get service URL from service registry
             service_url = get_service_url(step.service_name)
@@ -685,13 +685,13 @@ async def execute_saga(saga_id: str):
                 step.state = StepState.FAILED
                 await compensate_saga(saga_id)
                 return
-            
+
             # Execute step action
             response = requests.post(
                 f"{service_url}{step.action_endpoint}",
                 json=step.payload
             )
-            
+
             if response.status_code == 200:
                 step.state = StepState.EXECUTED
                 step.result = response.json()
@@ -705,9 +705,9 @@ async def execute_saga(saga_id: str):
             step.state = StepState.FAILED
             await compensate_saga(saga_id)
             return
-        
+
         saga.updated_at = time.time()
-    
+
     # All steps executed successfully
     saga.state = SagaState.COMPLETED
     saga.updated_at = time.time()
@@ -718,25 +718,25 @@ async def compensate_saga(saga_id: str):
     """
     saga = sagas[saga_id]
     saga.state = SagaState.COMPENSATING
-    
+
     for i in range(saga.current_step_index - 1, -1, -1):
         step = saga.steps[i]
         if step.state == StepState.EXECUTED:
             step.state = StepState.COMPENSATING
-            
+
             try:
                 # Get service URL from service registry
                 service_url = get_service_url(step.service_name)
                 if not service_url:
                     step.state = StepState.FAILED
                     continue
-                
+
                 # Execute step compensation
                 response = requests.post(
                     f"{service_url}{step.compensation_endpoint}",
                     json={"step_id": step.id, "original_payload": step.payload}
                 )
-                
+
                 if response.status_code == 200:
                     step.state = StepState.COMPENSATED
                 else:
@@ -744,9 +744,9 @@ async def compensate_saga(saga_id: str):
             except Exception as e:
                 print(f"Error compensating step {step.id}: {str(e)}")
                 step.state = StepState.FAILED
-            
+
             saga.updated_at = time.time()
-    
+
     saga.state = SagaState.FAILED
     saga.updated_at = time.time()
 
@@ -984,7 +984,7 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
             return {"status": "prepared"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.post("/transaction/commit")
     async def commit_transaction(request: TransactionRequest):
         """
@@ -996,7 +996,7 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
             return {"status": "committed"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @app.post("/transaction/abort")
     async def abort_transaction(request: TransactionRequest):
         """
@@ -1026,7 +1026,7 @@ class ResourceManager:
         self.prepared_resources = {}
         self.temp_dir = "/tmp/transactions"
         os.makedirs(self.temp_dir, exist_ok=True)
-    
+
     def prepare(self, transaction_id: str, resource_id: str, operation: str, data: Dict[str, Any]):
         """
         Prepare a resource for a transaction
@@ -1037,19 +1037,19 @@ class ResourceManager:
             "operation": operation,
             "data": data
         }
-        
+
         # Persist the prepared state to disk for recovery
         self._persist_prepared_state(transaction_id, resource_id, operation, data)
-        
+
         return True
-    
+
     def commit(self, transaction_id: str):
         """
         Commit all prepared resources for the transaction
         """
         # Find all prepared resources for this transaction
         resources_to_commit = {k: v for k, v in self.prepared_resources.items() if k.startswith(f"{transaction_id}:")}
-        
+
         # Commit each resource
         for resource_key, resource_data in resources_to_commit.items():
             try:
@@ -1062,16 +1062,16 @@ class ResourceManager:
             except Exception as e:
                 # Log the error but continue with other resources
                 print(f"Error committing resource {resource_key}: {str(e)}")
-        
+
         return True
-    
+
     def abort(self, transaction_id: str):
         """
         Abort all prepared resources for the transaction
         """
         # Find all prepared resources for this transaction
         resources_to_abort = {k: v for k, v in self.prepared_resources.items() if k.startswith(f"{transaction_id}:")}
-        
+
         # Abort each resource
         for resource_key, resource_data in resources_to_abort.items():
             try:
@@ -1083,9 +1083,9 @@ class ResourceManager:
             except Exception as e:
                 # Log the error but continue with other resources
                 print(f"Error aborting resource {resource_key}: {str(e)}")
-        
+
         return True
-    
+
     def _execute_operation(self, operation: str, data: Dict[str, Any]):
         """
         Execute the operation on the resource
@@ -1102,21 +1102,21 @@ class ResourceManager:
             pass
         else:
             raise ValueError(f"Unknown operation: {operation}")
-    
+
     def _persist_prepared_state(self, transaction_id: str, resource_id: str, operation: str, data: Dict[str, Any]):
         """
         Persist the prepared state to disk for recovery
         """
         transaction_dir = os.path.join(self.temp_dir, transaction_id)
         os.makedirs(transaction_dir, exist_ok=True)
-        
+
         resource_file = os.path.join(transaction_dir, f"{resource_id}.json")
         with open(resource_file, "w") as f:
             json.dump({
                 "operation": operation,
                 "data": data
             }, f)
-    
+
     def _remove_persisted_state(self, transaction_id: str, resource_id: str):
         """
         Remove the persisted state from disk
@@ -1124,7 +1124,7 @@ class ResourceManager:
         resource_file = os.path.join(self.temp_dir, transaction_id, f"{resource_id}.json")
         if os.path.exists(resource_file):
             os.remove(resource_file)
-        
+
         # Remove transaction directory if empty
         transaction_dir = os.path.join(self.temp_dir, transaction_id)
         if os.path.exists(transaction_dir) and not os.listdir(transaction_dir):
@@ -1144,7 +1144,7 @@ class OutboxClient:
     def __init__(self, service_name: str):
         self.service_name = service_name
         self.outbox_service_url = "http://outbox-service:8000"
-    
+
     def send_message(self, destination_service: str, payload: Dict[str, Any]):
         """
         Send a message to another service via the outbox
@@ -1160,7 +1160,7 @@ class OutboxClient:
                     }
                 }
             )
-            
+
             if response.status_code == 200:
                 return response.json()
             else:
@@ -1184,7 +1184,7 @@ class SagaClient:
     def __init__(self, service_name: str):
         self.service_name = service_name
         self.saga_orchestrator_url = "http://saga-orchestrator:8000"
-    
+
     def start_saga(self, saga_name: str, steps: List[Dict[str, Any]]):
         """
         Start a new saga with the specified steps
@@ -1197,7 +1197,7 @@ class SagaClient:
                     "steps": steps
                 }
             )
-            
+
             if response.status_code == 200:
                 return response.json()
             else:
@@ -1206,7 +1206,7 @@ class SagaClient:
         except Exception as e:
             print(f"Error starting saga: {str(e)}")
             return None
-    
+
     def get_saga_status(self, saga_id: str):
         """
         Get the status of a saga
@@ -1215,7 +1215,7 @@ class SagaClient:
             response = requests.get(
                 f"{self.saga_orchestrator_url}/sagas/{saga_id}"
             )
-            
+
             if response.status_code == 200:
                 return response.json()
             else:

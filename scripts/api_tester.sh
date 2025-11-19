@@ -65,9 +65,9 @@ check_curl() {
 # Function to check if API is running
 check_api() {
     print_section "Checking API Availability"
-    
+
     print_warning "Testing connection to API at ${API_BASE_URL}..."
-    
+
     if curl -s -o /dev/null -w "%{http_code}" "${API_BASE_URL}/health" | grep -q "200"; then
         print_success "API is running and healthy"
         return 0
@@ -89,28 +89,28 @@ ensure_output_dir() {
 # Function to generate authentication token
 get_auth_token() {
     print_section "Generating Authentication Token"
-    
+
     local username="user@example.com"
     local password="secure_password"
-    
+
     print_warning "Requesting authentication token for ${username}..."
-    
+
     local response=$(curl -s -X POST "${API_BASE_URL}/api/auth/token" \
         -H "Content-Type: application/json" \
         -d "{
             \"username\": \"${username}\",
             \"password\": \"${password}\"
         }")
-    
+
     print_verbose "Response: $response"
-    
+
     # Extract token from response
     local token=$(echo "$response" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
-    
+
     if [ -n "$token" ]; then
         print_success "Authentication token obtained"
         echo "$token"
-        
+
         # Save example request to file
         cat > "${OUTPUT_DIR}/auth_example.sh" << EOF
 #!/bin/bash
@@ -124,7 +124,7 @@ curl -X POST "${API_BASE_URL}/api/auth/token" \\
   }'
 EOF
         chmod +x "${OUTPUT_DIR}/auth_example.sh"
-        
+
         return 0
     else
         print_error "Failed to obtain authentication token"
@@ -135,11 +135,11 @@ EOF
 # Function to test prediction endpoint
 test_prediction() {
     print_section "Testing Prediction Endpoint"
-    
+
     local token=$1
-    
+
     print_warning "Sending prediction request..."
-    
+
     local response=$(curl -s -X POST "${API_BASE_URL}/api/predict" \
         -H "Content-Type: application/json" \
         -H "X-API-Key: ${token}" \
@@ -148,13 +148,13 @@ test_prediction() {
             "meter_id": "MT_001",
             "historical_load": [0.45, 0.48, 0.52]
         }')
-    
+
     print_verbose "Response: $response"
-    
+
     # Check if response contains prediction
     if echo "$response" | grep -q '"prediction"'; then
         print_success "Prediction request successful"
-        
+
         # Save example request to file
         cat > "${OUTPUT_DIR}/prediction_example.sh" << EOF
 #!/bin/bash
@@ -170,7 +170,7 @@ curl -X POST "${API_BASE_URL}/api/predict" \\
   }'
 EOF
         chmod +x "${OUTPUT_DIR}/prediction_example.sh"
-        
+
         return 0
     else
         print_error "Prediction request failed"
@@ -181,23 +181,23 @@ EOF
 # Function to test data retrieval endpoint
 test_data_retrieval() {
     print_section "Testing Data Retrieval Endpoint"
-    
+
     local token=$1
-    
+
     print_warning "Sending data retrieval request..."
-    
+
     local response=$(curl -s -X GET "${API_BASE_URL}/api/data/consumption" \
         -H "X-API-Key: ${token}" \
         -G --data-urlencode "start_date=2023-08-01" \
         --data-urlencode "end_date=2023-08-15" \
         --data-urlencode "meter_id=MT_001")
-    
+
     print_verbose "Response: $response"
-    
+
     # Check if response contains data
     if echo "$response" | grep -q '"data"'; then
         print_success "Data retrieval request successful"
-        
+
         # Save example request to file
         cat > "${OUTPUT_DIR}/data_retrieval_example.sh" << EOF
 #!/bin/bash
@@ -211,7 +211,7 @@ curl -X GET "${API_BASE_URL}/api/data/consumption" \\
   --data-urlencode "meter_id=MT_001"
 EOF
         chmod +x "${OUTPUT_DIR}/data_retrieval_example.sh"
-        
+
         return 0
     else
         print_error "Data retrieval request failed"
@@ -222,7 +222,7 @@ EOF
 # Function to create a README file with API documentation
 create_api_readme() {
     print_section "Creating API Documentation"
-    
+
     cat > "${OUTPUT_DIR}/README.md" << EOF
 # Fluxora API Examples
 
@@ -279,40 +279,40 @@ To retrieve historical consumption data:
 - start_date: Start date for data retrieval (e.g., "2023-08-01")
 - end_date: End date for data retrieval (e.g., "2023-08-15")
 EOF
-    
+
     print_success "API documentation created at ${OUTPUT_DIR}/README.md"
 }
 
 # Function to run all tests
 run_all_tests() {
     print_section "Running All API Tests"
-    
+
     # Check if API is available
     if ! check_api; then
         return 1
     fi
-    
+
     # Ensure output directory exists
     ensure_output_dir
-    
+
     # Get authentication token
     local token=$(get_auth_token)
     if [ -z "$token" ]; then
         return 1
     fi
-    
+
     # Test prediction endpoint
     test_prediction "$token"
-    
+
     # Test data retrieval endpoint
     test_data_retrieval "$token"
-    
+
     # Create API documentation
     create_api_readme
-    
+
     print_section "API Testing Complete"
     print_success "All API examples have been generated in ${OUTPUT_DIR}"
-    
+
     echo -e "\nTo use these examples:"
     echo "1. Start the Fluxora API server (if not already running)"
     echo "2. Navigate to ${OUTPUT_DIR}"

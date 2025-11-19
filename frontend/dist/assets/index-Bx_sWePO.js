@@ -321,8 +321,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       <h1>Fluxora - Energy Prediction System</h1>
       <p>Unable to initialize the application.</p>
       <p>Please try refreshing the page or contact support if the issue persists.</p>
-      <button 
-        onclick="window.location.reload()" 
+      <button
+        onclick="window.location.reload()"
         style="padding: 10px 20px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;"
       >
         Refresh Page

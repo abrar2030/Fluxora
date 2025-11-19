@@ -368,4 +368,3 @@ groups:
           description: "Request throughput is below 10 requests/second for {{ $labels.service }}"
           remediation: "Investigate low traffic or potential service issues"
           dashboard_url: "https://grafana.fluxora.com/d/application/application-performance"
-

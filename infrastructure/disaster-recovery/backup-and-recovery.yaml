@@ -68,21 +68,21 @@ spec:
       - monitoring
       - logging
       - security
-      
+
       excludedResources:
       - events
       - events.events.k8s.io
-      
+
       includeClusterResources: true
       snapshotVolumes: true
-      
+
       # Retention policy for compliance
       ttl: 2555h  # 7 years retention for financial compliance
-      
+
       storageLocation: fluxora-backup-storage
       volumeSnapshotLocations:
       - fluxora-volume-snapshots
-      
+
       hooks:
         resources:
         - name: database-backup-hook
@@ -100,7 +100,7 @@ spec:
               - "mysqldump --single-transaction --routines --triggers --all-databases > /backup/mysql-backup.sql"
               onError: Fail
               timeout: 30m
-        
+
         - name: redis-backup-hook
           includedNamespaces:
           - fluxora
@@ -137,19 +137,19 @@ spec:
     spec:
       includedNamespaces:
       - fluxora
-      
+
       # Only backup resources that change frequently
       includedResources:
       - secrets
       - configmaps
       - persistentvolumeclaims
       - persistentvolumes
-      
+
       includeClusterResources: false
       snapshotVolumes: true
-      
+
       ttl: 168h  # 7 days retention for incremental backups
-      
+
       storageLocation: fluxora-backup-storage
       volumeSnapshotLocations:
       - fluxora-volume-snapshots
@@ -203,7 +203,7 @@ spec:
             runAsUser: 10001
             runAsGroup: 10001
             fsGroup: 10001
-          
+
           containers:
           - name: mysql-backup
             image: mysql:8.0
@@ -212,11 +212,11 @@ spec:
             - -c
             - |
               set -e
-              
+
               # Create backup directory with timestamp
               BACKUP_DIR="/backups/mysql/$(date +%Y%m%d_%H%M%S)"
               mkdir -p "$BACKUP_DIR"
-              
+
               # Full database backup
               mysqldump \
                 --host="$MYSQL_HOST" \
@@ -229,24 +229,24 @@ spec:
                 --all-databases \
                 --compress \
                 --result-file="$BACKUP_DIR/full_backup.sql"
-              
+
               # Compress backup
               gzip "$BACKUP_DIR/full_backup.sql"
-              
+
               # Upload to S3 with encryption
               aws s3 cp "$BACKUP_DIR/full_backup.sql.gz" \
                 "s3://fluxora-database-backups/mysql/$(date +%Y/%m/%d)/full_backup_$(date +%H%M%S).sql.gz" \
                 --server-side-encryption aws:kms \
                 --ssm-kms-key-id "$KMS_KEY_ID"
-              
+
               # Verify backup integrity
               gunzip -t "$BACKUP_DIR/full_backup.sql.gz"
-              
+
               # Clean up local backup (keep S3 copy)
               rm -rf "$BACKUP_DIR"
-              
+
               echo "Database backup completed successfully"
-            
+
             env:
             - name: MYSQL_HOST
               valueFrom:
@@ -275,11 +275,11 @@ spec:
                   key: kms-key-id
             - name: AWS_DEFAULT_REGION
               value: "us-east-1"
-            
+
             volumeMounts:
             - name: backup-storage
               mountPath: /backups
-            
+
             resources:
               limits:
                 cpu: 1000m
@@ -287,12 +287,12 @@ spec:
               requests:
                 cpu: 500m
                 memory: 1Gi
-          
+
           volumes:
           - name: backup-storage
             emptyDir:
               sizeLimit: 10Gi
-          
+
           restartPolicy: OnFailure
           serviceAccountName: backup-service-account
 
@@ -324,7 +324,7 @@ spec:
             runAsUser: 10001
             runAsGroup: 10001
             fsGroup: 10001
-          
+
           containers:
           - name: dr-test-runner
             image: fluxora/dr-test-runner:latest
@@ -333,46 +333,46 @@ spec:
             - -c
             - |
               set -e
-              
+
               echo "Starting Disaster Recovery Test - $(date)"
-              
+
               # Test 1: Backup Integrity Verification
               echo "Testing backup integrity..."
               velero backup describe --details $(velero backup get | grep Completed | head -1 | awk '{print $1}')
-              
+
               # Test 2: Database Backup Restoration Test
               echo "Testing database backup restoration..."
               # Create test namespace
               kubectl create namespace dr-test-$(date +%s) || true
-              
+
               # Restore latest backup to test namespace
               velero restore create dr-test-$(date +%s) \
                 --from-backup $(velero backup get | grep Completed | head -1 | awk '{print $1}') \
                 --namespace-mappings fluxora:dr-test-$(date +%s)
-              
+
               # Wait for restore to complete
               sleep 300
-              
+
               # Verify restored resources
               kubectl get pods -n dr-test-$(date +%s)
               kubectl get services -n dr-test-$(date +%s)
               kubectl get secrets -n dr-test-$(date +%s)
-              
+
               # Test 3: Application Functionality Test
               echo "Testing restored application functionality..."
               # Add application-specific tests here
-              
+
               # Test 4: Data Integrity Verification
               echo "Testing data integrity..."
               # Add data integrity checks here
-              
+
               # Test 5: Performance Baseline Test
               echo "Testing performance baseline..."
               # Add performance tests here
-              
+
               # Cleanup test resources
               kubectl delete namespace dr-test-$(date +%s) || true
-              
+
               # Generate test report
               cat > /tmp/dr-test-report.json << EOF
               {
@@ -390,18 +390,18 @@ spec:
                 "compliance_status": "COMPLIANT"
               }
               EOF
-              
+
               # Upload test report
               aws s3 cp /tmp/dr-test-report.json \
                 "s3://fluxora-compliance-reports/dr-tests/$(date +%Y/%m)/dr-test-$(date +%Y%m%d).json" \
                 --server-side-encryption aws:kms
-              
+
               echo "Disaster Recovery Test Completed Successfully - $(date)"
-            
+
             env:
             - name: AWS_DEFAULT_REGION
               value: "us-east-1"
-            
+
             resources:
               limits:
                 cpu: 500m
@@ -409,7 +409,7 @@ spec:
               requests:
                 cpu: 250m
                 memory: 512Mi
-          
+
           restartPolicy: OnFailure
           serviceAccountName: dr-test-service-account
 
@@ -427,16 +427,16 @@ data:
     # Disaster Recovery Failover Plan
     primary_region: us-east-1
     secondary_region: us-west-2
-    
+
     # RTO (Recovery Time Objective): 15 minutes
     # RPO (Recovery Point Objective): 1 hour
-    
+
     failover_triggers:
       - primary_cluster_unavailable
       - primary_region_outage
       - data_center_disaster
       - critical_security_incident
-    
+
     failover_steps:
       1. Verify primary cluster status
       2. Activate secondary cluster
@@ -445,7 +445,7 @@ data:
       5. Verify application functionality
       6. Notify stakeholders
       7. Begin primary cluster recovery
-    
+
     rollback_steps:
       1. Verify primary cluster recovery
       2. Sync data from secondary to primary
@@ -453,13 +453,13 @@ data:
       4. Verify application functionality
       5. Deactivate secondary cluster
       6. Notify stakeholders
-    
+
     communication_plan:
       - incident_commander: "ops-team@fluxora.com"
       - stakeholders: "executives@fluxora.com"
       - customers: "support@fluxora.com"
       - regulators: "compliance@fluxora.com"
-    
+
     compliance_requirements:
       - Document all failover activities
       - Maintain audit trail of decisions
@@ -556,4 +556,3 @@ roleRef:
   kind: ClusterRole
   name: dr-test-operator
   apiGroup: rbac.authorization.k8s.io
-

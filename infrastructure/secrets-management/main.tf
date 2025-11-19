@@ -23,7 +23,7 @@ resource "aws_kms_key" "secrets" {
   description             = "KMS key for secrets encryption - ${var.app_name}-${var.environment}"
   deletion_window_in_days = var.kms_deletion_window
   enable_key_rotation     = true
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -460,4 +460,3 @@ resource "aws_backup_vault" "secrets_backup" {
     Type = "backup"
   })
 }
-

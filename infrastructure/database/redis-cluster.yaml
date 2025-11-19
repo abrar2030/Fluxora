@@ -36,7 +36,7 @@ spec:
         fsGroup: 999
         seccompProfile:
           type: RuntimeDefault
-      
+
       initContainers:
       - name: redis-init
         image: redis:7.2-alpine
@@ -45,10 +45,10 @@ spec:
         - -c
         - |
           set -e
-          
+
           # Create Redis configuration directory
           mkdir -p /data/conf
-          
+
           # Generate Redis configuration
           cat > /data/conf/redis.conf << EOF
           # Network and Security
@@ -57,7 +57,7 @@ spec:
           protected-mode yes
           requirepass ${REDIS_PASSWORD}
           masterauth ${REDIS_PASSWORD}
-          
+
           # TLS Configuration
           tls-port 6380
           tls-cert-file /etc/redis/certs/redis.crt
@@ -66,7 +66,7 @@ spec:
           tls-protocols "TLSv1.2 TLSv1.3"
           tls-ciphers "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
           tls-ciphersuites "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256"
-          
+
           # Cluster Configuration
           cluster-enabled yes
           cluster-config-file nodes.conf
@@ -74,7 +74,7 @@ spec:
           cluster-announce-hostname redis-cluster-\${HOSTNAME##*-}.redis-cluster.database.svc.cluster.local
           cluster-announce-port 6379
           cluster-announce-tls-port 6380
-          
+
           # Persistence Configuration
           save 900 1
           save 300 10
@@ -83,7 +83,7 @@ spec:
           rdbchecksum yes
           dbfilename dump.rdb
           dir /data
-          
+
           # AOF Configuration
           appendonly yes
           appendfilename "appendonly.aof"
@@ -93,19 +93,19 @@ spec:
           auto-aof-rewrite-min-size 64mb
           aof-load-truncated yes
           aof-use-rdb-preamble yes
-          
+
           # Memory Management
           maxmemory 2gb
           maxmemory-policy allkeys-lru
           maxmemory-samples 5
-          
+
           # Logging
           loglevel notice
           logfile /var/log/redis/redis.log
           syslog-enabled yes
           syslog-ident redis
           syslog-facility local0
-          
+
           # Security Settings
           rename-command FLUSHDB ""
           rename-command FLUSHALL ""
@@ -115,12 +115,12 @@ spec:
           rename-command DEBUG ""
           rename-command EVAL ""
           rename-command SCRIPT ""
-          
+
           # Client Settings
           timeout 300
           tcp-keepalive 300
           tcp-backlog 511
-          
+
           # Performance Tuning
           hash-max-ziplist-entries 512
           hash-max-ziplist-value 64
@@ -132,28 +132,28 @@ spec:
           hll-sparse-max-bytes 3000
           stream-node-max-bytes 4096
           stream-node-max-entries 100
-          
+
           # Slow Log
           slowlog-log-slower-than 10000
           slowlog-max-len 128
-          
+
           # Latency Monitoring
           latency-monitor-threshold 100
-          
+
           # Client Output Buffer Limits
           client-output-buffer-limit normal 0 0 0
           client-output-buffer-limit replica 256mb 64mb 60
           client-output-buffer-limit pubsub 32mb 8mb 60
-          
+
           # Notifications
           notify-keyspace-events Ex
           EOF
-          
+
           # Set proper permissions
           chown -R redis:redis /data
           chmod 750 /data
           chmod 640 /data/conf/redis.conf
-        
+
         env:
         - name: REDIS_PASSWORD
           valueFrom:
@@ -165,19 +165,19 @@ spec:
             secretKeyRef:
               name: redis-credentials
               key: config-suffix
-        
+
         volumeMounts:
         - name: redis-data
           mountPath: /data
         - name: redis-certs
           mountPath: /etc/redis/certs
           readOnly: true
-        
+
         securityContext:
           runAsUser: 0
           runAsGroup: 0
           allowPrivilegeEscalation: true
-      
+
       containers:
       - name: redis
         image: redis:7.2-alpine
@@ -188,18 +188,18 @@ spec:
           name: redis-tls
         - containerPort: 16379
           name: cluster-bus
-        
+
         command:
         - redis-server
         - /data/conf/redis.conf
-        
+
         env:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: redis-credentials
               key: password
-        
+
         volumeMounts:
         - name: redis-data
           mountPath: /data
@@ -208,7 +208,7 @@ spec:
           readOnly: true
         - name: redis-logs
           mountPath: /var/log/redis
-        
+
         resources:
           limits:
             cpu: 1000m
@@ -216,7 +216,7 @@ spec:
           requests:
             cpu: 500m
             memory: 2Gi
-        
+
         livenessProbe:
           exec:
             command:
@@ -235,7 +235,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        
+
         readinessProbe:
           exec:
             command:
@@ -254,7 +254,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -264,14 +264,14 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       # Redis Exporter for Monitoring
       - name: redis-exporter
         image: oliver006/redis_exporter:latest
         ports:
         - containerPort: 9121
           name: metrics
-        
+
         env:
         - name: REDIS_ADDR
           value: "rediss://localhost:6380"
@@ -288,18 +288,18 @@ spec:
           value: "/etc/redis/certs/ca.crt"
         - name: REDIS_EXPORTER_SKIP_TLS_VERIFICATION
           value: "false"
-        
+
         args:
         - --include-system-metrics
         - --export-client-list
         - --check-keys=*
         - --check-single-keys=*
-        
+
         volumeMounts:
         - name: redis-certs
           mountPath: /etc/redis/certs
           readOnly: true
-        
+
         resources:
           limits:
             cpu: 200m
@@ -307,7 +307,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 59000
@@ -317,7 +317,7 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       volumes:
       - name: redis-certs
         secret:
@@ -326,9 +326,9 @@ spec:
       - name: redis-logs
         emptyDir:
           sizeLimit: 1Gi
-      
+
       serviceAccountName: redis-service-account
-      
+
   volumeClaimTemplates:
   - metadata:
       name: redis-data
@@ -416,7 +416,7 @@ spec:
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
-      
+
       containers:
       - name: redis-cluster-init
         image: redis:7.2-alpine
@@ -425,47 +425,47 @@ spec:
         - -c
         - |
           set -e
-          
+
           echo "Waiting for Redis pods to be ready..."
           sleep 60
-          
+
           # Build cluster node list
           NODES=""
           for i in $(seq 0 5); do
             NODES="$NODES redis-cluster-$i.redis-cluster.database.svc.cluster.local:6379"
           done
-          
+
           echo "Creating Redis cluster with nodes: $NODES"
-          
+
           # Create cluster
           redis-cli \
             --cluster create $NODES \
             --cluster-replicas 1 \
             --cluster-yes \
             -a $REDIS_PASSWORD
-          
+
           echo "Redis cluster created successfully"
-          
+
           # Verify cluster status
           redis-cli \
             -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
             -p 6379 \
             -a $REDIS_PASSWORD \
             cluster info
-          
+
           redis-cli \
             -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
             -p 6379 \
             -a $REDIS_PASSWORD \
             cluster nodes
-        
+
         env:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: redis-credentials
               key: password
-        
+
         resources:
           limits:
             cpu: 200m
@@ -473,7 +473,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -483,7 +483,7 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       restartPolicy: OnFailure
       serviceAccountName: redis-service-account
 
@@ -564,25 +564,25 @@ spec:
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
-      
+
       containers:
       - name: redis-sentinel
         image: redis:7.2-alpine
         ports:
         - containerPort: 26379
           name: sentinel
-        
+
         command:
         - redis-sentinel
         - /etc/redis/sentinel.conf
-        
+
         env:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: redis-credentials
               key: password
-        
+
         volumeMounts:
         - name: sentinel-config
           mountPath: /etc/redis
@@ -590,7 +590,7 @@ spec:
         - name: redis-certs
           mountPath: /etc/redis/certs
           readOnly: true
-        
+
         resources:
           limits:
             cpu: 200m
@@ -598,7 +598,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        
+
         livenessProbe:
           exec:
             command:
@@ -608,7 +608,7 @@ spec:
             - ping
           initialDelaySeconds: 30
           periodSeconds: 10
-        
+
         readinessProbe:
           exec:
             command:
@@ -618,7 +618,7 @@ spec:
             - ping
           initialDelaySeconds: 15
           periodSeconds: 5
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -628,7 +628,7 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       volumes:
       - name: sentinel-config
         configMap:
@@ -637,7 +637,7 @@ spec:
         secret:
           secretName: redis-tls-certs
           defaultMode: 0400
-      
+
       serviceAccountName: redis-service-account
 
 ---
@@ -654,14 +654,14 @@ data:
   sentinel.conf: |
     port 26379
     bind 0.0.0.0
-    
+
     # TLS Configuration
     tls-port 26380
     tls-cert-file /etc/redis/certs/redis.crt
     tls-key-file /etc/redis/certs/redis.key
     tls-ca-cert-file /etc/redis/certs/ca.crt
     tls-protocols "TLSv1.2 TLSv1.3"
-    
+
     # Sentinel Configuration
     sentinel monitor mymaster redis-cluster-0.redis-cluster.database.svc.cluster.local 6379 2
     sentinel auth-pass mymaster ${REDIS_PASSWORD}
@@ -669,15 +669,14 @@ data:
     sentinel parallel-syncs mymaster 1
     sentinel failover-timeout mymaster 180000
     sentinel deny-scripts-reconfig yes
-    
+
     # Logging
     loglevel notice
     logfile /var/log/redis/sentinel.log
-    
+
     # Security
     requirepass ${REDIS_PASSWORD}
-    
+
     # Notifications
     sentinel notification-script mymaster /etc/redis/notify.sh
     sentinel client-reconfig-script mymaster /etc/redis/reconfig.sh
-

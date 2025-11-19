@@ -2,7 +2,7 @@
 
 # setup_environment.sh
 # Automates the setup of development environment for Fluxora
-# 
+#
 # This script checks and installs all prerequisites required for Fluxora:
 # - Python 3.9+
 # - Node.js 16+
@@ -64,11 +64,11 @@ check_sudo() {
 # Check and install Python
 setup_python() {
     print_section "Setting up Python"
-    
+
     if command_exists python3; then
         PYTHON_VERSION=$(python3 --version | cut -d " " -f 2)
         echo "Python version: $PYTHON_VERSION"
-        
+
         if version_gte "$PYTHON_VERSION" "3.9"; then
             print_success "Python $PYTHON_VERSION is installed and meets requirements"
         else
@@ -79,20 +79,20 @@ setup_python() {
         print_warning "Python not found"
         install_python
     fi
-    
+
     # Check pip
     if ! command_exists pip3; then
         print_warning "pip not found, installing..."
         sudo apt-get update
         sudo apt-get install -y python3-pip
     fi
-    
+
     # Install virtualenv
     if ! command_exists virtualenv; then
         print_warning "virtualenv not found, installing..."
         pip3 install virtualenv
     fi
-    
+
     print_success "Python environment is ready"
 }
 
@@ -110,11 +110,11 @@ install_python() {
 # Check and install Node.js
 setup_nodejs() {
     print_section "Setting up Node.js"
-    
+
     if command_exists node; then
         NODE_VERSION=$(node --version | cut -d "v" -f 2)
         echo "Node.js version: $NODE_VERSION"
-        
+
         if version_gte "$NODE_VERSION" "16.0.0"; then
             print_success "Node.js $NODE_VERSION is installed and meets requirements"
         else
@@ -125,13 +125,13 @@ setup_nodejs() {
         print_warning "Node.js not found"
         install_nodejs
     fi
-    
+
     # Check npm
     if ! command_exists npm; then
         print_warning "npm not found, it should be installed with Node.js"
         install_nodejs
     fi
-    
+
     print_success "Node.js environment is ready"
 }
 
@@ -146,7 +146,7 @@ install_nodejs() {
 # Check and install Docker
 setup_docker() {
     print_section "Setting up Docker"
-    
+
     if command_exists docker; then
         DOCKER_VERSION=$(docker --version | cut -d " " -f 3 | cut -d "," -f 1)
         echo "Docker version: $DOCKER_VERSION"
@@ -155,7 +155,7 @@ setup_docker() {
         print_warning "Docker not found"
         install_docker
     fi
-    
+
     # Check Docker Compose
     if command_exists docker-compose; then
         COMPOSE_VERSION=$(docker-compose --version | cut -d " " -f 3 | cut -d "," -f 1)
@@ -166,14 +166,14 @@ setup_docker() {
         sudo apt-get update
         sudo apt-get install -y docker-compose
     fi
-    
+
     # Ensure user is in docker group
     if ! groups | grep -q docker; then
         print_warning "Adding user to docker group..."
         sudo usermod -aG docker $USER
         print_warning "You may need to log out and back in for group changes to take effect"
     fi
-    
+
     print_success "Docker environment is ready"
 }
 
@@ -192,11 +192,11 @@ install_docker() {
 # Check and install PostgreSQL
 setup_postgres() {
     print_section "Setting up PostgreSQL"
-    
+
     if command_exists psql; then
         PG_VERSION=$(psql --version | cut -d " " -f 3)
         echo "PostgreSQL version: $PG_VERSION"
-        
+
         if version_gte "$PG_VERSION" "13.0"; then
             print_success "PostgreSQL $PG_VERSION is installed and meets requirements"
         else
@@ -207,7 +207,7 @@ setup_postgres() {
         print_warning "PostgreSQL not found"
         install_postgres
     fi
-    
+
     print_success "PostgreSQL environment is ready"
 }
 
@@ -224,7 +224,7 @@ install_postgres() {
 # Check and install Redis
 setup_redis() {
     print_section "Setting up Redis"
-    
+
     if command_exists redis-server; then
         REDIS_VERSION=$(redis-server --version | cut -d " " -f 3 | cut -d "=" -f 2)
         echo "Redis version: $REDIS_VERSION"
@@ -233,7 +233,7 @@ setup_redis() {
         print_warning "Redis not found"
         install_redis
     fi
-    
+
     print_success "Redis environment is ready"
 }
 
@@ -250,13 +250,13 @@ install_redis() {
 main() {
     print_section "Fluxora Environment Setup"
     echo "This script will check and install all prerequisites for Fluxora."
-    
+
     check_sudo
-    
+
     # Update package lists
     print_warning "Updating package lists..."
     sudo apt-get update
-    
+
     # Install basic tools
     print_warning "Installing basic development tools..."
     sudo apt-get install -y build-essential curl wget git
@@ -267,11 +267,11 @@ main() {
     setup_docker
     setup_postgres
     setup_redis
-    
+
     print_section "Environment Setup Complete"
     print_success "All prerequisites for Fluxora have been installed and configured."
     print_warning "Note: You may need to log out and back in for some changes to take effect."
-    
+
     echo -e "\nNext steps:"
     echo "1. Clone the Fluxora repository: git clone https://github.com/abrar2030/fluxora.git"
     echo "2. Run the install_dependencies.sh script to install project dependencies"

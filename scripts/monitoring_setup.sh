@@ -57,7 +57,7 @@ check_docker() {
         print_error "Docker is not installed. Please run setup_environment.sh first."
         exit 1
     fi
-    
+
     if ! command -v docker-compose &> /dev/null; then
         print_error "Docker Compose is not installed. Please run setup_environment.sh first."
         exit 1
@@ -67,26 +67,26 @@ check_docker() {
 # Function to create monitoring directory structure
 create_monitoring_structure() {
     print_section "Creating Monitoring Directory Structure"
-    
+
     if [ ! -d "$MONITORING_DIR" ]; then
         print_warning "Creating monitoring directory: ${MONITORING_DIR}"
         mkdir -p "$MONITORING_DIR"
     fi
-    
+
     # Create subdirectories
     mkdir -p "${MONITORING_DIR}/prometheus"
     mkdir -p "${MONITORING_DIR}/grafana/dashboards"
     mkdir -p "${MONITORING_DIR}/alertmanager"
     mkdir -p "${MONITORING_DIR}/data/prometheus"
     mkdir -p "${MONITORING_DIR}/data/grafana"
-    
+
     print_success "Monitoring directory structure created"
 }
 
 # Function to create Prometheus configuration
 create_prometheus_config() {
     print_section "Creating Prometheus Configuration"
-    
+
     cat > "${MONITORING_DIR}/prometheus/prometheus.yml" << EOF
 global:
   scrape_interval: 15s
@@ -158,7 +158,7 @@ EOF
 # Function to create Alertmanager configuration
 create_alertmanager_config() {
     print_section "Creating Alertmanager Configuration"
-    
+
     cat > "${MONITORING_DIR}/alertmanager/alertmanager.yml" << EOF
 global:
   resolve_timeout: 5m
@@ -194,7 +194,7 @@ EOF
 # Function to create Grafana dashboards
 create_grafana_dashboards() {
     print_section "Creating Grafana Dashboards"
-    
+
     # Create Grafana datasource configuration
     cat > "${MONITORING_DIR}/grafana/datasources/prometheus.yml" << EOF
 apiVersion: 1
@@ -463,7 +463,7 @@ EOF
 # Function to create Docker Compose file
 create_docker_compose() {
     print_section "Creating Docker Compose Configuration"
-    
+
     cat > "${MONITORING_DIR}/docker-compose.yml" << EOF
 version: '3'
 
@@ -545,12 +545,12 @@ EOF
 # Function to start monitoring stack
 start_monitoring() {
     print_section "Starting Monitoring Stack"
-    
+
     cd "$MONITORING_DIR"
-    
+
     print_warning "Starting monitoring stack with Docker Compose..."
     docker-compose up -d
-    
+
     print_success "Monitoring stack started successfully"
     print_warning "Grafana dashboard is available at http://localhost:3000"
     print_warning "Default credentials: admin/admin"
@@ -561,31 +561,31 @@ start_monitoring() {
 # Function to stop monitoring stack
 stop_monitoring() {
     print_section "Stopping Monitoring Stack"
-    
+
     cd "$MONITORING_DIR"
-    
+
     print_warning "Stopping monitoring stack..."
     docker-compose down
-    
+
     print_success "Monitoring stack stopped successfully"
 }
 
 # Function to setup monitoring
 setup_monitoring() {
     print_section "Setting Up Fluxora Monitoring Stack"
-    
+
     # Create directory structure
     create_monitoring_structure
-    
+
     # Create configurations
     create_prometheus_config
     create_alertmanager_config
     create_grafana_dashboards
     create_docker_compose
-    
+
     print_section "Monitoring Setup Complete"
     print_success "Monitoring stack has been configured"
-    
+
     # Ask if user wants to start monitoring stack
     read -p "Do you want to start the monitoring stack now? (y/n): " -n 1 -r
     echo

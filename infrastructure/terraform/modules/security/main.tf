@@ -10,7 +10,7 @@ resource "aws_kms_key" "main" {
   description             = "KMS key for ${var.app_name}-${var.environment} encryption"
   deletion_window_in_days = var.kms_deletion_window
   enable_key_rotation     = true
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -732,4 +732,3 @@ resource "aws_inspector2_enabler" "main" {
   account_ids    = [data.aws_caller_identity.current.account_id]
   resource_types = ["ECR", "EC2"]
 }
-

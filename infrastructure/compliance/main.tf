@@ -549,4 +549,3 @@ resource "aws_iam_role_policy" "remediation_policy" {
     ]
   })
 }
-

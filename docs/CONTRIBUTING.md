@@ -166,4 +166,4 @@ make test-coverage
 - [Project Overview](PROJECT_OVERVIEW.md)
 - [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
 - [Architecture Documentation](ARCHITECTURE.md)
-- [Troubleshooting Guide](TROUBLESHOOTING.md) 
+- [Troubleshooting Guide](TROUBLESHOOTING.md)

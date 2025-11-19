@@ -58,7 +58,7 @@ if [ -f "requirements.txt" ]; then
     fi
     source venv_fluxora/bin/activate
     echo "Python virtual environment 'venv_fluxora' created and activated."
-    
+
     echo "Installing production dependencies from requirements.txt..."
     pip3 install -r requirements.txt
     echo "Production dependencies installed."

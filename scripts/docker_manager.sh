@@ -50,7 +50,7 @@ check_docker() {
         print_error "Docker is not installed. Please run setup_environment.sh first."
         exit 1
     fi
-    
+
     if ! command -v docker-compose &> /dev/null; then
         print_error "Docker Compose is not installed. Please run setup_environment.sh first."
         exit 1
@@ -70,24 +70,24 @@ check_compose_file() {
 # Function to build Docker images
 build_images() {
     print_section "Building Docker Images"
-    
+
     check_compose_file
-    
+
     print_warning "Building all Docker images. This may take a while..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" build
-    
+
     print_success "All Docker images built successfully"
 }
 
 # Function to start Docker containers
 start_containers() {
     print_section "Starting Docker Containers"
-    
+
     check_compose_file
-    
+
     print_warning "Starting all containers in detached mode..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" up -d
-    
+
     print_success "All containers started successfully"
     print_warning "Use 'docker_manager.sh status' to check container status"
     print_warning "Use 'docker_manager.sh logs' to view container logs"
@@ -96,21 +96,21 @@ start_containers() {
 # Function to stop Docker containers
 stop_containers() {
     print_section "Stopping Docker Containers"
-    
+
     check_compose_file
-    
+
     print_warning "Stopping all containers..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" down
-    
+
     print_success "All containers stopped successfully"
 }
 
 # Function to check status of Docker containers
 check_status() {
     print_section "Docker Container Status"
-    
+
     check_compose_file
-    
+
     echo "Current running containers:"
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" ps
 }
@@ -118,9 +118,9 @@ check_status() {
 # Function to view Docker container logs
 view_logs() {
     print_section "Docker Container Logs"
-    
+
     check_compose_file
-    
+
     if [ -z "$1" ]; then
         print_warning "Showing logs for all containers. Press Ctrl+C to exit."
         docker-compose -f "${PROJECT_DIR}/docker-compose.yml" logs -f
@@ -133,24 +133,24 @@ view_logs() {
 # Function to clean Docker containers and images
 clean_docker() {
     print_section "Cleaning Docker Resources"
-    
+
     check_compose_file
-    
+
     print_warning "Stopping all containers..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" down
-    
+
     print_warning "Removing all project containers..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" rm -f
-    
+
     print_warning "Removing all project images..."
     docker-compose -f "${PROJECT_DIR}/docker-compose.yml" down --rmi all
-    
+
     print_warning "Removing all dangling images..."
     docker image prune -f
-    
+
     print_warning "Removing all dangling volumes..."
     docker volume prune -f
-    
+
     print_success "Docker cleanup completed successfully"
 }
 

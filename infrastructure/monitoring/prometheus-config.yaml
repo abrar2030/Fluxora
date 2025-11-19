@@ -16,7 +16,7 @@ data:
         cluster: 'fluxora-production'
         environment: 'production'
         compliance: 'financial-grade'
-    
+
     # Remote write configuration for long-term storage and compliance
     remote_write:
       - url: "http://thanos-receive:19291/api/v1/receive"
@@ -25,12 +25,12 @@ data:
           batch_send_deadline: 5s
           min_shards: 4
           max_shards: 200
-    
+
     # Remote read configuration for historical data
     remote_read:
       - url: "http://thanos-query:9090/api/v1/query"
         read_recent: true
-    
+
     scrape_configs:
       # Core Prometheus monitoring
       - job_name: 'prometheus'
@@ -38,7 +38,7 @@ data:
           - targets: ['localhost:9090']
         scrape_interval: 30s
         metrics_path: /metrics
-        
+
       # Application monitoring
       - job_name: 'fluxora-api'
         kubernetes_sd_configs:
@@ -58,7 +58,7 @@ data:
             target_label: instance
         scrape_interval: 15s
         metrics_path: /metrics
-        
+
       - job_name: 'fluxora-prediction'
         kubernetes_sd_configs:
           - role: pod
@@ -76,7 +76,7 @@ data:
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: instance
         scrape_interval: 15s
-        
+
       - job_name: 'fluxora-data'
         kubernetes_sd_configs:
           - role: pod
@@ -94,7 +94,7 @@ data:
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: instance
         scrape_interval: 15s
-    
+
       # Infrastructure monitoring
       - job_name: 'kubernetes-apiservers'
         kubernetes_sd_configs:
@@ -108,7 +108,7 @@ data:
             action: keep
             regex: default;kubernetes;https
         scrape_interval: 30s
-        
+
       - job_name: 'kubernetes-nodes'
         kubernetes_sd_configs:
           - role: node
@@ -126,7 +126,7 @@ data:
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics
         scrape_interval: 30s
-        
+
       - job_name: 'kubernetes-cadvisor'
         kubernetes_sd_configs:
           - role: node
@@ -144,7 +144,7 @@ data:
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
         scrape_interval: 30s
-        
+
       # Database monitoring
       - job_name: 'mysql-exporter'
         kubernetes_sd_configs:
@@ -154,7 +154,7 @@ data:
             regex: mysql-exporter
             action: keep
         scrape_interval: 30s
-        
+
       - job_name: 'redis-exporter'
         kubernetes_sd_configs:
           - role: pod
@@ -163,7 +163,7 @@ data:
             regex: redis-exporter
             action: keep
         scrape_interval: 30s
-        
+
       # Security monitoring
       - job_name: 'falco-exporter'
         kubernetes_sd_configs:
@@ -173,7 +173,7 @@ data:
             regex: falco-exporter
             action: keep
         scrape_interval: 15s
-        
+
       # Network monitoring
       - job_name: 'blackbox-exporter'
         static_configs:
@@ -192,7 +192,7 @@ data:
         metrics_path: /probe
         params:
           module: [http_2xx]
-          
+
       # Load balancer monitoring
       - job_name: 'nginx-exporter'
         kubernetes_sd_configs:
@@ -202,7 +202,7 @@ data:
             regex: nginx-exporter
             action: keep
         scrape_interval: 30s
-        
+
       # Certificate monitoring
       - job_name: 'cert-exporter'
         kubernetes_sd_configs:
@@ -212,7 +212,7 @@ data:
             regex: cert-exporter
             action: keep
         scrape_interval: 300s  # 5 minutes
-    
+
     alerting:
       alertmanagers:
         - kubernetes_sd_configs:
@@ -235,4 +235,3 @@ data:
       - /etc/prometheus/compliance-rules/*.yml
       - /etc/prometheus/security-rules/*.yml
       - /etc/prometheus/business-rules/*.yml
-

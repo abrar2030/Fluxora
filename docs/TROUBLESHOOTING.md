@@ -133,4 +133,4 @@ taskkill /PID <PID> /F
 ## Additional Resources
 - [Setup Guide](SETUP_GUIDE.md)
 - [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
-- [Architecture Documentation](ARCHITECTURE.md) 
+- [Architecture Documentation](ARCHITECTURE.md)

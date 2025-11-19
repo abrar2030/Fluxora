@@ -57,33 +57,33 @@ check_directory() {
 # Function to check prerequisites
 check_prerequisites() {
     print_section "Checking Prerequisites"
-    
+
     # Check if Docker is installed
     if ! command -v docker &> /dev/null; then
         print_error "Docker is not installed"
         print_warning "Please run setup_environment.sh first"
         return 1
     fi
-    
+
     # Check if Docker Compose is installed
     if ! command -v docker-compose &> /dev/null; then
         print_error "Docker Compose is not installed"
         print_warning "Please run setup_environment.sh first"
         return 1
     fi
-    
+
     # Check if Terraform is installed (for infrastructure)
     if ! command -v terraform &> /dev/null; then
         print_warning "Terraform is not installed"
         print_warning "Infrastructure provisioning will be skipped"
     fi
-    
+
     # Check if kubectl is installed (for Kubernetes)
     if ! command -v kubectl &> /dev/null; then
         print_warning "kubectl is not installed"
         print_warning "Kubernetes deployment will be skipped"
     fi
-    
+
     print_success "Prerequisites check completed"
     return 0
 }
@@ -91,12 +91,12 @@ check_prerequisites() {
 # Function to run tests before deployment
 run_tests() {
     print_section "Running Tests"
-    
+
     if [ "$SKIP_TESTS" = true ]; then
         print_warning "Tests skipped as requested"
         return 0
     fi
-    
+
     # Check if run_tests.sh exists
     if [ -f "${PROJECT_DIR}/run_tests.sh" ]; then
         print_warning "Running tests using run_tests.sh..."
@@ -104,7 +104,7 @@ run_tests() {
     else
         # Run tests manually
         cd "${PROJECT_DIR}"
-        
+
         # Backend tests
         if check_directory "${PROJECT_DIR}/src"; then
             print_warning "Running backend tests..."
@@ -113,7 +113,7 @@ run_tests() {
             python -m pytest ../backend/tests/
             deactivate
         fi
-        
+
         # Frontend tests
         if check_directory "${PROJECT_DIR}/web-frontend"; then
             print_warning "Running frontend tests..."
@@ -121,7 +121,7 @@ run_tests() {
             npm test
         fi
     fi
-    
+
     print_success "Tests completed successfully"
     return 0
 }
@@ -129,45 +129,45 @@ run_tests() {
 # Function to build application
 build_application() {
     print_section "Building Application"
-    
+
     if [ "$SKIP_BUILD" = true ]; then
         print_warning "Build skipped as requested"
         return 0
     fi
-    
+
     # Build backend
     if check_directory "${PROJECT_DIR}/src"; then
         print_warning "Building backend..."
         cd "${PROJECT_DIR}/src"
         source venv/bin/activate
-        
+
         # Collect static files if Django
         if [ -f "manage.py" ]; then
             python manage.py collectstatic --noinput
         fi
-        
+
         deactivate
     fi
-    
+
     # Build web frontend
     if check_directory "${PROJECT_DIR}/web-frontend"; then
         print_warning "Building web frontend..."
         cd "${PROJECT_DIR}/web-frontend"
         npm run build
     fi
-    
+
     # Build mobile frontend
     if check_directory "${PROJECT_DIR}/mobile-frontend"; then
         print_warning "Building mobile frontend..."
         cd "${PROJECT_DIR}/mobile-frontend"
         npm run build
     fi
-    
+
     # Build Docker images
     print_warning "Building Docker images..."
     cd "${PROJECT_DIR}"
     docker-compose -f docker-compose.${ENVIRONMENT}.yml build
-    
+
     print_success "Application built successfully"
     return 0
 }
@@ -175,29 +175,29 @@ build_application() {
 # Function to provision infrastructure
 provision_infrastructure() {
     print_section "Provisioning Infrastructure"
-    
+
     if ! check_directory "${PROJECT_DIR}/infrastructure"; then
         print_warning "Infrastructure directory not found, skipping..."
         return 1
     fi
-    
+
     # Check if Terraform is installed
     if ! command -v terraform &> /dev/null; then
         print_error "Terraform is not installed"
         print_warning "Please install Terraform to provision infrastructure"
         return 1
     fi
-    
+
     cd "${PROJECT_DIR}/infrastructure/${ENVIRONMENT}"
-    
+
     # Initialize Terraform
     print_warning "Initializing Terraform..."
     terraform init
-    
+
     # Plan infrastructure changes
     print_warning "Planning infrastructure changes..."
     terraform plan -out=tfplan
-    
+
     # Ask for confirmation
     read -p "Do you want to apply these infrastructure changes? (y/n): " -n 1 -r
     echo
@@ -205,11 +205,11 @@ provision_infrastructure() {
         print_warning "Infrastructure provisioning cancelled"
         return 1
     fi
-    
+
     # Apply infrastructure changes
     print_warning "Applying infrastructure changes..."
     terraform apply tfplan
-    
+
     print_success "Infrastructure provisioned successfully"
     return 0
 }
@@ -217,30 +217,30 @@ provision_infrastructure() {
 # Function to deploy to Kubernetes
 deploy_kubernetes() {
     print_section "Deploying to Kubernetes"
-    
+
     if ! check_directory "${PROJECT_DIR}/deployments/kubernetes"; then
         print_warning "Kubernetes deployment directory not found, skipping..."
         return 1
     fi
-    
+
     # Check if kubectl is installed
     if ! command -v kubectl &> /dev/null; then
         print_error "kubectl is not installed"
         print_warning "Please install kubectl to deploy to Kubernetes"
         return 1
     fi
-    
+
     cd "${PROJECT_DIR}/deployments/kubernetes/${ENVIRONMENT}"
-    
+
     # Apply Kubernetes manifests
     print_warning "Applying Kubernetes manifests..."
     kubectl apply -f .
-    
+
     # Wait for deployments to be ready
     print_warning "Waiting for deployments to be ready..."
     kubectl rollout status deployment/fluxora-api
     kubectl rollout status deployment/fluxora-web
-    
+
     print_success "Kubernetes deployment completed successfully"
     return 0
 }
@@ -248,19 +248,19 @@ deploy_kubernetes() {
 # Function to deploy using Docker Compose
 deploy_docker_compose() {
     print_section "Deploying with Docker Compose"
-    
+
     cd "${PROJECT_DIR}"
-    
+
     # Check if Docker Compose file exists
     if [ ! -f "docker-compose.${ENVIRONMENT}.yml" ]; then
         print_error "Docker Compose file for ${ENVIRONMENT} environment not found"
         return 1
     fi
-    
+
     # Deploy with Docker Compose
     print_warning "Deploying with Docker Compose..."
     docker-compose -f docker-compose.${ENVIRONMENT}.yml up -d
-    
+
     print_success "Docker Compose deployment completed successfully"
     return 0
 }
@@ -268,9 +268,9 @@ deploy_docker_compose() {
 # Function to run database migrations
 run_migrations() {
     print_section "Running Database Migrations"
-    
+
     cd "${PROJECT_DIR}"
-    
+
     # Run migrations based on deployment method
     if [ -f "docker-compose.${ENVIRONMENT}.yml" ]; then
         print_warning "Running migrations with Docker Compose..."
@@ -285,7 +285,7 @@ run_migrations() {
         python manage.py migrate
         deactivate
     fi
-    
+
     print_success "Database migrations completed successfully"
     return 0
 }
@@ -293,7 +293,7 @@ run_migrations() {
 # Function to verify deployment
 verify_deployment() {
     print_section "Verifying Deployment"
-    
+
     # Get deployment URL based on environment
     case $ENVIRONMENT in
         dev)
@@ -309,9 +309,9 @@ verify_deployment() {
             URL="http://localhost:8000"
             ;;
     esac
-    
+
     print_warning "Checking deployment at ${URL}..."
-    
+
     # Check if curl is installed
     if command -v curl &> /dev/null; then
         if curl -s -o /dev/null -w "%{http_code}" "${URL}/health" | grep -q "200"; then
@@ -329,37 +329,37 @@ verify_deployment() {
 # Function to deploy application
 deploy_application() {
     print_section "Deploying Fluxora to ${ENVIRONMENT} Environment"
-    
+
     # Check prerequisites
     check_prerequisites || return 1
-    
+
     # Run tests
     run_tests || return 1
-    
+
     # Build application
     build_application || return 1
-    
+
     # Provision infrastructure if needed
     if [ "$ENVIRONMENT" != "dev" ]; then
         provision_infrastructure
     fi
-    
+
     # Deploy based on environment
     if [ "$ENVIRONMENT" = "dev" ]; then
         deploy_docker_compose
     else
         deploy_kubernetes
     fi
-    
+
     # Run database migrations
     run_migrations
-    
+
     # Verify deployment
     verify_deployment
-    
+
     print_section "Deployment Complete"
     print_success "Fluxora has been deployed to the ${ENVIRONMENT} environment"
-    
+
     # Print access information
     case $ENVIRONMENT in
         dev)

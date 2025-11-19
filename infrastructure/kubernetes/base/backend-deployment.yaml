@@ -49,17 +49,17 @@ spec:
         seccompProfile:
           type: RuntimeDefault
         supplementalGroups: [10001]
-      
+
       # Service Account with RBAC
       serviceAccountName: {{ .Values.appName }}-backend-sa
       automountServiceAccountToken: true
-      
+
       # Node Selection and Affinity
       nodeSelector:
         kubernetes.io/os: linux
         node-type: application
         compliance-zone: "financial"
-      
+
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -79,14 +79,14 @@ spec:
                 values:
                 - spot
                 - preemptible
-      
+
       # Tolerations for dedicated nodes
       tolerations:
       - key: "financial-workload"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-      
+
       # Init Containers for Security and Setup
       initContainers:
       - name: security-scanner
@@ -108,7 +108,7 @@ spec:
           requests:
             cpu: 50m
             memory: 64Mi
-      
+
       - name: database-migration
         image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
         command: ["/app/scripts/migrate.sh"]
@@ -138,12 +138,12 @@ spec:
         volumeMounts:
         - name: tmp-volume
           mountPath: /tmp
-      
+
       containers:
       - name: {{ .Values.appName }}-backend
         image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
         imagePullPolicy: {{ .Values.backend.image.pullPolicy | default "Always" }}
-        
+
         # Security Context - Pod Level
         securityContext:
           runAsNonRoot: true
@@ -156,7 +156,7 @@ spec:
             - ALL
             add:
             - NET_BIND_SERVICE  # Only if binding to privileged ports
-        
+
         ports:
         - name: http
           containerPort: {{ .Values.backend.containerPort | default 8000 }}
@@ -167,7 +167,7 @@ spec:
         - name: health
           containerPort: {{ .Values.backend.health.port | default 8080 }}
           protocol: TCP
-        
+
         # Resource Management - Financial Grade
         resources:
           limits:
@@ -178,7 +178,7 @@ spec:
             cpu: {{ .Values.backend.resources.requests.cpu | default "1000m" }}
             memory: {{ .Values.backend.resources.requests.memory | default "2Gi" }}
             ephemeral-storage: "1Gi"
-        
+
         # Environment Variables - Secure Configuration
         env:
         - name: NODE_ENV
@@ -203,7 +203,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        
+
         # Database Configuration
         - name: DATABASE_HOST
           valueFrom:
@@ -230,7 +230,7 @@ spec:
             secretKeyRef:
               name: {{ .Values.appName }}-db-credentials
               key: password
-        
+
         # Application Secrets
         - name: JWT_SECRET
           valueFrom:
@@ -247,7 +247,7 @@ spec:
             secretKeyRef:
               name: {{ .Values.appName }}-app-secrets
               key: api-key
-        
+
         # Redis Configuration
         - name: REDIS_HOST
           valueFrom:
@@ -264,7 +264,7 @@ spec:
             secretKeyRef:
               name: {{ .Values.appName }}-redis-credentials
               key: password
-        
+
         # Compliance and Security Settings
         - name: COMPLIANCE_MODE
           value: "financial"
@@ -278,7 +278,7 @@ spec:
           value: {{ .Values.compliance.gdpr | default "true" | quote }}
         - name: SOC2_MODE
           value: {{ .Values.compliance.soc2 | default "true" | quote }}
-        
+
         # Logging Configuration
         - name: LOG_LEVEL
           value: {{ .Values.backend.logLevel | default "INFO" }}
@@ -288,7 +288,7 @@ spec:
           value: "stdout"
         - name: AUDIT_LOG_ENABLED
           value: "true"
-        
+
         # Performance and Monitoring
         - name: METRICS_ENABLED
           value: "true"
@@ -296,7 +296,7 @@ spec:
           value: "true"
         - name: HEALTH_CHECK_ENABLED
           value: "true"
-        
+
         # Volume Mounts
         volumeMounts:
         - name: tmp-volume
@@ -311,7 +311,7 @@ spec:
         - name: ssl-certs
           mountPath: /app/certs
           readOnly: true
-        
+
         # Health Checks - Enhanced for Financial Applications
         livenessProbe:
           httpGet:
@@ -326,7 +326,7 @@ spec:
           timeoutSeconds: 10
           successThreshold: 1
           failureThreshold: 3
-        
+
         readinessProbe:
           httpGet:
             path: /health/ready
@@ -340,7 +340,7 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-        
+
         startupProbe:
           httpGet:
             path: /health/startup
@@ -351,13 +351,13 @@ spec:
           timeoutSeconds: 3
           successThreshold: 1
           failureThreshold: 30
-        
+
         # Lifecycle Hooks
         lifecycle:
           preStop:
             exec:
               command: ["/app/scripts/graceful-shutdown.sh"]
-      
+
       # Sidecar Containers for Enhanced Security and Monitoring
       - name: security-agent
         image: {{ .Values.security.agent.image }}:{{ .Values.security.agent.tag }}
@@ -384,7 +384,7 @@ spec:
           value: "financial"
         - name: COMPLIANCE_FRAMEWORKS
           value: "pci-dss,gdpr,soc2"
-      
+
       - name: log-forwarder
         image: {{ .Values.logging.forwarder.image }}:{{ .Values.logging.forwarder.tag }}
         securityContext:
@@ -414,7 +414,7 @@ spec:
           value: "elasticsearch"
         - name: COMPLIANCE_TAGGING
           value: "enabled"
-      
+
       # Volumes
       volumes:
       - name: tmp-volume
@@ -437,11 +437,11 @@ spec:
         secret:
           secretName: {{ .Values.appName }}-ssl-certs
           defaultMode: 0444
-      
+
       # Image Pull Secrets
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets | default "fluxora-registry-secret" }}
-      
+
       # DNS Configuration
       dnsPolicy: ClusterFirst
       dnsConfig:
@@ -449,13 +449,12 @@ spec:
         - name: ndots
           value: "2"
         - name: edns0
-      
+
       # Termination Grace Period
       terminationGracePeriodSeconds: 60
-      
+
       # Priority and Preemption
       priorityClassName: {{ .Values.backend.priorityClass | default "financial-workload-high" }}
-      
+
       # Restart Policy
       restartPolicy: Always
-

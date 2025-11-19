@@ -104,86 +104,86 @@ class MetricsCollector:
     def __init__(self, service_name: str, port: int = 8000):
         self.service_name = service_name
         self.port = port
-        
+
         # Request metrics
         self.request_counter = Counter(
             f'{service_name}_requests_total',
             'Total number of requests',
             ['method', 'endpoint', 'status']
         )
-        
+
         self.request_latency = Histogram(
             f'{service_name}_request_latency_seconds',
             'Request latency in seconds',
             ['method', 'endpoint'],
             buckets=(0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1.0, 2.5, 5.0, 7.5, 10.0, float('inf'))
         )
-        
+
         # Error metrics
         self.error_counter = Counter(
             f'{service_name}_errors_total',
             'Total number of errors',
             ['type', 'code']
         )
-        
+
         # Circuit breaker metrics
         self.circuit_breaker_state = Gauge(
             f'{service_name}_circuit_breaker_state',
             'Circuit breaker state (0=closed, 1=open, 2=half-open)',
             ['name']
         )
-        
+
         # Resource metrics
         self.resource_usage = Gauge(
             f'{service_name}_resource_usage',
             'Resource usage',
             ['resource', 'unit']
         )
-        
+
         # Business metrics
         self.prediction_accuracy = Gauge(
             f'{service_name}_prediction_accuracy',
             'Prediction accuracy',
             ['model', 'metric']
         )
-    
+
     def start_metrics_server(self):
         """
         Start the metrics server
         """
         start_http_server(self.port)
-    
+
     def track_request(self, method: str, endpoint: str, status: int, latency: float):
         """
         Track a request
         """
         self.request_counter.labels(method=method, endpoint=endpoint, status=status).inc()
         self.request_latency.labels(method=method, endpoint=endpoint).observe(latency)
-    
+
     def track_error(self, error_type: str, error_code: str):
         """
         Track an error
         """
         self.error_counter.labels(type=error_type, code=error_code).inc()
-    
+
     def set_circuit_breaker_state(self, name: str, state: int):
         """
         Set circuit breaker state
         """
         self.circuit_breaker_state.labels(name=name).set(state)
-    
+
     def set_resource_usage(self, resource: str, unit: str, value: float):
         """
         Set resource usage
         """
         self.resource_usage.labels(resource=resource, unit=unit).set(value)
-    
+
     def set_prediction_accuracy(self, model: str, metric: str, value: float):
         """
         Set prediction accuracy
         """
         self.prediction_accuracy.labels(model=model, metric=metric).set(value)
-    
+
     def request_timer(self, method: str, endpoint: str):
         """
         Timer decorator for tracking request latency
@@ -240,20 +240,20 @@ class JsonFormatter(logging.Formatter):
             'line': record.lineno,
             'function': record.funcName,
         }
-        
+
         # Add request context if available
         request_id = request_id_var.get()
         if request_id:
             log_data['request_id'] = request_id
-        
+
         user_id = user_id_var.get()
         if user_id:
             log_data['user_id'] = user_id
-        
+
         correlation_id = correlation_id_var.get()
         if correlation_id:
             log_data['correlation_id'] = correlation_id
-        
+
         # Add exception info if available
         if record.exc_info:
             log_data['exception'] = {
@@ -261,13 +261,13 @@ class JsonFormatter(logging.Formatter):
                 'message': str(record.exc_info[1]),
                 'traceback': traceback.format_exception(*record.exc_info)
             }
-        
+
         # Add extra fields
         for key, value in record.__dict__.items():
             if key.startswith('_') or key in ('args', 'asctime', 'created', 'exc_info', 'exc_text', 'filename', 'funcName', 'id', 'levelname', 'levelno', 'lineno', 'module', 'msecs', 'message', 'msg', 'name', 'pathname', 'process', 'processName', 'relativeCreated', 'stack_info', 'thread', 'threadName'):
                 continue
             log_data[key] = value
-        
+
         return json.dumps(log_data)
 
 def setup_logging(service_name: str, log_level: int = logging.INFO):
@@ -277,20 +277,20 @@ def setup_logging(service_name: str, log_level: int = logging.INFO):
     # Create logger
     logger = logging.getLogger(service_name)
     logger.setLevel(log_level)
-    
+
     # Create console handler
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
-    
+
     # Create formatter
     formatter = JsonFormatter()
-    
+
     # Add formatter to handler
     console_handler.setFormatter(formatter)
-    
+
     # Add handler to logger
     logger.addHandler(console_handler)
-    
+
     return logger
 
 def set_request_context(request_id: Optional[str] = None, user_id: Optional[str] = None, correlation_id: Optional[str] = None):
@@ -301,10 +301,10 @@ def set_request_context(request_id: Optional[str] = None, user_id: Optional[str]
         request_id_var.set(request_id)
     else:
         request_id_var.set(str(uuid.uuid4()))
-    
+
     if user_id:
         user_id_var.set(user_id)
-    
+
     if correlation_id:
         correlation_id_var.set(correlation_id)
     else:
@@ -357,7 +357,7 @@ class DependencyStatus:
         self.name = name
         self.status = status
         self.details = details or {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert to dictionary representation
@@ -376,13 +376,13 @@ class HealthCheck:
         self.service_name = service_name
         self.start_time = time.time()
         self.dependency_checks: List[Callable[[], DependencyStatus]] = []
-    
+
     def add_dependency_check(self, check_func: Callable[[], DependencyStatus]):
         """
         Add a dependency check
         """
         self.dependency_checks.append(check_func)
-    
+
     def check_health(self) -> Dict[str, Any]:
         """
         Check service health
@@ -390,26 +390,26 @@ class HealthCheck:
         # Basic service info
         hostname = socket.gethostname()
         uptime = time.time() - self.start_time
-        
+
         # System metrics
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
         disk_percent = psutil.disk_usage('/').percent
-        
+
         # Define thresholds
         cpu_threshold = 90
         memory_threshold = 90
         disk_threshold = 90
-        
+
         # Check dependencies
         dependencies = []
         dependency_status = HealthStatus.HEALTHY
-        
+
         for check_func in self.dependency_checks:
             try:
                 status = check_func()
                 dependencies.append(status.to_dict())
-                
+
                 # Update overall dependency status
                 if status.status == HealthStatus.UNHEALTHY:
                     dependency_status = HealthStatus.UNHEALTHY
@@ -424,18 +424,18 @@ class HealthCheck:
                     }
                 })
                 dependency_status = HealthStatus.UNHEALTHY
-        
+
         # Determine overall health status
         system_status = HealthStatus.HEALTHY
         if cpu_percent >= cpu_threshold or memory_percent >= memory_threshold or disk_percent >= disk_threshold:
             system_status = HealthStatus.DEGRADED
-        
+
         overall_status = HealthStatus.HEALTHY
         if system_status == HealthStatus.DEGRADED or dependency_status == HealthStatus.DEGRADED:
             overall_status = HealthStatus.DEGRADED
         if dependency_status == HealthStatus.UNHEALTHY:
             overall_status = HealthStatus.UNHEALTHY
-        
+
         return {
             "status": overall_status,
             "service": self.service_name,
@@ -463,36 +463,36 @@ def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck):
         Basic health check endpoint
         """
         return {"status": "healthy"}
-    
+
     @app.get("/health/liveness")
     async def liveness():
         """
         Liveness probe endpoint
         """
         return {"status": "healthy"}
-    
+
     @app.get("/health/readiness")
     async def readiness(response: Response):
         """
         Readiness probe endpoint
         """
         health_status = health_check.check_health()
-        
+
         if health_status["status"] == HealthStatus.UNHEALTHY:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        
+
         return health_status
-    
+
     @app.get("/health/detailed")
     async def detailed_health(response: Response):
         """
         Detailed health check endpoint
         """
         health_status = health_check.check_health()
-        
+
         if health_status["status"] == HealthStatus.UNHEALTHY:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        
+
         return health_status
 ```
 
@@ -515,30 +515,30 @@ class TracingManager:
     """
     def __init__(self, service_name: str, jaeger_host: str = "jaeger", jaeger_port: int = 6831):
         self.service_name = service_name
-        
+
         # Set up tracer provider
         resource = Resource(attributes={
             SERVICE_NAME: service_name
         })
-        
+
         trace.set_tracer_provider(TracerProvider(resource=resource))
-        
+
         # Set up Jaeger exporter
         jaeger_exporter = JaegerExporter(
             agent_host_name=jaeger_host,
             agent_port=jaeger_port,
         )
-        
+
         # Add span processor
         span_processor = BatchSpanProcessor(jaeger_exporter)
         trace.get_tracer_provider().add_span_processor(span_processor)
-        
+
         # Get tracer
         self.tracer = trace.get_tracer(service_name)
-        
+
         # Set up propagator
         self.propagator = TraceContextTextMapPropagator()
-    
+
     def trace_function(self, name: Optional[str] = None):
         """
         Decorator for tracing a function
@@ -552,11 +552,11 @@ class TracingManager:
                     for i, arg in enumerate(args):
                         if isinstance(arg, (str, int, float, bool)):
                             span.set_attribute(f"arg_{i}", str(arg))
-                    
+
                     for key, value in kwargs.items():
                         if isinstance(value, (str, int, float, bool)):
                             span.set_attribute(f"kwarg_{key}", str(value))
-                    
+
                     try:
                         result = func(*args, **kwargs)
                         return result
@@ -565,17 +565,17 @@ class TracingManager:
                         span.record_exception(e)
                         span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
                         raise
-            
+
             return wrapper
-        
+
         return decorator
-    
+
     def extract_context_from_headers(self, headers: Dict[str, str]) -> trace.SpanContext:
         """
         Extract trace context from HTTP headers
         """
         return self.propagator.extract(headers)
-    
+
     def inject_context_into_headers(self, headers: Dict[str, str]):
         """
         Inject current trace context into HTTP headers
@@ -1287,7 +1287,7 @@ async def startup_event():
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start_time = time.time()
-    
+
     try:
         response = await call_next(request)
         status_code = response.status_code
@@ -1303,7 +1303,7 @@ async def metrics_middleware(request: Request, call_next):
             status=status_code,
             latency=latency
         )
-    
+
     return response
 
 # Track resource usage periodically
@@ -1311,24 +1311,24 @@ async def metrics_middleware(request: Request, call_next):
 async def start_resource_monitoring():
     import asyncio
     import psutil
-    
+
     async def monitor_resources():
         while True:
             # CPU usage
             cpu_percent = psutil.cpu_percent()
             metrics.set_resource_usage("cpu", "percent", cpu_percent)
-            
+
             # Memory usage
             memory = psutil.virtual_memory()
             metrics.set_resource_usage("memory", "percent", memory.percent)
-            
+
             # Disk usage
             disk = psutil.disk_usage('/')
             metrics.set_resource_usage("disk", "percent", disk.percent)
-            
+
             # Wait before next check
             await asyncio.sleep(15)
-    
+
     asyncio.create_task(monitor_resources())
 ```
 
@@ -1351,9 +1351,9 @@ async def logging_middleware(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID")
     user_id = request.headers.get("X-User-ID")
     correlation_id = request.headers.get("X-Correlation-ID")
-    
+
     set_request_context(request_id, user_id, correlation_id)
-    
+
     # Log request
     logger.info(
         "Request received",
@@ -1364,11 +1364,11 @@ async def logging_middleware(request: Request, call_next):
             "client_host": request.client.host if request.client else None
         }
     )
-    
+
     try:
         # Process request
         response = await call_next(request)
-        
+
         # Log response
         logger.info(
             "Response sent",
@@ -1377,7 +1377,7 @@ async def logging_middleware(request: Request, call_next):
                 "headers": dict(response.headers)
             }
         )
-        
+
         return response
     except Exception as e:
         # Log exception
@@ -1468,9 +1468,9 @@ async def tracing_middleware(request: Request, call_next):
     headers = {}
     for key, value in request.headers.items():
         headers[key] = value
-    
+
     context = tracing.extract_context_from_headers(headers)
-    
+
     # Start a new span
     with tracing.tracer.start_as_current_span(
         f"{request.method} {request.url.path}",
@@ -1481,14 +1481,14 @@ async def tracing_middleware(request: Request, call_next):
         span.set_attribute("http.url", str(request.url))
         span.set_attribute("http.host", request.headers.get("host", ""))
         span.set_attribute("http.user_agent", request.headers.get("user-agent", ""))
-        
+
         try:
             # Process request
             response = await call_next(request)
-            
+
             # Add response details as span attributes
             span.set_attribute("http.status_code", response.status_code)
-            
+
             return response
         except Exception as e:
             # Record exception in span
@@ -1565,12 +1565,12 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-    
+
     scrape_configs:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-      
+
       - job_name: 'fluxora-api'
         kubernetes_sd_configs:
           - role: pod
@@ -1925,13 +1925,13 @@ data:
         port => 5044
       }
     }
-    
+
     filter {
       json {
         source => "message"
       }
     }
-    
+
     output {
       elasticsearch {
         hosts => ["elasticsearch:9200"]

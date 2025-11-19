@@ -30,7 +30,7 @@ This workflow handles the continuous integration and continuous deployment pipel
      - Set up Python 3.10 using actions/setup-python@v4
      - Install dependencies from requirements.txt
      - Run tests using pytest on the src/tests/ directory
-   
+
    This job ensures that all backend code passes the test suite before proceeding to deployment, maintaining code quality and preventing regressions.
 
 2. **frontend-test**: Tests the Node.js frontend application.
@@ -40,7 +40,7 @@ This workflow handles the continuous integration and continuous deployment pipel
      - Set up Node.js 18 using actions/setup-node@v3 with npm caching
      - Install dependencies using npm ci
      - Run tests using the npm test command
-   
+
    This job verifies that the frontend application functions correctly and maintains compatibility with the backend API.
 
 3. **build-and-deploy**: Builds and deploys the application to production.
@@ -54,7 +54,7 @@ This workflow handles the continuous integration and continuous deployment pipel
      - Set up Python 3.10 for backend preparation
      - Install backend dependencies
      - Deployment steps (placeholder in the current workflow)
-   
+
    This job ensures that only code that passes all tests is deployed to production, and only when changes are merged to the main or master branch.
 
 **Job Dependencies:**
@@ -160,12 +160,12 @@ security-scan:
   runs-on: ubuntu-latest
   steps:
     - uses: actions/checkout@v3
-    
+
     - name: Run Python security checks
       run: |
         pip install bandit
         bandit -r src/
-    
+
     - name: Run JavaScript security checks
       run: |
         cd frontend

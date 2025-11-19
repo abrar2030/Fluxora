@@ -232,4 +232,3 @@ variable "data_classification_levels" {
     }
   }
 }
-

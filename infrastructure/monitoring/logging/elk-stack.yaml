@@ -156,7 +156,7 @@ data:
   elasticsearch.yml: |
     cluster.name: fluxora-logging-cluster
     network.host: 0.0.0.0
-    
+
     # Security Configuration
     xpack.security.enabled: true
     xpack.security.http.ssl.enabled: true
@@ -167,7 +167,7 @@ data:
     xpack.security.transport.ssl.key: certs/elasticsearch.key
     xpack.security.transport.ssl.certificate: certs/elasticsearch.crt
     xpack.security.transport.ssl.certificate_authorities: certs/ca.crt
-    
+
     # Audit Logging for Compliance
     xpack.security.audit.enabled: true
     xpack.security.audit.logfile.events.include:
@@ -182,15 +182,15 @@ data:
       - tampered_request
       - run_as_denied
       - run_as_granted
-    
+
     # Index Management
     action.auto_create_index: false
     action.destructive_requires_name: true
-    
+
     # Memory and Performance
     bootstrap.memory_lock: true
     indices.memory.index_buffer_size: 20%
-    
+
     # Data Retention (90 days for compliance)
     cluster.routing.allocation.disk.watermark.low: 85%
     cluster.routing.allocation.disk.watermark.high: 90%
@@ -314,19 +314,19 @@ data:
     http.host: "0.0.0.0"
     path.config: /usr/share/logstash/pipeline
     path.logs: /usr/share/logstash/logs
-    
+
     # Security Configuration
     xpack.monitoring.enabled: true
     xpack.monitoring.elasticsearch.hosts: ["https://elasticsearch:9200"]
     xpack.monitoring.elasticsearch.username: logstash_system
     xpack.monitoring.elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
     xpack.monitoring.elasticsearch.ssl.certificate_authority: /usr/share/logstash/config/certs/ca.crt
-    
+
     # Pipeline Configuration
     pipeline.workers: 4
     pipeline.batch.size: 1000
     pipeline.batch.delay: 50
-    
+
     # Queue Configuration for Reliability
     queue.type: persisted
     queue.max_bytes: 2gb
@@ -348,7 +348,7 @@ data:
         ssl_key => "/usr/share/logstash/config/certs/logstash.key"
         ssl_certificate_authorities => ["/usr/share/logstash/config/certs/ca.crt"]
       }
-      
+
       # Kubernetes logs
       http {
         port => 8080
@@ -357,14 +357,14 @@ data:
           "application/json" => "json"
         }
       }
-      
+
       # Syslog input for infrastructure logs
       syslog {
         port => 5514
         codec => cef
       }
     }
-    
+
     filter {
       # Add timestamp
       if ![timestamp] {
@@ -372,38 +372,38 @@ data:
           add_field => { "timestamp" => "%{@timestamp}" }
         }
       }
-      
+
       # Parse Kubernetes logs
       if [kubernetes] {
         mutate {
           add_field => { "log_type" => "kubernetes" }
         }
-        
+
         # Extract namespace and pod information
         if [kubernetes][namespace_name] {
           mutate {
             add_field => { "k8s_namespace" => "%{[kubernetes][namespace_name]}" }
           }
         }
-        
+
         if [kubernetes][pod_name] {
           mutate {
             add_field => { "k8s_pod" => "%{[kubernetes][pod_name]}" }
           }
         }
       }
-      
+
       # Parse application logs
       if [fields][app] == "fluxora-api" {
         grok {
           match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{DATA:logger} - %{GREEDYDATA:log_message}" }
         }
-        
+
         mutate {
           add_field => { "log_type" => "application" }
           add_field => { "service" => "fluxora-api" }
         }
-        
+
         # Parse JSON logs if applicable
         if [log_message] =~ /^\{.*\}$/ {
           json {
@@ -412,26 +412,26 @@ data:
           }
         }
       }
-      
+
       # Security event parsing
       if [tags] and "security" in [tags] {
         mutate {
           add_field => { "log_type" => "security" }
           add_field => { "compliance_relevant" => "true" }
         }
-        
+
         # Parse security events
         grok {
           match => { "message" => "%{WORD:event_type} %{WORD:action} from %{IP:source_ip} to %{IP:dest_ip}:%{INT:dest_port}" }
         }
       }
-      
+
       # Compliance log parsing
       if [tags] and ("pci-dss" in [tags] or "gdpr" in [tags] or "soc2" in [tags]) {
         mutate {
           add_field => { "compliance_log" => "true" }
         }
-        
+
         # Add compliance framework tags
         if "pci-dss" in [tags] {
           mutate { add_field => { "compliance_framework" => "pci-dss" } }
@@ -443,20 +443,20 @@ data:
           mutate { add_field => { "compliance_framework" => "soc2" } }
         }
       }
-      
+
       # Audit log parsing
       if [log_type] == "audit" {
         mutate {
           add_field => { "audit_log" => "true" }
           add_field => { "retention_period" => "2555" }  # 7 years in days
         }
-        
+
         # Parse audit events
         grok {
           match => { "message" => "%{TIMESTAMP_ISO8601:audit_timestamp} %{WORD:audit_action} by %{WORD:user} on %{WORD:resource}" }
         }
       }
-      
+
       # Add GeoIP information for security analysis
       if [source_ip] {
         geoip {
@@ -464,7 +464,7 @@ data:
           target => "geoip"
         }
       }
-      
+
       # Anonymize PII for GDPR compliance
       if [compliance_framework] == "gdpr" {
         mutate {
@@ -475,7 +475,7 @@ data:
           ]
         }
       }
-      
+
       # Add data classification
       if [compliance_log] == "true" or [audit_log] == "true" {
         mutate {
@@ -491,7 +491,7 @@ data:
         }
       }
     }
-    
+
     output {
       # Main Elasticsearch output
       elasticsearch {
@@ -501,29 +501,29 @@ data:
         ssl => true
         ssl_certificate_verification => true
         cacert => "/usr/share/logstash/config/certs/ca.crt"
-        
+
         # Index strategy based on log type and compliance requirements
         index => "fluxora-%{log_type}-%{+YYYY.MM.dd}"
-        
+
         # Use different indices for compliance logs
         if [compliance_log] == "true" {
           index => "compliance-%{compliance_framework}-%{+YYYY.MM.dd}"
         }
-        
+
         if [audit_log] == "true" {
           index => "audit-logs-%{+YYYY.MM.dd}"
         }
-        
+
         # Document type
         document_type => "_doc"
-        
+
         # Template for index settings
         template_name => "fluxora-logs"
         template_pattern => "fluxora-*"
         template => "/usr/share/logstash/templates/fluxora-template.json"
         template_overwrite => true
       }
-      
+
       # SIEM integration output (if configured)
       if [log_type] == "security" or [compliance_log] == "true" {
         http {
@@ -537,7 +537,7 @@ data:
           ssl_certificate_verification => true
         }
       }
-      
+
       # Debug output (remove in production)
       if [log_level] == "debug" {
         stdout {
@@ -648,54 +648,53 @@ data:
     server.name: kibana
     server.host: "0.0.0.0"
     server.port: 5601
-    
+
     # Elasticsearch Configuration
     elasticsearch.hosts: ["https://elasticsearch:9200"]
     elasticsearch.username: "${ELASTICSEARCH_USERNAME}"
     elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
     elasticsearch.ssl.certificateAuthorities: ["/usr/share/kibana/config/certs/ca.crt"]
     elasticsearch.ssl.verificationMode: certificate
-    
+
     # Security Configuration
     server.ssl.enabled: true
     server.ssl.certificate: /usr/share/kibana/config/certs/kibana.crt
     server.ssl.key: /usr/share/kibana/config/certs/kibana.key
-    
+
     # Kibana Security
     xpack.security.enabled: true
     xpack.security.encryptionKey: "something_at_least_32_characters_long"
     xpack.security.session.idleTimeout: "1h"
     xpack.security.session.lifespan: "8h"
-    
+
     # Monitoring
     xpack.monitoring.ui.container.elasticsearch.enabled: true
-    
+
     # Compliance and Audit
     xpack.security.audit.enabled: true
     xpack.security.audit.appender.type: file
     xpack.security.audit.appender.fileName: /usr/share/kibana/logs/kibana_audit.log
     xpack.security.audit.appender.layout.type: json
-    
+
     # Index Patterns
     kibana.defaultAppId: "discover"
-    
+
     # Data Views (Index Patterns)
     data.search.timeout: 600000
-    
+
     # Reporting
     xpack.reporting.enabled: true
     xpack.reporting.encryptionKey: "something_at_least_32_characters_long"
-    
+
     # Canvas
     xpack.canvas.enabled: true
-    
+
     # Maps
     xpack.maps.enabled: true
-    
+
     # Machine Learning (if licensed)
     xpack.ml.enabled: false
-    
+
     # Alerting
     xpack.alerting.enabled: true
     xpack.actions.enabled: true
-

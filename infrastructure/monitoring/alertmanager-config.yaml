@@ -30,7 +30,7 @@ data:
         target_match:
           severity: 'warning'
         equal: ['alertname', 'instance']
-      
+
       # Inhibit node alerts if cluster is down
       - source_match:
           alertname: 'ClusterDown'
@@ -44,7 +44,7 @@ data:
       group_interval: 5m
       repeat_interval: 4h
       receiver: 'default-receiver'
-      
+
       routes:
         # Critical security alerts - immediate response required
         - match_re:
@@ -53,7 +53,7 @@ data:
         group_wait: 0s
         repeat_interval: 15m
         continue: false
-        
+
         # PCI DSS compliance alerts
         - match_re:
             compliance: '.*pci-dss.*'
@@ -61,7 +61,7 @@ data:
         group_wait: 10s
         repeat_interval: 1h
         continue: true
-        
+
         # GDPR compliance alerts
         - match_re:
             compliance: '.*gdpr.*'
@@ -69,7 +69,7 @@ data:
         group_wait: 10s
         repeat_interval: 1h
         continue: true
-        
+
         # SOC 2 compliance alerts
         - match_re:
             compliance: '.*soc2.*'
@@ -77,7 +77,7 @@ data:
         group_wait: 10s
         repeat_interval: 1h
         continue: true
-        
+
         # Critical infrastructure alerts
         - match:
             severity: critical
@@ -85,7 +85,7 @@ data:
         group_wait: 10s
         repeat_interval: 30m
         continue: true
-        
+
         # Database alerts
         - match_re:
             service: '.*database.*|.*mysql.*|.*redis.*'
@@ -93,7 +93,7 @@ data:
         group_wait: 30s
         repeat_interval: 2h
         continue: true
-        
+
         # Application performance alerts
         - match_re:
             alertname: '^(HighLatency|HighErrorRate|LowThroughput).*'
@@ -101,7 +101,7 @@ data:
         group_wait: 1m
         repeat_interval: 2h
         continue: true
-        
+
         # Certificate expiration alerts
         - match_re:
             alertname: '^CertificateExpir.*'
@@ -109,7 +109,7 @@ data:
         group_wait: 5m
         repeat_interval: 24h
         continue: true
-        
+
         # Backup and recovery alerts
         - match_re:
             alertname: '^(BackupFailed|RestoreFailed).*'
@@ -117,7 +117,7 @@ data:
         group_wait: 2m
         repeat_interval: 6h
         continue: true
-        
+
         # Warning level alerts
         - match:
             severity: warning
@@ -144,7 +144,7 @@ data:
               {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
               {{ end }}
             color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
-        
+
       # Critical security incidents
       - name: 'security-team-critical'
         pagerduty_configs:
@@ -176,7 +176,7 @@ data:
             subject: 'CRITICAL SECURITY ALERT: {{ .CommonLabels.alertname }}'
             body: |
               CRITICAL SECURITY INCIDENT DETECTED
-              
+
               {{ range .Alerts }}
               Alert: {{ .Annotations.summary }}
               Description: {{ .Annotations.description }}
@@ -186,9 +186,9 @@ data:
               Started: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
               {{ if .Annotations.runbook_url }}Runbook: {{ .Annotations.runbook_url }}{{ end }}
               {{ end }}
-              
+
               This is an automated alert from the Fluxora monitoring system.
-              
+
       # PCI DSS compliance team
       - name: 'compliance-team-pci'
         slack_configs:
@@ -210,7 +210,7 @@ data:
           - to: 'compliance-team@fluxora.com'
             from: 'alertmanager@fluxora.com'
             subject: 'PCI DSS Compliance Alert: {{ .CommonLabels.alertname }}'
-            
+
       # GDPR compliance team
       - name: 'compliance-team-gdpr'
         slack_configs:
@@ -228,7 +228,7 @@ data:
               {{ if .Annotations.data_protection_impact }}*Impact:* {{ .Annotations.data_protection_impact }}{{ end }}
               {{ end }}
             color: 'warning'
-            
+
       # SOC 2 compliance team
       - name: 'compliance-team-soc2'
         slack_configs:
@@ -246,7 +246,7 @@ data:
               {{ if .Annotations.control_objective }}*Control:* {{ .Annotations.control_objective }}{{ end }}
               {{ end }}
             color: 'warning'
-            
+
       # Critical infrastructure alerts
       - name: 'infrastructure-critical'
         pagerduty_configs:
@@ -268,7 +268,7 @@ data:
               {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
               {{ end }}
             color: 'danger'
-            
+
       # Database team alerts
       - name: 'database-team'
         slack_configs:
@@ -286,7 +286,7 @@ data:
               {{ if .Annotations.query }}*Query:* {{ .Annotations.query }}{{ end }}
               {{ end }}
             color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
-            
+
       # Application team alerts
       - name: 'application-team'
         slack_configs:
@@ -304,7 +304,7 @@ data:
               {{ if .Annotations.dashboard_url }}*Dashboard:* {{ .Annotations.dashboard_url }}{{ end }}
               {{ end }}
             color: '{{ if eq .Status "firing" }}warning{{ else }}good{{ end }}'
-            
+
       # Certificate management alerts
       - name: 'security-team-certs'
         slack_configs:
@@ -321,7 +321,7 @@ data:
               *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
               {{ end }}
             color: 'warning'
-            
+
       # Backup team alerts
       - name: 'backup-team'
         slack_configs:
@@ -338,7 +338,7 @@ data:
               *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
               {{ end }}
             color: 'warning'
-            
+
       # General warnings
       - name: 'general-warnings'
         slack_configs:
@@ -355,4 +355,3 @@ data:
               *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
               {{ end }}
             color: 'warning'
-

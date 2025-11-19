@@ -46,14 +46,14 @@ echo "Updating model version to $MODEL_VERSION in configuration" | tee -a $LOG_F
 # For Kubernetes deployment
 if [ "$DEPLOYMENT_ENV" = "production" ]; then
     echo "Preparing Kubernetes deployment" | tee -a $LOG_FILE
-    
+
     # Update Kubernetes deployment file with new image tag
     sed -i "s/image: fluxora:v.*/image: fluxora:v$MODEL_VERSION/" ./deployments/kubernetes/model-deployment.yaml
-    
+
     echo "Building Docker image" | tee -a $LOG_FILE
     # Uncomment the following lines when Docker is available
     # docker build -t fluxora:v$MODEL_VERSION -f ./deployments/Dockerfile .
-    
+
     echo "Deploying to Kubernetes" | tee -a $LOG_FILE
     # Uncomment the following line when kubectl is configured
     # kubectl apply -f ./deployments/kubernetes/model-deployment.yaml

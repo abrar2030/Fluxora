@@ -2,8 +2,14 @@ import functools
 import time
 from typing import Any, Callable, Dict, Optional
 
-from prometheus_client import (REGISTRY, Counter, Gauge, Histogram, Summary,
-                               start_http_server)
+from prometheus_client import (
+    REGISTRY,
+    Counter,
+    Gauge,
+    Histogram,
+    Summary,
+    start_http_server,
+)
 
 
 class MetricsCollector:

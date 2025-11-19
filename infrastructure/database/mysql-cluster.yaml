@@ -47,7 +47,7 @@ spec:
         fsGroup: 999
         seccompProfile:
           type: RuntimeDefault
-      
+
       initContainers:
       - name: mysql-init
         image: mysql:8.0
@@ -56,25 +56,25 @@ spec:
         - -c
         - |
           set -e
-          
+
           # Initialize MySQL data directory if empty
           if [ ! -d "/var/lib/mysql/mysql" ]; then
             mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
           fi
-          
+
           # Set proper permissions
           chown -R mysql:mysql /var/lib/mysql
           chmod 750 /var/lib/mysql
-        
+
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
-        
+
         securityContext:
           runAsUser: 0  # Need root for initialization
           runAsGroup: 0
           allowPrivilegeEscalation: true
-      
+
       containers:
       - name: mysql
         image: mysql:8.0
@@ -83,7 +83,7 @@ spec:
           name: mysql
         - containerPort: 33060
           name: mysqlx
-        
+
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -112,7 +112,7 @@ spec:
             secretKeyRef:
               name: mysql-replication-credentials
               key: password
-        
+
         args:
         - --server-id=1
         - --log-bin=mysql-bin
@@ -123,21 +123,21 @@ spec:
         - --binlog-checksum=CRC32
         - --master-verify-checksum=ON
         - --slave-sql-verify-checksum=ON
-        
+
         # Security and Compliance Configuration
         - --ssl-ca=/etc/mysql/certs/ca.pem
         - --ssl-cert=/etc/mysql/certs/server-cert.pem
         - --ssl-key=/etc/mysql/certs/server-key.pem
         - --require-secure-transport=ON
         - --tls-version=TLSv1.2,TLSv1.3
-        
+
         # Encryption at Rest
         - --early-plugin-load=keyring_file.so
         - --keyring-file-data=/var/lib/mysql-keyring/keyring
         - --innodb-encrypt-tables=ON
         - --innodb-encrypt-log=ON
         - --innodb-encryption-threads=4
-        
+
         # Audit Logging for Compliance
         - --plugin-load-add=audit_log.so
         - --audit-log=FORCE_PLUS_PERMANENT
@@ -145,7 +145,7 @@ spec:
         - --audit-log-file=/var/log/mysql/audit.log
         - --audit-log-rotate-on-size=100M
         - --audit-log-rotations=10
-        
+
         # Performance and Security Tuning
         - --innodb-buffer-pool-size=2G
         - --innodb-log-file-size=256M
@@ -161,13 +161,13 @@ spec:
         - --slow-query-log-file=/var/log/mysql/slow.log
         - --long-query-time=2
         - --log-queries-not-using-indexes=ON
-        
+
         # Security Settings
         - --local-infile=OFF
         - --skip-show-database
         - --skip-symbolic-links
         - --secure-file-priv=/var/lib/mysql-files/
-        
+
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
@@ -183,7 +183,7 @@ spec:
           mountPath: /var/log/mysql
         - name: mysql-files
           mountPath: /var/lib/mysql-files
-        
+
         resources:
           limits:
             cpu: 4000m
@@ -191,7 +191,7 @@ spec:
           requests:
             cpu: 2000m
             memory: 4Gi
-        
+
         livenessProbe:
           exec:
             command:
@@ -206,7 +206,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 10
           failureThreshold: 3
-        
+
         readinessProbe:
           exec:
             command:
@@ -222,7 +222,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -235,21 +235,21 @@ spec:
             add:
             - SETUID
             - SETGID
-      
+
       # MySQL Exporter for Monitoring
       - name: mysql-exporter
         image: prom/mysqld-exporter:latest
         ports:
         - containerPort: 9104
           name: metrics
-        
+
         env:
         - name: DATA_SOURCE_NAME
           valueFrom:
             secretKeyRef:
               name: mysql-exporter-credentials
               key: dsn
-        
+
         args:
         - --collect.info_schema.processlist
         - --collect.info_schema.innodb_metrics
@@ -268,7 +268,7 @@ spec:
         - --collect.perf_schema.indexiowaits
         - --collect.perf_schema.tableiowaits
         - --collect.perf_schema.tablelocks
-        
+
         resources:
           limits:
             cpu: 200m
@@ -276,7 +276,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 65534
@@ -286,7 +286,7 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       volumes:
       - name: mysql-config
         configMap:
@@ -304,9 +304,9 @@ spec:
       - name: mysql-files
         emptyDir:
           sizeLimit: 1Gi
-      
+
       serviceAccountName: mysql-service-account
-      
+
   volumeClaimTemplates:
   - metadata:
       name: mysql-data
@@ -355,7 +355,7 @@ spec:
         fsGroup: 999
         seccompProfile:
           type: RuntimeDefault
-      
+
       initContainers:
       - name: mysql-replica-init
         image: mysql:8.0
@@ -364,25 +364,25 @@ spec:
         - -c
         - |
           set -e
-          
+
           # Initialize MySQL data directory if empty
           if [ ! -d "/var/lib/mysql/mysql" ]; then
             mysqld --initialize-insecure --user=mysql --datadir=/var/lib/mysql
           fi
-          
+
           # Set proper permissions
           chown -R mysql:mysql /var/lib/mysql
           chmod 750 /var/lib/mysql
-        
+
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
-        
+
         securityContext:
           runAsUser: 0
           runAsGroup: 0
           allowPrivilegeEscalation: true
-      
+
       containers:
       - name: mysql
         image: mysql:8.0
@@ -391,7 +391,7 @@ spec:
           name: mysql
         - containerPort: 33060
           name: mysqlx
-        
+
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -408,7 +408,7 @@ spec:
             secretKeyRef:
               name: mysql-replication-credentials
               key: password
-        
+
         args:
         - --server-id=2  # Will be overridden by init script for multiple replicas
         - --log-bin=mysql-bin
@@ -420,27 +420,27 @@ spec:
         - --super-read-only=ON
         - --relay-log=relay-bin
         - --relay-log-index=relay-bin.index
-        
+
         # Same security and compliance settings as primary
         - --ssl-ca=/etc/mysql/certs/ca.pem
         - --ssl-cert=/etc/mysql/certs/server-cert.pem
         - --ssl-key=/etc/mysql/certs/server-key.pem
         - --require-secure-transport=ON
         - --tls-version=TLSv1.2,TLSv1.3
-        
+
         # Encryption at Rest
         - --early-plugin-load=keyring_file.so
         - --keyring-file-data=/var/lib/mysql-keyring/keyring
         - --innodb-encrypt-tables=ON
         - --innodb-encrypt-log=ON
         - --innodb-encryption-threads=4
-        
+
         # Audit Logging
         - --plugin-load-add=audit_log.so
         - --audit-log=FORCE_PLUS_PERMANENT
         - --audit-log-format=JSON
         - --audit-log-file=/var/log/mysql/audit.log
-        
+
         # Performance Tuning (Read-optimized)
         - --innodb-buffer-pool-size=2G
         - --innodb-log-file-size=256M
@@ -449,7 +449,7 @@ spec:
         - --table-open-cache=4000
         - --query-cache-size=0
         - --query-cache-type=0
-        
+
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
@@ -463,7 +463,7 @@ spec:
           mountPath: /var/lib/mysql-keyring
         - name: mysql-logs
           mountPath: /var/log/mysql
-        
+
         resources:
           limits:
             cpu: 2000m
@@ -471,7 +471,7 @@ spec:
           requests:
             cpu: 1000m
             memory: 2Gi
-        
+
         livenessProbe:
           exec:
             command:
@@ -486,7 +486,7 @@ spec:
           periodSeconds: 30
           timeoutSeconds: 10
           failureThreshold: 3
-        
+
         readinessProbe:
           exec:
             command:
@@ -502,7 +502,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
@@ -515,21 +515,21 @@ spec:
             add:
             - SETUID
             - SETGID
-      
+
       # MySQL Exporter for Monitoring
       - name: mysql-exporter
         image: prom/mysqld-exporter:latest
         ports:
         - containerPort: 9104
           name: metrics
-        
+
         env:
         - name: DATA_SOURCE_NAME
           valueFrom:
             secretKeyRef:
               name: mysql-exporter-credentials
               key: dsn
-        
+
         resources:
           limits:
             cpu: 200m
@@ -537,7 +537,7 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
-        
+
         securityContext:
           runAsNonRoot: true
           runAsUser: 65534
@@ -547,7 +547,7 @@ spec:
           capabilities:
             drop:
             - ALL
-      
+
       volumes:
       - name: mysql-config
         configMap:
@@ -562,9 +562,9 @@ spec:
       - name: mysql-logs
         emptyDir:
           sizeLimit: 5Gi
-      
+
       serviceAccountName: mysql-service-account
-      
+
   volumeClaimTemplates:
   - metadata:
       name: mysql-data
@@ -647,12 +647,12 @@ data:
     datadir = /var/lib/mysql
     tmpdir = /tmp
     lc-messages-dir = /usr/share/mysql
-    
+
     # Character Set and Collation
     character-set-server = utf8mb4
     collation-server = utf8mb4_unicode_ci
     init-connect = 'SET NAMES utf8mb4'
-    
+
     # InnoDB Settings
     default-storage-engine = InnoDB
     innodb-file-per-table = 1
@@ -665,11 +665,11 @@ data:
     innodb-lock-wait-timeout = 120
     innodb-doublewrite = 1
     innodb-checksum-algorithm = crc32
-    
+
     # MyISAM Settings
     key-buffer-size = 32M
     myisam-recover-options = BACKUP,FORCE
-    
+
     # Connection Settings
     max-connections = 1000
     max-connect-errors = 1000000
@@ -677,11 +677,11 @@ data:
     interactive-timeout = 3600
     wait-timeout = 3600
     connect-timeout = 60
-    
+
     # Query Cache (Disabled for MySQL 8.0)
     query-cache-type = 0
     query-cache-size = 0
-    
+
     # Logging
     log-error = /var/log/mysql/error.log
     slow-query-log = 1
@@ -690,7 +690,7 @@ data:
     log-queries-not-using-indexes = 1
     log-slow-admin-statements = 1
     log-slow-slave-statements = 1
-    
+
     # Binary Logging
     log-bin = /var/lib/mysql/mysql-bin
     binlog-format = ROW
@@ -698,33 +698,33 @@ data:
     sync-binlog = 1
     expire-logs-days = 7
     max-binlog-size = 128M
-    
+
     # GTID
     gtid-mode = ON
     enforce-gtid-consistency = ON
     log-slave-updates = ON
-    
+
     # SSL/TLS Configuration
     ssl-ca = /etc/mysql/certs/ca.pem
     ssl-cert = /etc/mysql/certs/server-cert.pem
     ssl-key = /etc/mysql/certs/server-key.pem
     require-secure-transport = ON
     tls-version = TLSv1.2,TLSv1.3
-    
+
     # Security Settings
     local-infile = 0
     skip-show-database
     skip-symbolic-links
     secure-file-priv = /var/lib/mysql-files/
-    
+
     # Performance Schema
     performance-schema = ON
     performance-schema-instrument = 'stage/%=ON'
     performance-schema-instrument = 'statement/%=ON'
-    
+
     [mysql]
     default-character-set = utf8mb4
-    
+
     [client]
     default-character-set = utf8mb4
     ssl-ca = /etc/mysql/certs/ca.pem
@@ -778,4 +778,3 @@ roleRef:
   kind: Role
   name: mysql-role
   apiGroup: rbac.authorization.k8s.io
-

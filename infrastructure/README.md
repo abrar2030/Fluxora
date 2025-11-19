@@ -105,10 +105,10 @@ infrastructure/
    ```bash
    # Apply base configurations
    kubectl apply -k kubernetes/base/
-   
+
    # Deploy monitoring stack
    kubectl apply -f monitoring/
-   
+
    # Deploy database infrastructure
    kubectl apply -f database/
    ```
@@ -118,7 +118,7 @@ infrastructure/
    # Install ArgoCD
    kubectl create namespace argocd
    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-   
+
    # Apply ArgoCD applications
    kubectl apply -f gitops/argocd-applications.yaml
    ```

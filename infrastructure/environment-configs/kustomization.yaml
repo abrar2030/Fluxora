@@ -526,4 +526,3 @@ patches:
     - op: add
       path: /spec/template/metadata/annotations/fluxora.com~1pdb-min-available
       value: "66%"
-

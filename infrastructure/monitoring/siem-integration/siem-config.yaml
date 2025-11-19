@@ -20,7 +20,7 @@ data:
       authentication:
         type: "token"
         token_file: "/etc/siem/token"
-      
+
       # Event Categories for SIEM
       event_categories:
         - authentication
@@ -31,7 +31,7 @@ data:
         - compliance_violations
         - audit_events
         - system_changes
-      
+
       # Compliance Framework Mapping
       compliance_mapping:
         pci_dss:
@@ -51,7 +51,7 @@ data:
             - "CC6.2"  # Authentication
             - "CC6.3"  # Authorization
             - "CC7.1"  # System monitoring
-      
+
       # Real-time Event Streaming
       streaming:
         enabled: true
@@ -59,7 +59,7 @@ data:
         flush_interval: "30s"
         retry_attempts: 3
         retry_delay: "5s"
-      
+
       # Event Enrichment
       enrichment:
         geo_ip: true
@@ -191,7 +191,7 @@ data:
         actions:
           - "alert"
           - "block_ip"
-        
+
       - name: "impossible_travel"
         description: "Detect impossible travel scenarios"
         condition: "login_locations_distance > 1000km in 1h"
@@ -201,7 +201,7 @@ data:
         actions:
           - "alert"
           - "require_mfa"
-      
+
       # Data Access Anomalies
       - name: "unusual_data_access"
         description: "Detect unusual data access patterns"
@@ -212,7 +212,7 @@ data:
         actions:
           - "alert"
           - "audit_user"
-        
+
       - name: "after_hours_access"
         description: "Detect after hours data access"
         condition: "data_access_time not in business_hours"
@@ -221,7 +221,7 @@ data:
         compliance_frameworks: ["pci-dss", "soc2"]
         actions:
           - "alert"
-      
+
       # Network Security Events
       - name: "suspicious_network_traffic"
         description: "Detect suspicious network traffic patterns"
@@ -232,7 +232,7 @@ data:
         actions:
           - "alert"
           - "isolate_host"
-        
+
       - name: "data_exfiltration_attempt"
         description: "Detect potential data exfiltration"
         condition: "outbound_data_volume > threshold and destination = external"
@@ -243,7 +243,7 @@ data:
           - "alert"
           - "block_traffic"
           - "notify_incident_team"
-      
+
       # Malware Detection
       - name: "malware_detected"
         description: "Malware signature detected"
@@ -255,7 +255,7 @@ data:
           - "alert"
           - "quarantine_host"
           - "notify_security_team"
-      
+
       # Compliance Violations
       - name: "pci_dss_violation"
         description: "PCI DSS compliance violation detected"
@@ -267,7 +267,7 @@ data:
           - "alert"
           - "notify_compliance_team"
           - "generate_report"
-        
+
       - name: "gdpr_violation"
         description: "GDPR compliance violation detected"
         condition: "gdpr_compliance_check = failed"
@@ -278,7 +278,7 @@ data:
           - "alert"
           - "notify_dpo"
           - "assess_breach_risk"
-      
+
       # System Changes
       - name: "unauthorized_system_change"
         description: "Unauthorized system configuration change"
@@ -290,7 +290,7 @@ data:
           - "alert"
           - "revert_change"
           - "notify_admin"
-        
+
       - name: "privilege_escalation"
         description: "Privilege escalation attempt detected"
         condition: "privilege_change = elevated and approval = none"
@@ -453,4 +453,3 @@ spec:
     interval: 30s
     path: /metrics
     scheme: http
-

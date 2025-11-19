@@ -263,7 +263,7 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
     registry_url = os.getenv("SERVICE_REGISTRY_URL", "http://service-registry:8500")
     service_id = f"{service_name}-{os.getenv('HOSTNAME', 'unknown')}"
     service_port = int(os.getenv("SERVICE_PORT", "8000"))
-    
+
     # Register service on startup
     @app.on_event("startup")
     async def startup_event():
@@ -290,7 +290,7 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
                 print(f"Failed to register service: {response.text}")
         except Exception as e:
             print(f"Error registering service: {str(e)}")
-    
+
     # Deregister service on shutdown
     @app.on_event("shutdown")
     async def shutdown_event():
@@ -326,7 +326,7 @@ def add_health_check(app: FastAPI):
         Basic health check endpoint
         """
         return {"status": "healthy"}
-    
+
     @app.get("/health/detailed")
     async def detailed_health_check(response: Response):
         """
@@ -335,26 +335,26 @@ def add_health_check(app: FastAPI):
         # Check CPU and memory usage
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
-        
+
         # Check disk usage
         disk_usage = psutil.disk_usage('/').percent
-        
+
         # Define thresholds
         cpu_threshold = 90
         memory_threshold = 90
         disk_threshold = 90
-        
+
         # Determine health status
         is_healthy = (
             cpu_percent < cpu_threshold and
             memory_percent < memory_threshold and
             disk_usage < disk_threshold
         )
-        
+
         # Set response status
         if not is_healthy:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        
+
         return {
             "status": "healthy" if is_healthy else "unhealthy",
             "metrics": {

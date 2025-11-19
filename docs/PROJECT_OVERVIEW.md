@@ -34,4 +34,4 @@ Fluxora is a comprehensive project that appears to be a full-stack application w
 3. Version control and documentation
 4. Deployment and monitoring
 
-For detailed information about specific components, please refer to the respective documentation files in this directory. 
+For detailed information about specific components, please refer to the respective documentation files in this directory.

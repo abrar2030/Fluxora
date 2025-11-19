@@ -262,4 +262,3 @@ variable "data_residency_requirements" {
     forbidden_regions = []
   }
 }
-

@@ -99,4 +99,3 @@ export const getHistoricalData = async (params) => {
     }; // Placeholder data
   }
 };
-

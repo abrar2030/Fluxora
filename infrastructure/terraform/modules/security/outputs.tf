@@ -198,4 +198,3 @@ output "data_protection_configuration" {
     backup_retention_days         = var.backup_retention_period
   }
 }
-

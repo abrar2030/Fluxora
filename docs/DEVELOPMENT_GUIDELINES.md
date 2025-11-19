@@ -111,4 +111,4 @@ fix: resolve database connection issue
 ## Additional Resources
 - [Project Overview](PROJECT_OVERVIEW.md)
 - [Setup Guide](SETUP_GUIDE.md)
-- [API Documentation](API_DOCS.md) 
+- [API Documentation](API_DOCS.md)

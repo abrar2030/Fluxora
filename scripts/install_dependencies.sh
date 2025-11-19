@@ -54,28 +54,28 @@ check_directory() {
 # Function to install backend dependencies
 install_backend_deps() {
     print_section "Installing Backend Dependencies"
-    
+
     if ! check_directory "${PROJECT_DIR}/src"; then
         print_warning "Backend source directory not found, skipping..."
         return
     fi
-    
+
     cd "${PROJECT_DIR}/src"
-    
+
     # Check if virtualenv exists, create if not
     if [ ! -d "venv" ]; then
         print_warning "Creating Python virtual environment..."
         python3 -m venv venv
     fi
-    
+
     # Activate virtual environment
     print_warning "Activating virtual environment..."
     source venv/bin/activate
-    
+
     # Upgrade pip
     print_warning "Upgrading pip..."
     pip install --upgrade pip
-    
+
     # Install requirements
     if [ -f "requirements.txt" ]; then
         print_warning "Installing Python dependencies from requirements.txt..."
@@ -83,36 +83,36 @@ install_backend_deps() {
     else
         print_error "requirements.txt not found in ${PROJECT_DIR}/src"
     fi
-    
+
     # Install development requirements if available
     if [ -f "requirements-dev.txt" ]; then
         print_warning "Installing development dependencies..."
         pip install -r requirements-dev.txt
     fi
-    
+
     # Deactivate virtual environment
     deactivate
-    
+
     print_success "Backend dependencies installed successfully"
 }
 
 # Function to install web frontend dependencies
 install_web_frontend_deps() {
     print_section "Installing Web Frontend Dependencies"
-    
+
     if ! check_directory "${PROJECT_DIR}/web-frontend"; then
         print_warning "Web frontend directory not found, skipping..."
         return
     fi
-    
+
     cd "${PROJECT_DIR}/web-frontend"
-    
+
     # Check if Node.js is installed
     if ! command -v node &> /dev/null; then
         print_error "Node.js is not installed. Please run setup_environment.sh first."
         return
     fi
-    
+
     # Install dependencies
     if [ -f "package.json" ]; then
         print_warning "Installing Node.js dependencies..."
@@ -120,27 +120,27 @@ install_web_frontend_deps() {
     else
         print_error "package.json not found in ${PROJECT_DIR}/web-frontend"
     fi
-    
+
     print_success "Web frontend dependencies installed successfully"
 }
 
 # Function to install mobile frontend dependencies
 install_mobile_frontend_deps() {
     print_section "Installing Mobile Frontend Dependencies"
-    
+
     if ! check_directory "${PROJECT_DIR}/mobile-frontend"; then
         print_warning "Mobile frontend directory not found, skipping..."
         return
     fi
-    
+
     cd "${PROJECT_DIR}/mobile-frontend"
-    
+
     # Check if Node.js is installed
     if ! command -v node &> /dev/null; then
         print_error "Node.js is not installed. Please run setup_environment.sh first."
         return
     fi
-    
+
     # Install dependencies
     if [ -f "package.json" ]; then
         print_warning "Installing Node.js dependencies..."
@@ -148,51 +148,51 @@ install_mobile_frontend_deps() {
     else
         print_error "package.json not found in ${PROJECT_DIR}/mobile-frontend"
     fi
-    
+
     # Check if React Native CLI is installed
     if ! command -v npx react-native &> /dev/null; then
         print_warning "Installing React Native CLI..."
         npm install -g react-native-cli
     fi
-    
+
     print_success "Mobile frontend dependencies installed successfully"
 }
 
 # Function to install monitoring dependencies
 install_monitoring_deps() {
     print_section "Installing Monitoring Dependencies"
-    
+
     if ! check_directory "${PROJECT_DIR}/monitoring"; then
         print_warning "Monitoring directory not found, skipping..."
         return
     fi
-    
+
     cd "${PROJECT_DIR}/monitoring"
-    
+
     # Check if Docker is installed
     if ! command -v docker &> /dev/null; then
         print_error "Docker is not installed. Please run setup_environment.sh first."
         return
     fi
-    
+
     print_warning "Monitoring dependencies will be handled by Docker"
     print_warning "Use docker_manager.sh to build and start monitoring services"
-    
+
     print_success "Monitoring setup completed"
 }
 
 # Function to install all dependencies
 install_all_deps() {
     print_section "Installing All Dependencies"
-    
+
     install_backend_deps
     install_web_frontend_deps
     install_mobile_frontend_deps
     install_monitoring_deps
-    
+
     print_section "Dependency Installation Complete"
     print_success "All dependencies have been installed successfully"
-    
+
     echo -e "\nNext steps:"
     echo "1. Run the start_services.sh script to start all required services"
     echo "2. Access the application at http://localhost:8000"
