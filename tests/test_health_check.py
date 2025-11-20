@@ -8,9 +8,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fluxora.core.health_check import (DependencyStatus, HealthCheck,
-                                       HealthStatus,
-                                       add_health_check_endpoints)
+from fluxora.core.health_check import (
+    DependencyStatus,
+    HealthCheck,
+    HealthStatus,
+    add_health_check_endpoints,
+)
 
 
 class TestHealthCheck(unittest.TestCase):

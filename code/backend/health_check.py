@@ -1,6 +1,8 @@
-from code.core.health_check import (check_database_connections,
-                                    check_feature_store_connection,
-                                    check_model_versions)
+from code.core.health_check import (
+    check_database_connections,
+    check_feature_store_connection,
+    check_model_versions,
+)
 
 from fastapi import APIRouter
 

@@ -9,10 +9,14 @@ from unittest.mock import patch
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fluxora.core.logging_framework import (JsonFormatter,
-                                            clear_request_context,
-                                            get_correlation_id, get_request_id,
-                                            set_request_context, setup_logging)
+from fluxora.core.logging_framework import (
+    JsonFormatter,
+    clear_request_context,
+    get_correlation_id,
+    get_request_id,
+    set_request_context,
+    setup_logging,
+)
 
 
 class TestLoggingFramework(unittest.TestCase):

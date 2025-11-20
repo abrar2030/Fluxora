@@ -6,9 +6,11 @@ from unittest.mock import Mock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fluxora.core.transaction_coordinator import (TransactionCoordinator,
-                                                  TransactionParticipant,
-                                                  TransactionStatus)
+from fluxora.core.transaction_coordinator import (
+    TransactionCoordinator,
+    TransactionParticipant,
+    TransactionStatus,
+)
 
 
 class TestTransactionCoordinator(unittest.TestCase):

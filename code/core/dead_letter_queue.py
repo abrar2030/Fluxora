@@ -7,8 +7,7 @@ from typing import Any, Dict, Optional
 import requests
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import (Boolean, Column, Float, Integer, String, Text,
-                        create_engine)
+from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 

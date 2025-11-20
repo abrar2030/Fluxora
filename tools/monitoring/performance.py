@@ -4,9 +4,15 @@ import time
 from fluxora.core.alert_handler import AlertHandler
 from fluxora.core.logger import get_logger
 from prometheus_client import Counter, Gauge, Histogram
-from sklearn.metrics import (accuracy_score, f1_score, mean_absolute_error,
-                             mean_squared_error, precision_score, r2_score,
-                             recall_score)
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    mean_absolute_error,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+)
 
 logger = get_logger(__name__)
 alert_handler = AlertHandler()

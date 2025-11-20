@@ -6,8 +6,11 @@ import unittest
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fluxora.core.circuit_breaker import (CircuitBreaker, CircuitBreakerError,
-                                          CircuitState)
+from fluxora.core.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerError,
+    CircuitState,
+)
 
 
 class TestCircuitBreaker(unittest.TestCase):

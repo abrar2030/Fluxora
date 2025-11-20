@@ -10,8 +10,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from fluxora.core.circuit_breaker import CircuitBreaker, CircuitState
 from fluxora.core.fallback import DefaultValueFallback, with_fallback
 from fluxora.core.retry import RetryableError, retry
-from fluxora.core.transaction_coordinator import (TransactionCoordinator,
-                                                  TransactionStatus)
+from fluxora.core.transaction_coordinator import (
+    TransactionCoordinator,
+    TransactionStatus,
+)
 
 
 class TestErrorHandlingIntegration(unittest.TestCase):
