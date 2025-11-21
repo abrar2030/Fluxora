@@ -1,4 +1,4 @@
-declare module '@jest/globals' {
+declare module "@jest/globals" {
   export interface Mock {
     (...args: any[]): any;
     mockImplementation: (fn: Function) => Mock;

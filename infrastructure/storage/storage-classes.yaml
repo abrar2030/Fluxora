@@ -24,7 +24,7 @@ parameters:
   fsType: ext4
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
-reclaimPolicy: Retain  # Retain for compliance and audit purposes
+reclaimPolicy: Retain # Retain for compliance and audit purposes
 
 ---
 # High-Performance Encrypted Storage for Databases
@@ -40,7 +40,7 @@ metadata:
   annotations:
     fluxora.com/data-classification: "restricted"
     fluxora.com/backup-required: "true"
-    fluxora.com/retention-period: "2555-days"  # 7 years
+    fluxora.com/retention-period: "2555-days" # 7 years
 provisioner: ebs.csi.aws.com
 parameters:
   type: io2
@@ -76,7 +76,7 @@ parameters:
   fsType: ext4
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
-reclaimPolicy: Delete  # Can be deleted for cache data
+reclaimPolicy: Delete # Can be deleted for cache data
 
 ---
 # Archive Storage for Long-term Compliance Data
@@ -92,7 +92,7 @@ metadata:
   annotations:
     fluxora.com/data-classification: "restricted"
     fluxora.com/backup-required: "true"
-    fluxora.com/retention-period: "2555-days"  # 7 years
+    fluxora.com/retention-period: "2555-days" # 7 years
 provisioner: ebs.csi.aws.com
 parameters:
   type: sc1
@@ -146,7 +146,7 @@ spec:
   capacity:
     storage: 10Ti
   accessModes:
-  - ReadWriteMany
+    - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: efs-encrypted-shared
   csi:
@@ -170,7 +170,7 @@ metadata:
     fluxora.com/data-classification: "restricted"
 spec:
   accessModes:
-  - ReadWriteMany
+    - ReadWriteMany
   resources:
     requests:
       storage: 10Ti
@@ -329,44 +329,44 @@ spec:
     matchLabels:
       app: mysql
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  # Allow access from application pods
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: fluxora
-    ports:
-    - protocol: TCP
-      port: 3306
+    # Allow access from application pods
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: fluxora
+      ports:
+        - protocol: TCP
+          port: 3306
 
-  # Allow access from monitoring
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: monitoring
-    ports:
-    - protocol: TCP
-      port: 9104  # MySQL exporter
+    # Allow access from monitoring
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9104 # MySQL exporter
 
   egress:
-  # Allow DNS resolution
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: kube-system
-    ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
 
-  # Allow backup operations
-  - to: []
-    ports:
-    - protocol: TCP
-      port: 443  # HTTPS for S3/backup services
+    # Allow backup operations
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443 # HTTPS for S3/backup services
 
 ---
 # Storage Security Policies
@@ -471,7 +471,7 @@ metadata:
     component: storage-cleanup
     compliance: "pci-dss,gdpr,soc2"
 spec:
-  schedule: "0 2 * * 0"  # Weekly on Sunday at 2 AM
+  schedule: "0 2 * * 0" # Weekly on Sunday at 2 AM
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 4
   failedJobsHistoryLimit: 4
@@ -489,74 +489,74 @@ spec:
             fsGroup: 10001
 
           containers:
-          - name: storage-cleanup
-            image: bitnami/kubectl:latest
-            command:
-            - /bin/bash
-            - -c
-            - |
-              set -e
+            - name: storage-cleanup
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
 
-              echo "Starting storage cleanup process..."
+                  echo "Starting storage cleanup process..."
 
-              # Clean up completed jobs older than 7 days
-              kubectl delete jobs --field-selector status.successful=1 \
-                --all-namespaces \
-                --dry-run=client -o name | \
-                xargs -I {} kubectl delete {} --ignore-not-found=true
+                  # Clean up completed jobs older than 7 days
+                  kubectl delete jobs --field-selector status.successful=1 \
+                    --all-namespaces \
+                    --dry-run=client -o name | \
+                    xargs -I {} kubectl delete {} --ignore-not-found=true
 
-              # Clean up failed pods older than 3 days
-              kubectl get pods --all-namespaces \
-                --field-selector status.phase=Failed \
-                -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
-                awk '$3 < "'$(date -d '3 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
-                while read namespace pod; do
-                  kubectl delete pod $pod -n $namespace --ignore-not-found=true
-                done
+                  # Clean up failed pods older than 3 days
+                  kubectl get pods --all-namespaces \
+                    --field-selector status.phase=Failed \
+                    -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
+                    awk '$3 < "'$(date -d '3 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
+                    while read namespace pod; do
+                      kubectl delete pod $pod -n $namespace --ignore-not-found=true
+                    done
 
-              # Clean up orphaned volume snapshots older than retention period
-              kubectl get volumesnapshots --all-namespaces \
-                -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
-                awk '$3 < "'$(date -d '90 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
-                while read namespace snapshot; do
-                  # Only delete if not marked for long-term retention
-                  retention=$(kubectl get volumesnapshot $snapshot -n $namespace -o jsonpath='{.metadata.annotations.fluxora\.com/retention-period}')
-                  if [[ "$retention" != "2555-days" ]]; then
-                    kubectl delete volumesnapshot $snapshot -n $namespace --ignore-not-found=true
-                  fi
-                done
+                  # Clean up orphaned volume snapshots older than retention period
+                  kubectl get volumesnapshots --all-namespaces \
+                    -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
+                    awk '$3 < "'$(date -d '90 days ago' -Ins --utc | sed 's/+0000/Z/')'" {print $1 " " $2}' | \
+                    while read namespace snapshot; do
+                      # Only delete if not marked for long-term retention
+                      retention=$(kubectl get volumesnapshot $snapshot -n $namespace -o jsonpath='{.metadata.annotations.fluxora\.com/retention-period}')
+                      if [[ "$retention" != "2555-days" ]]; then
+                        kubectl delete volumesnapshot $snapshot -n $namespace --ignore-not-found=true
+                      fi
+                    done
 
-              # Generate cleanup report
-              cat > /tmp/cleanup-report.json << EOF
-              {
-                "cleanup_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-                "jobs_cleaned": "$(kubectl get jobs --all-namespaces --field-selector status.successful=1 | wc -l)",
-                "pods_cleaned": "$(kubectl get pods --all-namespaces --field-selector status.phase=Failed | wc -l)",
-                "snapshots_cleaned": "0",
-                "storage_reclaimed": "calculated_value",
-                "compliance_status": "COMPLIANT"
-              }
-              EOF
+                  # Generate cleanup report
+                  cat > /tmp/cleanup-report.json << EOF
+                  {
+                    "cleanup_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+                    "jobs_cleaned": "$(kubectl get jobs --all-namespaces --field-selector status.successful=1 | wc -l)",
+                    "pods_cleaned": "$(kubectl get pods --all-namespaces --field-selector status.phase=Failed | wc -l)",
+                    "snapshots_cleaned": "0",
+                    "storage_reclaimed": "calculated_value",
+                    "compliance_status": "COMPLIANT"
+                  }
+                  EOF
 
-              echo "Storage cleanup completed successfully"
+                  echo "Storage cleanup completed successfully"
 
-            resources:
-              limits:
-                cpu: 200m
-                memory: 256Mi
-              requests:
-                cpu: 100m
-                memory: 128Mi
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
 
-            securityContext:
-              runAsNonRoot: true
-              runAsUser: 10001
-              runAsGroup: 10001
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                - ALL
+              securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
 
           restartPolicy: OnFailure
           serviceAccountName: storage-cleanup-sa
@@ -581,15 +581,15 @@ metadata:
     component: storage-cleanup
     compliance: "pci-dss,gdpr,soc2"
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "delete"]
-- apiGroups: ["batch"]
-  resources: ["jobs"]
-  verbs: ["get", "list", "delete"]
-- apiGroups: ["snapshot.storage.k8s.io"]
-  resources: ["volumesnapshots"]
-  verbs: ["get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: ["snapshot.storage.k8s.io"]
+    resources: ["volumesnapshots"]
+    verbs: ["get", "list", "delete"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -600,9 +600,9 @@ metadata:
     component: storage-cleanup
     compliance: "pci-dss,gdpr,soc2"
 subjects:
-- kind: ServiceAccount
-  name: storage-cleanup-sa
-  namespace: kube-system
+  - kind: ServiceAccount
+    name: storage-cleanup-sa
+    namespace: kube-system
 roleRef:
   kind: ClusterRole
   name: storage-cleanup-role

@@ -48,271 +48,271 @@ spec:
           type: RuntimeDefault
 
       initContainers:
-      - name: vault-init
-        image: hashicorp/vault:1.15
-        command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
+        - name: vault-init
+          image: hashicorp/vault:1.15
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
 
-          # Create vault configuration directory
-          mkdir -p /vault/config
-          mkdir -p /vault/data
-          mkdir -p /vault/logs
+              # Create vault configuration directory
+              mkdir -p /vault/config
+              mkdir -p /vault/data
+              mkdir -p /vault/logs
 
-          # Generate vault configuration
-          cat > /vault/config/vault.hcl << EOF
-          # Vault Configuration for Financial Compliance
+              # Generate vault configuration
+              cat > /vault/config/vault.hcl << EOF
+              # Vault Configuration for Financial Compliance
 
-          # Storage Backend - Raft for HA
-          storage "raft" {
-            path = "/vault/data"
-            node_id = "${HOSTNAME}"
+              # Storage Backend - Raft for HA
+              storage "raft" {
+                path = "/vault/data"
+                node_id = "${HOSTNAME}"
 
-            retry_join {
-              leader_api_addr = "https://vault-0.vault.encryption.svc.cluster.local:8200"
-            }
-            retry_join {
-              leader_api_addr = "https://vault-1.vault.encryption.svc.cluster.local:8200"
-            }
-            retry_join {
-              leader_api_addr = "https://vault-2.vault.encryption.svc.cluster.local:8200"
-            }
-          }
+                retry_join {
+                  leader_api_addr = "https://vault-0.vault.encryption.svc.cluster.local:8200"
+                }
+                retry_join {
+                  leader_api_addr = "https://vault-1.vault.encryption.svc.cluster.local:8200"
+                }
+                retry_join {
+                  leader_api_addr = "https://vault-2.vault.encryption.svc.cluster.local:8200"
+                }
+              }
 
-          # Listener Configuration
-          listener "tcp" {
-            address = "0.0.0.0:8200"
-            tls_cert_file = "/vault/certs/vault.crt"
-            tls_key_file = "/vault/certs/vault.key"
-            tls_client_ca_file = "/vault/certs/ca.crt"
-            tls_require_and_verify_client_cert = true
-            tls_min_version = "tls12"
-            tls_cipher_suites = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
-          }
+              # Listener Configuration
+              listener "tcp" {
+                address = "0.0.0.0:8200"
+                tls_cert_file = "/vault/certs/vault.crt"
+                tls_key_file = "/vault/certs/vault.key"
+                tls_client_ca_file = "/vault/certs/ca.crt"
+                tls_require_and_verify_client_cert = true
+                tls_min_version = "tls12"
+                tls_cipher_suites = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+              }
 
-          # Cluster Configuration
-          cluster_addr = "https://${HOSTNAME}.vault.encryption.svc.cluster.local:8201"
-          api_addr = "https://${HOSTNAME}.vault.encryption.svc.cluster.local:8200"
+              # Cluster Configuration
+              cluster_addr = "https://${HOSTNAME}.vault.encryption.svc.cluster.local:8201"
+              api_addr = "https://${HOSTNAME}.vault.encryption.svc.cluster.local:8200"
 
-          # Seal Configuration - AWS KMS Auto-unseal
-          seal "awskms" {
-            region = "us-east-1"
-            kms_key_id = "arn:aws:kms:us-east-1:ACCOUNT:key/VAULT-UNSEAL-KEY-ID"
-            endpoint = "https://kms.us-east-1.amazonaws.com"
-          }
+              # Seal Configuration - AWS KMS Auto-unseal
+              seal "awskms" {
+                region = "us-east-1"
+                kms_key_id = "arn:aws:kms:us-east-1:ACCOUNT:key/VAULT-UNSEAL-KEY-ID"
+                endpoint = "https://kms.us-east-1.amazonaws.com"
+              }
 
-          # UI Configuration
-          ui = true
+              # UI Configuration
+              ui = true
 
-          # Logging
-          log_level = "INFO"
-          log_format = "json"
-          log_file = "/vault/logs/vault.log"
-          log_rotate_duration = "24h"
-          log_rotate_max_files = 30
+              # Logging
+              log_level = "INFO"
+              log_format = "json"
+              log_file = "/vault/logs/vault.log"
+              log_rotate_duration = "24h"
+              log_rotate_max_files = 30
 
-          # Performance and Security
-          disable_mlock = false
-          disable_cache = false
-          disable_printable_check = false
+              # Performance and Security
+              disable_mlock = false
+              disable_cache = false
+              disable_printable_check = false
 
-          # Telemetry
-          telemetry {
-            prometheus_retention_time = "30s"
-            disable_hostname = true
-          }
+              # Telemetry
+              telemetry {
+                prometheus_retention_time = "30s"
+                disable_hostname = true
+              }
 
-          # Enterprise Features (if licensed)
-          # license_path = "/vault/license/vault.hclic"
-          EOF
+              # Enterprise Features (if licensed)
+              # license_path = "/vault/license/vault.hclic"
+              EOF
 
-          # Set proper permissions
-          chown -R vault:vault /vault
-          chmod 750 /vault/data
-          chmod 640 /vault/config/vault.hcl
+              # Set proper permissions
+              chown -R vault:vault /vault
+              chmod 750 /vault/data
+              chmod 640 /vault/config/vault.hcl
 
-        volumeMounts:
-        - name: vault-data
-          mountPath: /vault/data
-        - name: vault-config
-          mountPath: /vault/config
-        - name: vault-logs
-          mountPath: /vault/logs
-        - name: vault-certs
-          mountPath: /vault/certs
-          readOnly: true
+          volumeMounts:
+            - name: vault-data
+              mountPath: /vault/data
+            - name: vault-config
+              mountPath: /vault/config
+            - name: vault-logs
+              mountPath: /vault/logs
+            - name: vault-certs
+              mountPath: /vault/certs
+              readOnly: true
 
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-          allowPrivilegeEscalation: true
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: true
 
       containers:
-      - name: vault
-        image: hashicorp/vault:1.15
-        ports:
-        - containerPort: 8200
-          name: vault-port
-          protocol: TCP
-        - containerPort: 8201
-          name: cluster-port
-          protocol: TCP
+        - name: vault
+          image: hashicorp/vault:1.15
+          ports:
+            - containerPort: 8200
+              name: vault-port
+              protocol: TCP
+            - containerPort: 8201
+              name: cluster-port
+              protocol: TCP
 
-        command:
-        - vault
-        - server
-        - -config=/vault/config/vault.hcl
+          command:
+            - vault
+            - server
+            - -config=/vault/config/vault.hcl
 
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: VAULT_ADDR
-          value: "https://127.0.0.1:8200"
-        - name: VAULT_API_ADDR
-          value: "https://$(HOSTNAME).vault.encryption.svc.cluster.local:8200"
-        - name: VAULT_CLUSTER_ADDR
-          value: "https://$(HOSTNAME).vault.encryption.svc.cluster.local:8201"
-        - name: VAULT_RAFT_NODE_ID
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: VAULT_LOCAL_CONFIG
-          value: |
-            {
-              "backend": {"file": {"path": "/vault/data"}},
-              "listener": {"tcp": {"address": "0.0.0.0:8200", "tls_disable": false}},
-              "default_lease_ttl": "168h",
-              "max_lease_ttl": "720h"
-            }
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: VAULT_ADDR
+              value: "https://127.0.0.1:8200"
+            - name: VAULT_API_ADDR
+              value: "https://$(HOSTNAME).vault.encryption.svc.cluster.local:8200"
+            - name: VAULT_CLUSTER_ADDR
+              value: "https://$(HOSTNAME).vault.encryption.svc.cluster.local:8201"
+            - name: VAULT_RAFT_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: VAULT_LOCAL_CONFIG
+              value: |
+                {
+                  "backend": {"file": {"path": "/vault/data"}},
+                  "listener": {"tcp": {"address": "0.0.0.0:8200", "tls_disable": false}},
+                  "default_lease_ttl": "168h",
+                  "max_lease_ttl": "720h"
+                }
 
-        volumeMounts:
-        - name: vault-data
-          mountPath: /vault/data
-        - name: vault-config
-          mountPath: /vault/config
-          readOnly: true
-        - name: vault-logs
-          mountPath: /vault/logs
-        - name: vault-certs
-          mountPath: /vault/certs
-          readOnly: true
+          volumeMounts:
+            - name: vault-data
+              mountPath: /vault/data
+            - name: vault-config
+              mountPath: /vault/config
+              readOnly: true
+            - name: vault-logs
+              mountPath: /vault/logs
+            - name: vault-certs
+              mountPath: /vault/certs
+              readOnly: true
 
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-          requests:
-            cpu: 1000m
-            memory: 2Gi
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
 
-        livenessProbe:
-          httpGet:
-            path: /v1/sys/health?standbyok=true
-            port: 8200
-            scheme: HTTPS
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 10
-          failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /v1/sys/health?standbyok=true
+              port: 8200
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
 
-        readinessProbe:
-          httpGet:
-            path: /v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204
-            port: 8200
-            scheme: HTTPS
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204
+              port: 8200
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 100
-          runAsGroup: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
-            add:
-            - IPC_LOCK  # Required for mlock
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - IPC_LOCK # Required for mlock
 
-      # Vault Agent for Secrets Injection
-      - name: vault-agent
-        image: hashicorp/vault:1.15
-        command:
-        - vault
-        - agent
-        - -config=/vault/agent/config.hcl
+        # Vault Agent for Secrets Injection
+        - name: vault-agent
+          image: hashicorp/vault:1.15
+          command:
+            - vault
+            - agent
+            - -config=/vault/agent/config.hcl
 
-        env:
-        - name: VAULT_ADDR
-          value: "https://127.0.0.1:8200"
+          env:
+            - name: VAULT_ADDR
+              value: "https://127.0.0.1:8200"
 
-        volumeMounts:
-        - name: vault-agent-config
-          mountPath: /vault/agent
-          readOnly: true
-        - name: vault-certs
-          mountPath: /vault/certs
-          readOnly: true
-        - name: vault-secrets
-          mountPath: /vault/secrets
+          volumeMounts:
+            - name: vault-agent-config
+              mountPath: /vault/agent
+              readOnly: true
+            - name: vault-certs
+              mountPath: /vault/certs
+              readOnly: true
+            - name: vault-secrets
+              mountPath: /vault/secrets
 
-        resources:
-          limits:
-            cpu: 500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 512Mi
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 100
-          runAsGroup: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 100
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
       volumes:
-      - name: vault-config
-        emptyDir:
-          sizeLimit: 100Mi
-      - name: vault-logs
-        emptyDir:
-          sizeLimit: 1Gi
-      - name: vault-certs
-        secret:
-          secretName: vault-tls-certs
-          defaultMode: 0400
-      - name: vault-agent-config
-        configMap:
-          name: vault-agent-config
-      - name: vault-secrets
-        emptyDir:
-          sizeLimit: 100Mi
+        - name: vault-config
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: vault-logs
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: vault-certs
+          secret:
+            secretName: vault-tls-certs
+            defaultMode: 0400
+        - name: vault-agent-config
+          configMap:
+            name: vault-agent-config
+        - name: vault-secrets
+          emptyDir:
+            sizeLimit: 100Mi
 
       serviceAccountName: vault-service-account
 
   volumeClaimTemplates:
-  - metadata:
-      name: vault-data
-      labels:
-        app: vault
-        compliance: "pci-dss,gdpr,soc2"
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: "gp3-encrypted"
-      resources:
-        requests:
-          storage: 50Gi
+    - metadata:
+        name: vault-data
+        labels:
+          app: vault
+          compliance: "pci-dss,gdpr,soc2"
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "gp3-encrypted"
+        resources:
+          requests:
+            storage: 50Gi
 
 ---
 # Vault Service
@@ -329,12 +329,12 @@ spec:
   selector:
     app: vault
   ports:
-  - port: 8200
-    name: vault-port
-    protocol: TCP
-  - port: 8201
-    name: cluster-port
-    protocol: TCP
+    - port: 8200
+      name: vault-port
+      protocol: TCP
+    - port: 8201
+      name: cluster-port
+      protocol: TCP
 
 ---
 # Vault Agent Configuration
@@ -422,70 +422,70 @@ spec:
         fsGroup: 65534
 
       containers:
-      - name: external-secrets-operator
-        image: ghcr.io/external-secrets/external-secrets:v0.9.0
-        ports:
-        - containerPort: 8080
-          name: metrics
-        - containerPort: 9443
-          name: webhook
+        - name: external-secrets-operator
+          image: ghcr.io/external-secrets/external-secrets:v0.9.0
+          ports:
+            - containerPort: 8080
+              name: metrics
+            - containerPort: 9443
+              name: webhook
 
-        args:
-        - --secure-metrics=true
-        - --metrics-addr=:8080
-        - --webhook-addr=:9443
-        - --webhook-cert-dir=/tmp/k8s-webhook-server/serving-certs
-        - --enable-leader-election
-        - --leader-election-namespace=encryption
-        - --concurrent-reconciles=10
+          args:
+            - --secure-metrics=true
+            - --metrics-addr=:8080
+            - --webhook-addr=:9443
+            - --webhook-cert-dir=/tmp/k8s-webhook-server/serving-certs
+            - --enable-leader-election
+            - --leader-election-namespace=encryption
+            - --concurrent-reconciles=10
 
-        env:
-        - name: EXTERNAL_SECRETS_OPERATOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+          env:
+            - name: EXTERNAL_SECRETS_OPERATOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
 
-        volumeMounts:
-        - name: webhook-certs
-          mountPath: /tmp/k8s-webhook-server/serving-certs
-          readOnly: true
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
 
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 1Gi
-          requests:
-            cpu: 500m
-            memory: 512Mi
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
 
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
 
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 65534
-          runAsGroup: 65534
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            runAsGroup: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
       volumes:
-      - name: webhook-certs
-        secret:
-          secretName: external-secrets-webhook-certs
+        - name: webhook-certs
+          secret:
+            secretName: external-secrets-webhook-certs
 
       serviceAccountName: external-secrets-operator
 
@@ -539,26 +539,26 @@ spec:
         database: "{{ .database }}"
         connection-string: "mysql://{{ .username }}:{{ .password }}@{{ .host }}:{{ .port }}/{{ .database }}?ssl=true"
   data:
-  - secretKey: username
-    remoteRef:
-      key: database/mysql
-      property: username
-  - secretKey: password
-    remoteRef:
-      key: database/mysql
-      property: password
-  - secretKey: host
-    remoteRef:
-      key: database/mysql
-      property: host
-  - secretKey: port
-    remoteRef:
-      key: database/mysql
-      property: port
-  - secretKey: database
-    remoteRef:
-      key: database/mysql
-      property: database
+    - secretKey: username
+      remoteRef:
+        key: database/mysql
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: database/mysql
+        property: password
+    - secretKey: host
+      remoteRef:
+        key: database/mysql
+        property: host
+    - secretKey: port
+      remoteRef:
+        key: database/mysql
+        property: port
+    - secretKey: database
+      remoteRef:
+        key: database/mysql
+        property: database
 
 ---
 # Encryption Key Management
@@ -788,12 +788,12 @@ metadata:
     app: vault
     compliance: "pci-dss,gdpr,soc2"
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list", "watch", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -804,9 +804,9 @@ metadata:
     app: vault
     compliance: "pci-dss,gdpr,soc2"
 subjects:
-- kind: ServiceAccount
-  name: vault-service-account
-  namespace: encryption
+  - kind: ServiceAccount
+    name: vault-service-account
+    namespace: encryption
 roleRef:
   kind: ClusterRole
   name: vault-role

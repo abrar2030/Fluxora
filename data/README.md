@@ -20,6 +20,7 @@ The raw data directory contains original data sources:
 - `sample_raw_data.csv`: Sample dataset with features and target variables for energy forecasting
 
 Raw data typically includes:
+
 - Time series energy consumption data
 - Weather data
 - Calendar features

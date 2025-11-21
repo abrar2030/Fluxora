@@ -24,6 +24,7 @@ The main configuration file that defines:
 - Data source and destination paths
 
 Example configuration:
+
 ```yaml
 defaults:
   - preprocessing: default
@@ -50,6 +51,7 @@ Defines parameters for data preprocessing steps, including:
 - Holiday information
 
 Example configuration:
+
 ```yaml
 feature_params:
   lag_features: [24, 168]
@@ -68,13 +70,14 @@ Configuration for the feature store, including:
 - Online store configuration
 
 Example configuration:
+
 ```yaml
 project: energy_forecasting
 registry: s3://your-bucket/feature_store/registry.db
 provider: aws
 online_store:
-    type: redis
-    connection_string: "redis:6379"
+  type: redis
+  connection_string: "redis:6379"
 entity_key_serialization_version: 2
 ```
 

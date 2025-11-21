@@ -18,6 +18,7 @@ The workflow architecture is designed to ensure code quality and reliable deploy
 This workflow handles the continuous integration and continuous deployment pipeline for both the backend and frontend components of the Fluxora application.
 
 **Triggers:**
+
 - Push to `main`, `master`, or `develop` branches
 - Pull requests targeting `main`, `master`, or `develop` branches
 
@@ -58,10 +59,12 @@ This workflow handles the continuous integration and continuous deployment pipel
    This job ensures that only code that passes all tests is deployed to production, and only when changes are merged to the main or master branch.
 
 **Job Dependencies:**
+
 - The build-and-deploy job depends on successful completion of both backend-test and frontend-test jobs
 - This ensures that only code that passes all tests is deployed
 
 **Deployment Process:**
+
 - The current workflow includes a placeholder for deployment commands
 - The actual deployment would likely involve:
   - Packaging the application
@@ -82,6 +85,7 @@ The workflow in this project is designed with the following dependencies:
    - Requires successful testing phase
 
 This architecture ensures that:
+
 - Code quality is verified through testing
 - Tests must pass before deployment
 - Only production-ready code is deployed
@@ -111,6 +115,7 @@ The production environment is not explicitly defined in the workflow, but the de
 The current workflow provides a solid foundation but could be enhanced with:
 
 1. **Environment Variables**: Add environment-specific configuration
+
    ```yaml
    env:
      PYTHON_ENV: production
@@ -118,6 +123,7 @@ The current workflow provides a solid foundation but could be enhanced with:
    ```
 
 2. **Caching**: Improve build times with additional caching
+
    ```yaml
    - name: Cache pip packages
      uses: actions/cache@v3
@@ -127,6 +133,7 @@ The current workflow provides a solid foundation but could be enhanced with:
    ```
 
 3. **Artifact Management**: Store build artifacts between jobs
+
    ```yaml
    - name: Upload build artifacts
      uses: actions/upload-artifact@v3

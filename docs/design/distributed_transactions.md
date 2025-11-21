@@ -18,11 +18,13 @@ This document outlines the design for implementing distributed transaction proto
 ### Two-Phase Commit (2PC)
 
 **Pros:**
+
 - Strong consistency guarantees
 - Well-established protocol
 - Atomic commit across multiple services
 
 **Cons:**
+
 - Blocking protocol (participants wait for coordinator)
 - Vulnerable to coordinator failures
 - Higher latency due to multiple network roundtrips
@@ -31,12 +33,14 @@ This document outlines the design for implementing distributed transaction proto
 ### Saga Pattern
 
 **Pros:**
+
 - Non-blocking operations
 - Higher availability
 - Better performance characteristics
 - Suitable for long-running transactions
 
 **Cons:**
+
 - Eventually consistent (not immediately consistent)
 - Requires compensating transactions
 - More complex programming model
@@ -45,12 +49,14 @@ This document outlines the design for implementing distributed transaction proto
 ### Outbox Pattern
 
 **Pros:**
+
 - Ensures reliable message delivery
 - Compatible with event-driven architecture
 - Minimizes dual-writes problems
 - Works well with message brokers
 
 **Cons:**
+
 - Requires polling or CDC for outbox table
 - Additional storage requirements
 - Potential for message duplication
@@ -790,32 +796,32 @@ spec:
         app: transaction-coordinator
     spec:
       containers:
-      - name: transaction-coordinator
-        image: fluxora/transaction-coordinator:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        env:
-        - name: SERVICE_REGISTRY_URL
-          value: "http://service-registry:8500"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: transaction-coordinator
+          image: fluxora/transaction-coordinator:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: SERVICE_REGISTRY_URL
+              value: "http://service-registry:8500"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -826,8 +832,8 @@ spec:
   selector:
     app: transaction-coordinator
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
   type: ClusterIP
 ```
 
@@ -851,34 +857,34 @@ spec:
         app: outbox-service
     spec:
       containers:
-      - name: outbox-service
-        image: fluxora/outbox-service:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        env:
-        - name: SERVICE_REGISTRY_URL
-          value: "http://service-registry:8500"
-        - name: DATABASE_URL
-          value: "postgresql://user:password@postgres:5432/outbox"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: outbox-service
+          image: fluxora/outbox-service:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: SERVICE_REGISTRY_URL
+              value: "http://service-registry:8500"
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres:5432/outbox"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -889,8 +895,8 @@ spec:
   selector:
     app: outbox-service
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
   type: ClusterIP
 ```
 
@@ -914,32 +920,32 @@ spec:
         app: saga-orchestrator
     spec:
       containers:
-      - name: saga-orchestrator
-        image: fluxora/saga-orchestrator:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        env:
-        - name: SERVICE_REGISTRY_URL
-          value: "http://service-registry:8500"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: saga-orchestrator
+          image: fluxora/saga-orchestrator:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: SERVICE_REGISTRY_URL
+              value: "http://service-registry:8500"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -950,8 +956,8 @@ spec:
   selector:
     app: saga-orchestrator
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
   type: ClusterIP
 ```
 

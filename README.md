@@ -15,6 +15,7 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 > **Note**: This project is under active development. Features and functionalities are continuously being enhanced to improve accuracy and user experience.
 
 ## 📋 Table of Contents
+
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
@@ -42,15 +43,15 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 
 Fluxora is built on a modern, robust, and scalable technology stack.
 
-| Component | Technology | Role |
-| :--- | :--- | :--- |
-| **Backend API** | Python, FastAPI, Uvicorn | High-performance API for serving predictions and data |
-| **Machine Learning** | TensorFlow, XGBoost, Prophet | Core forecasting and anomaly detection models |
-| **MLOps** | MLflow, Optuna, DVC, Prefect | Model tracking, hyperparameter tuning, data versioning, and workflow orchestration |
-| **Feature Store** | Feast | Managing, serving, and versioning machine learning features |
-| **Frontend** | Node.js (Web & Mobile) | Interactive web dashboard and mobile application |
-| **Database** | PostgreSQL, Redis | Persistent data storage and caching/session management |
-| **Infrastructure** | Docker, Kubernetes, Terraform | Containerization, orchestration, and Infrastructure as Code |
+| Component            | Technology                    | Role                                                                               |
+| :------------------- | :---------------------------- | :--------------------------------------------------------------------------------- |
+| **Backend API**      | Python, FastAPI, Uvicorn      | High-performance API for serving predictions and data                              |
+| **Machine Learning** | TensorFlow, XGBoost, Prophet  | Core forecasting and anomaly detection models                                      |
+| **MLOps**            | MLflow, Optuna, DVC, Prefect  | Model tracking, hyperparameter tuning, data versioning, and workflow orchestration |
+| **Feature Store**    | Feast                         | Managing, serving, and versioning machine learning features                        |
+| **Frontend**         | Node.js (Web & Mobile)        | Interactive web dashboard and mobile application                                   |
+| **Database**         | PostgreSQL, Redis             | Persistent data storage and caching/session management                             |
+| **Infrastructure**   | Docker, Kubernetes, Terraform | Containerization, orchestration, and Infrastructure as Code                        |
 
 ## 🚀 Quick Start
 
@@ -73,6 +74,7 @@ Once running, access the dashboard at http://localhost:8000
 ## 📦 Installation
 
 ### Prerequisites
+
 - Python 3.9+
 - Docker and Docker Compose
 - Node.js 16+ (for web frontend)
@@ -92,6 +94,7 @@ open http://localhost:8000
 ### Manual Installation
 
 1. **Set up the backend**:
+
 ```bash
 cd src
 pip install -r requirements.txt
@@ -99,6 +102,7 @@ python -m api.main
 ```
 
 2. **Set up the web frontend**:
+
 ```bash
 cd web-frontend
 npm install
@@ -106,6 +110,7 @@ npm start
 ```
 
 3. **Set up the mobile app**:
+
 ```bash
 cd mobile-frontend
 npm install
@@ -152,12 +157,12 @@ curl -X GET http://api/data/consumption \
 
 Fluxora includes a comprehensive monitoring stack:
 
-| Tool | Purpose | Access URL (Local) |
-| :--- | :--- | :--- |
-| **Prometheus** | Metrics collection and storage | N/A (Backend) |
-| **Grafana** | Visualization and dashboards | `http://localhost:3000` |
-| **Alertmanager** | Alert routing and notifications | N/A (Backend) |
-| **Loki** | Log aggregation and querying | N/A (Backend) |
+| Tool             | Purpose                         | Access URL (Local)      |
+| :--------------- | :------------------------------ | :---------------------- |
+| **Prometheus**   | Metrics collection and storage  | N/A (Backend)           |
+| **Grafana**      | Visualization and dashboards    | `http://localhost:3000` |
+| **Alertmanager** | Alert routing and notifications | N/A (Backend)           |
+| **Loki**         | Log aggregation and querying    | N/A (Backend)           |
 
 Access the monitoring dashboard at http://localhost:3000 when running locally.
 
@@ -167,13 +172,13 @@ The project maintains comprehensive test coverage across all components to ensur
 
 ### Test Coverage
 
-| Component | Coverage | Status |
-| :--- | :--- | :--- |
-| API Services | 89% | ✅ |
-| Data Processing | 85% | ✅ |
-| ML Models | 78% | ✅ |
-| Frontend | 80% | ✅ |
-| **Overall** | **83%** | **✅** |
+| Component       | Coverage | Status |
+| :-------------- | :------- | :----- |
+| API Services    | 89%      | ✅     |
+| Data Processing | 85%      | ✅     |
+| ML Models       | 78%      | ✅     |
+| Frontend        | 80%      | ✅     |
+| **Overall**     | **83%**  | **✅** |
 
 ### Running Tests
 
@@ -197,12 +202,12 @@ Fluxora uses several machine learning models for energy forecasting and optimiza
 
 ### Forecasting Models
 
-| Model Type | Primary Use Case | Key Benefit |
-| :--- | :--- | :--- |
-| **LSTM Networks** | Time-series prediction | Captures long-term dependencies in sequential data |
-| **XGBoost** | General regression/forecasting | High performance, handles complex feature interactions |
-| **Prophet** | Baseline forecasting | Handles seasonality and holidays out-of-the-box |
-| **Isolation Forest** | Anomaly detection | Effective for identifying outliers in high-dimensional data |
+| Model Type           | Primary Use Case               | Key Benefit                                                 |
+| :------------------- | :----------------------------- | :---------------------------------------------------------- |
+| **LSTM Networks**    | Time-series prediction         | Captures long-term dependencies in sequential data          |
+| **XGBoost**          | General regression/forecasting | High performance, handles complex feature interactions      |
+| **Prophet**          | Baseline forecasting           | Handles seasonality and holidays out-of-the-box             |
+| **Isolation Forest** | Anomaly detection              | Effective for identifying outliers in high-dimensional data |
 
 To train models:
 
@@ -219,11 +224,11 @@ Fluxora supports deployment across various platforms using Infrastructure as Cod
 
 ### Deployment Targets
 
-| Target | Tooling | Description |
-| :--- | :--- | :--- |
-| **Containerization** | Docker, Docker Compose | Local development and staging environments |
-| **Orchestration** | Kubernetes (k8s) | Production-grade container management and scaling |
-| **Cloud (AWS, GCP, Azure)** | Terraform | Provisioning and managing cloud infrastructure |
+| Target                      | Tooling                | Description                                       |
+| :-------------------------- | :--------------------- | :------------------------------------------------ |
+| **Containerization**        | Docker, Docker Compose | Local development and staging environments        |
+| **Orchestration**           | Kubernetes (k8s)       | Production-grade container management and scaling |
+| **Cloud (AWS, GCP, Azure)** | Terraform              | Provisioning and managing cloud infrastructure    |
 
 ### Kubernetes Deployment
 
@@ -249,17 +254,17 @@ terraform apply
 
 The project follows a modular and domain-driven structure to ensure maintainability and scalability.
 
-| Directory | Content | Description |
-| :--- | :--- | :--- |
-| `code/backend/` | FastAPI API | Core business logic and API endpoints |
-| `code/models/` | ML Models | Training, prediction, and versioning logic |
-| `code/data/` | ETL/Pipelines | Data ingestion, cleaning, and feature engineering |
-| `config/` | Configuration | YAML files for models, features, and environment settings |
-| `frontend/` | Web/Mobile UI | Source code for the web dashboard and mobile app |
-| `infrastructure/` | IaC | Terraform and Kubernetes manifests for deployment |
-| `notebooks/` | Exploratory Analysis | Jupyter notebooks for research and experimentation |
-| `tests/` | Test Suites | Unit, integration, and end-to-end tests |
-| `scripts/` | Utility Scripts | Helper scripts for setup, linting, and maintenance |
+| Directory         | Content              | Description                                               |
+| :---------------- | :------------------- | :-------------------------------------------------------- |
+| `code/backend/`   | FastAPI API          | Core business logic and API endpoints                     |
+| `code/models/`    | ML Models            | Training, prediction, and versioning logic                |
+| `code/data/`      | ETL/Pipelines        | Data ingestion, cleaning, and feature engineering         |
+| `config/`         | Configuration        | YAML files for models, features, and environment settings |
+| `frontend/`       | Web/Mobile UI        | Source code for the web dashboard and mobile app          |
+| `infrastructure/` | IaC                  | Terraform and Kubernetes manifests for deployment         |
+| `notebooks/`      | Exploratory Analysis | Jupyter notebooks for research and experimentation        |
+| `tests/`          | Test Suites          | Unit, integration, and end-to-end tests                   |
+| `scripts/`        | Utility Scripts      | Helper scripts for setup, linting, and maintenance        |
 
 ## 📄 License
 

@@ -945,34 +945,34 @@ spec:
         app: dead-letter-queue
     spec:
       containers:
-      - name: dead-letter-queue
-        image: fluxora/dead-letter-queue:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        env:
-        - name: SERVICE_REGISTRY_URL
-          value: "http://service-registry:8500"
-        - name: DATABASE_URL
-          value: "postgresql://user:password@postgres:5432/dlq"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: dead-letter-queue
+          image: fluxora/dead-letter-queue:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          env:
+            - name: SERVICE_REGISTRY_URL
+              value: "http://service-registry:8500"
+            - name: DATABASE_URL
+              value: "postgresql://user:password@postgres:5432/dlq"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -983,8 +983,8 @@ spec:
   selector:
     app: dead-letter-queue
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
   type: ClusterIP
 ```
 

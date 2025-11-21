@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { Appbar, Card, Text, Title, Paragraph, ActivityIndicator, useTheme } from 'react-native-paper';
-import { LineChart, BarChart } from 'react-native-chart-kit';
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Dimensions, ScrollView } from "react-native";
+import {
+  Appbar,
+  Card,
+  Text,
+  Title,
+  Paragraph,
+  ActivityIndicator,
+  useTheme,
+} from "react-native-paper";
+import { LineChart, BarChart } from "react-native-chart-kit";
 
 // Get screen width for chart responsiveness
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 // Placeholder data - Replace with actual data fetched from API
 const lineChartData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
   datasets: [
     {
       data: [
@@ -24,7 +32,7 @@ const lineChartData = {
 };
 
 const barChartData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
   datasets: [
     {
       data: [20, 45, 28, 80, 99, 43, 50],
@@ -51,14 +59,16 @@ const AnalyticsScreen = ({ navigation }) => {
     backgroundGradientFrom: theme.colors.surface, // Use theme color
     backgroundGradientTo: theme.colors.backdrop, // Use theme color
     decimalPlaces: 2, // optional, defaults to 2dp
-    color: (opacity = 1) => `rgba(${theme.dark ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`, // Use theme text color
-    labelColor: (opacity = 1) => `rgba(${theme.dark ? '255, 255, 255' : '0, 0, 0'}, ${opacity})`, // Use theme text color
+    color: (opacity = 1) =>
+      `rgba(${theme.dark ? "255, 255, 255" : "0, 0, 0"}, ${opacity})`, // Use theme text color
+    labelColor: (opacity = 1) =>
+      `rgba(${theme.dark ? "255, 255, 255" : "0, 0, 0"}, ${opacity})`, // Use theme text color
     style: {
       borderRadius: 16,
     },
     propsForDots: {
-      r: '6',
-      strokeWidth: '2',
+      r: "6",
+      strokeWidth: "2",
       stroke: theme.colors.primary, // Use theme primary color
     },
   };
@@ -71,9 +81,18 @@ const AnalyticsScreen = ({ navigation }) => {
 
       <ScrollView style={styles.content}>
         {loading ? (
-          <ActivityIndicator animating={true} size="large" style={styles.loader} color={theme.colors.primary} />
+          <ActivityIndicator
+            animating={true}
+            size="large"
+            style={styles.loader}
+            color={theme.colors.primary}
+          />
         ) : error ? (
-          <Card style={styles.card}><Card.Content><Paragraph style={styles.errorText}>{error}</Paragraph></Card.Content></Card>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Paragraph style={styles.errorText}>{error}</Paragraph>
+            </Card.Content>
+          </Card>
         ) : (
           <>
             <Card style={styles.card}>
@@ -93,15 +112,15 @@ const AnalyticsScreen = ({ navigation }) => {
             <Card style={styles.card}>
               <Card.Content>
                 <Title>Peak Usage Times (Weekly)</Title>
-                 <BarChart
-                    data={barChartData}
-                    width={screenWidth - 60}
-                    height={220}
-                    yAxisLabel="kWh "
-                    chartConfig={chartConfig}
-                    verticalLabelRotation={30}
-                    style={styles.chart}
-                  />
+                <BarChart
+                  data={barChartData}
+                  width={screenWidth - 60}
+                  height={220}
+                  yAxisLabel="kWh "
+                  chartConfig={chartConfig}
+                  verticalLabelRotation={30}
+                  style={styles.chart}
+                />
               </Card.Content>
             </Card>
 
@@ -109,7 +128,8 @@ const AnalyticsScreen = ({ navigation }) => {
               <Card.Content>
                 <Title>Model Performance Metrics</Title>
                 <Paragraph style={styles.placeholderText}>
-                  (Placeholder: Display key metrics like MAE, RMSE for the prediction model.)
+                  (Placeholder: Display key metrics like MAE, RMSE for the
+                  prediction model.)
                 </Paragraph>
                 {/* Add actual metric display here */}
               </Card.Content>
@@ -124,7 +144,7 @@ const AnalyticsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   content: {
     flex: 1,
@@ -141,17 +161,17 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 50,
   },
-   errorText: {
-    color: 'red',
-    textAlign: 'center',
+  errorText: {
+    color: "red",
+    textAlign: "center",
     fontSize: 16,
   },
   placeholderText: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginTop: 10,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
 });
 

@@ -6,7 +6,7 @@ global:
   # Application Metadata
   appName: fluxora
   version: "1.0.0"
-  environment: production  # Override per environment
+  environment: production # Override per environment
 
   # Compliance and Security
   compliance:
@@ -47,7 +47,7 @@ global:
     namespace: "logging"
     elasticsearch:
       enabled: true
-      retention: "2555d"  # 7 years for compliance
+      retention: "2555d" # 7 years for compliance
     kibana:
       enabled: true
     logstash:
@@ -88,14 +88,14 @@ backend:
       nginx.ingress.kubernetes.io/rate-limit-window: "1m"
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
     hosts:
-    - host: api.fluxora.com
-      paths:
-      - path: /
-        pathType: Prefix
+      - host: api.fluxora.com
+        paths:
+          - path: /
+            pathType: Prefix
     tls:
-    - secretName: api-fluxora-com-tls
-      hosts:
-      - api.fluxora.com
+      - secretName: api-fluxora-com-tls
+        hosts:
+          - api.fluxora.com
 
   # Resource Configuration
   resources:
@@ -116,13 +116,13 @@ backend:
     targetCPUUtilizationPercentage: 60
     targetMemoryUtilizationPercentage: 70
     metrics:
-    - type: Pods
-      pods:
-        metric:
-          name: requests_per_second
-        target:
-          type: AverageValue
-          averageValue: 500
+      - type: Pods
+        pods:
+          metric:
+            name: requests_per_second
+          target:
+            type: AverageValue
+            averageValue: 500
 
   # Security Configuration
   securityContext:
@@ -141,7 +141,7 @@ backend:
     readOnlyRootFilesystem: true
     capabilities:
       drop:
-      - ALL
+        - ALL
 
   # Health Checks
   livenessProbe:
@@ -186,30 +186,30 @@ backend:
 
   # Volume Mounts
   volumeMounts:
-  - name: tmp-volume
-    mountPath: /tmp
-  - name: app-cache
-    mountPath: /app/cache
-  - name: app-logs
-    mountPath: /app/logs
-  - name: app-config
-    mountPath: /app/config
-    readOnly: true
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: app-cache
+      mountPath: /app/cache
+    - name: app-logs
+      mountPath: /app/logs
+    - name: app-config
+      mountPath: /app/config
+      readOnly: true
 
   # Volumes
   volumes:
-  - name: tmp-volume
-    emptyDir:
-      sizeLimit: 1Gi
-  - name: app-cache
-    emptyDir:
-      sizeLimit: 2Gi
-  - name: app-logs
-    emptyDir:
-      sizeLimit: 1Gi
-  - name: app-config
-    configMap:
-      name: backend-config
+    - name: tmp-volume
+      emptyDir:
+        sizeLimit: 1Gi
+    - name: app-cache
+      emptyDir:
+        sizeLimit: 2Gi
+    - name: app-logs
+      emptyDir:
+        sizeLimit: 1Gi
+    - name: app-config
+      configMap:
+        name: backend-config
 
 # Frontend Service Configuration
 frontend:
@@ -242,19 +242,19 @@ frontend:
       nginx.ingress.kubernetes.io/rate-limit-window: "1m"
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
     hosts:
-    - host: fluxora.com
-      paths:
-      - path: /
-        pathType: Prefix
-    - host: www.fluxora.com
-      paths:
-      - path: /
-        pathType: Prefix
+      - host: fluxora.com
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: www.fluxora.com
+        paths:
+          - path: /
+            pathType: Prefix
     tls:
-    - secretName: fluxora-com-tls
-      hosts:
-      - fluxora.com
-      - www.fluxora.com
+      - secretName: fluxora-com-tls
+        hosts:
+          - fluxora.com
+          - www.fluxora.com
 
   # Resource Configuration
   resources:
@@ -280,9 +280,9 @@ database:
     enabled: true
     architecture: "replication"
     auth:
-      rootPassword: ""  # Set via secret
+      rootPassword: "" # Set via secret
       username: "fluxora"
-      password: ""  # Set via secret
+      password: "" # Set via secret
       database: "fluxora"
 
     primary:
@@ -324,7 +324,7 @@ database:
     architecture: "replication"
     auth:
       enabled: true
-      password: ""  # Set via secret
+      password: "" # Set via secret
 
     master:
       persistence:
@@ -418,7 +418,7 @@ monitoring:
   # Grafana
   grafana:
     enabled: true
-    adminPassword: ""  # Set via secret
+    adminPassword: "" # Set via secret
     persistence:
       enabled: true
       storageClass: "gp3-encrypted"
@@ -445,11 +445,11 @@ monitoring:
         repeat_interval: "4h"
         receiver: "default"
       receivers:
-      - name: "default"
-        slack_configs:
-        - api_url: ""  # Set via secret
-          channel: "#alerts"
-          title: "{{ .Status | toUpper }}: {{ .CommonLabels.alertname }}"
+        - name: "default"
+          slack_configs:
+            - api_url: "" # Set via secret
+              channel: "#alerts"
+              title: "{{ .Status | toUpper }}: {{ .CommonLabels.alertname }}"
 
 # Logging Configuration
 logging:
@@ -505,17 +505,17 @@ backup:
     schedules:
       daily:
         schedule: "0 2 * * *"
-        ttl: "2555h"  # 7 years
+        ttl: "2555h" # 7 years
       hourly:
         schedule: "0 * * * *"
-        ttl: "168h"   # 7 days
+        ttl: "168h" # 7 days
 
   # Database Backups
   database:
     mysql:
       enabled: true
       schedule: "0 1 * * *"
-      retention: "2555d"  # 7 years
+      retention: "2555d" # 7 years
       encryption: true
     redis:
       enabled: true
@@ -528,23 +528,23 @@ compliance:
   # Audit Logging
   auditLogging:
     enabled: true
-    retention: "2555d"  # 7 years
+    retention: "2555d" # 7 years
     encryption: true
 
   # Data Retention Policies
   dataRetention:
-    logs: "2555d"      # 7 years
-    metrics: "90d"     # 3 months
-    traces: "30d"      # 1 month
-    backups: "2555d"   # 7 years
+    logs: "2555d" # 7 years
+    metrics: "90d" # 3 months
+    traces: "30d" # 1 month
+    backups: "2555d" # 7 years
 
   # Compliance Reporting
   reporting:
     enabled: true
-    schedule: "0 0 1 * *"  # Monthly
+    schedule: "0 0 1 * *" # Monthly
     recipients:
-    - "compliance@fluxora.com"
-    - "security@fluxora.com"
+      - "compliance@fluxora.com"
+      - "security@fluxora.com"
 
   # Data Classification
   dataClassification:

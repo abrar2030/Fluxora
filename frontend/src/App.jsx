@@ -1,10 +1,10 @@
-import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Predictions from './pages/Predictions';
-import Analytics from './pages/Analytics';
-import Settings from './pages/Settings';
+import React from "react";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import Predictions from "./pages/Predictions";
+import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
 
 const App = () => {
   const [isLoading, setIsLoading] = React.useState(true);

@@ -84,29 +84,29 @@ spec:
         app: service-registry
     spec:
       containers:
-      - name: service-registry
-        image: fluxora/service-registry:latest
-        ports:
-        - containerPort: 8500
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8500
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8500
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: service-registry
+          image: fluxora/service-registry:latest
+          ports:
+            - containerPort: 8500
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8500
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8500
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -117,8 +117,8 @@ spec:
   selector:
     app: service-registry
   ports:
-  - port: 8500
-    targetPort: 8500
+    - port: 8500
+      targetPort: 8500
   type: ClusterIP
 ```
 
@@ -135,12 +135,12 @@ spec:
   selector:
     istio: ingressgateway
   servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -149,23 +149,23 @@ metadata:
   namespace: fluxora
 spec:
   hosts:
-  - "*"
+    - "*"
   gateways:
-  - fluxora-gateway
+    - fluxora-gateway
   http:
-  - match:
-    - uri:
-        prefix: /api
-    route:
-    - destination:
-        host: fluxora-api
-        port:
-          number: 8000
-      weight: 100
-    retries:
-      attempts: 3
-      perTryTimeout: 2s
-    timeout: 5s
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            host: fluxora-api
+            port:
+              number: 8000
+          weight: 100
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+      timeout: 5s
 ```
 
 ### Scaling Configuration
@@ -185,25 +185,25 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
-  - type: Pods
-    pods:
-      metric:
-        name: requests_per_second
-      target:
-        type: AverageValue
-        averageValue: 1000
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Pods
+      pods:
+        metric:
+          name: requests_per_second
+        target:
+          type: AverageValue
+          averageValue: 1000
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
@@ -224,11 +224,11 @@ spec:
   profile: default
   components:
     egressGateways:
-    - name: istio-egressgateway
-      enabled: true
+      - name: istio-egressgateway
+        enabled: true
     ingressGateways:
-    - name: istio-ingressgateway
-      enabled: true
+      - name: istio-ingressgateway
+        enabled: true
     pilot:
       enabled: true
   values:

@@ -23,6 +23,7 @@ The directory is organized with the following documentation files:
 ### API_DOCS.md
 
 Provides detailed documentation for the Fluxora API, including:
+
 - Endpoint specifications
 - Request and response formats
 - Authentication requirements
@@ -31,6 +32,7 @@ Provides detailed documentation for the Fluxora API, including:
 ### ARCHITECTURE.md
 
 Describes the overall architecture of the Fluxora platform, including:
+
 - System components and their interactions
 - Data flow diagrams
 - Technology stack
@@ -39,6 +41,7 @@ Describes the overall architecture of the Fluxora platform, including:
 ### CONTRIBUTING.md
 
 Guidelines for contributing to the Fluxora project, covering:
+
 - Code contribution workflow
 - Pull request process
 - Code review guidelines
@@ -47,6 +50,7 @@ Guidelines for contributing to the Fluxora project, covering:
 ### DEVELOPMENT_GUIDELINES.md
 
 Standards and best practices for development, including:
+
 - Coding standards
 - Testing requirements
 - Documentation requirements
@@ -55,6 +59,7 @@ Standards and best practices for development, including:
 ### PROJECT_OVERVIEW.md
 
 High-level overview of the Fluxora project, including:
+
 - Project goals and objectives
 - Key features
 - Target users
@@ -63,6 +68,7 @@ High-level overview of the Fluxora project, including:
 ### SETUP_GUIDE.md
 
 Instructions for setting up the development environment, including:
+
 - Prerequisites
 - Installation steps
 - Configuration
@@ -71,6 +77,7 @@ Instructions for setting up the development environment, including:
 ### TROUBLESHOOTING.md
 
 Common issues and their solutions, organized by:
+
 - Development environment issues
 - Runtime errors
 - Deployment problems
@@ -109,6 +116,7 @@ When updating the documentation:
 ## Related Resources
 
 For additional information, refer to:
+
 - The project README.md in the repository root
 - The notebooks/ directory for interactive examples
 - External documentation referenced in specific files

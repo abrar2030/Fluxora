@@ -13,10 +13,10 @@ spec:
         app: model-service
     spec:
       containers:
-      - name: model-container
-        image: your-registry/energy-model:latest
-        ports:
-        - containerPort: 8000
-        envFrom:
-        - configMapRef:
-            name: model-config
+        - name: model-container
+          image: your-registry/energy-model:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: model-config

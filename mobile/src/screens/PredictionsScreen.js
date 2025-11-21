@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Appbar, Card, TextInput, Button, ActivityIndicator, HelperText, Portal, Dialog, Paragraph, Title, useTheme } from 'react-native-paper';
-import { postPredictions } from '../api/api';
+import React, { useState } from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import {
+  Appbar,
+  Card,
+  TextInput,
+  Button,
+  ActivityIndicator,
+  HelperText,
+  Portal,
+  Dialog,
+  Paragraph,
+  Title,
+  useTheme,
+} from "react-native-paper";
+import { postPredictions } from "../api/api";
 
 const PredictionsScreen = ({ navigation }) => {
   const theme = useTheme();
-  const [timestampInput, setTimestampInput] = useState(new Date().toISOString());
-  const [meterIdInput, setMeterIdInput] = useState('meter_123');
-  const [contextInput, setContextInput] = useState('{}');
+  const [timestampInput, setTimestampInput] = useState(
+    new Date().toISOString(),
+  );
+  const [meterIdInput, setMeterIdInput] = useState("meter_123");
+  const [contextInput, setContextInput] = useState("{}");
   const [contextError, setContextError] = useState(null);
 
   const [predictions, setPredictions] = useState(null);
@@ -24,13 +38,13 @@ const PredictionsScreen = ({ navigation }) => {
       JSON.parse(text);
       setContextError(null);
     } catch (e) {
-      setContextError('Invalid JSON format');
+      setContextError("Invalid JSON format");
     }
   };
 
   const handlePredict = async () => {
     if (!timestampInput || !meterIdInput) {
-      setError('Timestamp and Meter ID are required.');
+      setError("Timestamp and Meter ID are required.");
       setErrorVisible(true);
       return;
     }
@@ -40,8 +54,8 @@ const PredictionsScreen = ({ navigation }) => {
       parsedContext = JSON.parse(contextInput);
       setContextError(null);
     } catch (e) {
-      setContextError('Invalid JSON format');
-      setError('Context Features must be a valid JSON object.');
+      setContextError("Invalid JSON format");
+      setError("Context Features must be a valid JSON object.");
       setErrorVisible(true);
       return;
     }
@@ -54,25 +68,26 @@ const PredictionsScreen = ({ navigation }) => {
       setConfidenceIntervals(null);
 
       const payload = {
-          timestamps: [timestampInput],
-          meter_ids: [meterIdInput],
-          context_features: parsedContext
+        timestamps: [timestampInput],
+        meter_ids: [meterIdInput],
+        context_features: parsedContext,
       };
 
-      console.log('Sending payload:', JSON.stringify(payload));
+      console.log("Sending payload:", JSON.stringify(payload));
       const data = await postPredictions(payload);
-      console.log('Received response:', data);
+      console.log("Received response:", data);
 
       setPredictions(data.predictions);
       setConfidenceIntervals(data.confidence_intervals);
-
     } catch (err) {
-      console.error('Prediction API Call Failed:', err);
-      let errorMessage = 'Prediction failed. Please check the backend connection and input format.';
+      console.error("Prediction API Call Failed:", err);
+      let errorMessage =
+        "Prediction failed. Please check the backend connection and input format.";
       if (err.response) {
         errorMessage += `\nDetails: ${JSON.stringify(err.response.data)}`;
       } else if (err.request) {
-        errorMessage = 'Prediction failed: No response received from the server. Is it running?';
+        errorMessage =
+          "Prediction failed: No response received from the server. Is it running?";
       } else {
         errorMessage = `Prediction failed: ${err.message}`;
       }
@@ -134,7 +149,14 @@ const PredictionsScreen = ({ navigation }) => {
           </Card.Content>
         </Card>
 
-        {loading && <ActivityIndicator animating={true} size="large" style={styles.loader} color={theme.colors.primary} />}
+        {loading && (
+          <ActivityIndicator
+            animating={true}
+            size="large"
+            style={styles.loader}
+            color={theme.colors.primary}
+          />
+        )}
 
         {predictions && (
           <Card style={styles.card}>
@@ -142,10 +164,16 @@ const PredictionsScreen = ({ navigation }) => {
               <Title>Prediction Results</Title>
               {predictions.map((pred, index) => (
                 <View key={index} style={styles.predictionItem}>
-                  <Paragraph>Prediction: <Text style={styles.predictionValue}>{pred.toFixed(4)}</Text></Paragraph>
+                  <Paragraph>
+                    Prediction:{" "}
+                    <Text style={styles.predictionValue}>
+                      {pred.toFixed(4)}
+                    </Text>
+                  </Paragraph>
                   {confidenceIntervals && confidenceIntervals[index] && (
                     <Paragraph style={styles.confidenceText}>
-                      (95% CI: {confidenceIntervals[index][0].toFixed(4)} - {confidenceIntervals[index][1].toFixed(4)})
+                      (95% CI: {confidenceIntervals[index][0].toFixed(4)} -{" "}
+                      {confidenceIntervals[index][1].toFixed(4)})
                     </Paragraph>
                   )}
                 </View>
@@ -166,7 +194,6 @@ const PredictionsScreen = ({ navigation }) => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-
     </View>
   );
 };
@@ -174,7 +201,7 @@ const PredictionsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   content: {
     flex: 1,
@@ -197,14 +224,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   predictionValue: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   confidenceText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
 });

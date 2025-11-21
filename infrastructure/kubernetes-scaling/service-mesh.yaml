@@ -7,11 +7,11 @@ spec:
   profile: default
   components:
     egressGateways:
-    - name: istio-egressgateway
-      enabled: true
+      - name: istio-egressgateway
+        enabled: true
     ingressGateways:
-    - name: istio-ingressgateway
-      enabled: true
+      - name: istio-ingressgateway
+        enabled: true
     pilot:
       enabled: true
   values:

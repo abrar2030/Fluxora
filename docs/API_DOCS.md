@@ -7,11 +7,13 @@ The Fluxora API provides endpoints for energy consumption prediction and monitor
 ## Base URL
 
 When running locally:
+
 ```
 http://localhost:8000
 ```
 
 When deployed:
+
 ```
 https://api.fluxora.example.com
 ```
@@ -65,7 +67,10 @@ Predicts energy consumption based on provided timestamps, meter IDs, and context
 ```json
 {
   "predictions": [45.2, 50.1],
-  "confidence_intervals": [[40.1, 50.3], [45.2, 55.0]],
+  "confidence_intervals": [
+    [40.1, 50.3],
+    [45.2, 55.0]
+  ],
   "model_version": "0.1.0-test"
 }
 ```
@@ -91,19 +96,19 @@ Error responses include a message field with details about the error.
 
 ### PredictionRequest
 
-| Field | Type | Description |
-|-------|------|-------------|
-| timestamps | list[str] | List of ISO format timestamps |
-| meter_ids | list[str] | List of meter identifiers |
-| context_features | dict | Dictionary of additional features |
+| Field            | Type      | Description                       |
+| ---------------- | --------- | --------------------------------- |
+| timestamps       | list[str] | List of ISO format timestamps     |
+| meter_ids        | list[str] | List of meter identifiers         |
+| context_features | dict      | Dictionary of additional features |
 
 ### PredictionResponse
 
-| Field | Type | Description |
-|-------|------|-------------|
-| predictions | list[float] | Predicted energy consumption values |
+| Field                | Type                      | Description                                  |
+| -------------------- | ------------------------- | -------------------------------------------- |
+| predictions          | list[float]               | Predicted energy consumption values          |
 | confidence_intervals | list[tuple[float, float]] | 95% confidence intervals for each prediction |
-| model_version | str | Version of the model used for prediction |
+| model_version        | str                       | Version of the model used for prediction     |
 
 ## Rate Limiting
 

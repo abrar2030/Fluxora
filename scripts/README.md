@@ -32,26 +32,31 @@ Most scripts support the following options:
 ### Typical Workflow
 
 1. Set up your environment:
+
    ```bash
    ./setup_environment.sh
    ```
 
 2. Install dependencies:
+
    ```bash
    ./install_dependencies.sh
    ```
 
 3. Start services:
+
    ```bash
    ./start_services.sh
    ```
 
 4. Run tests:
+
    ```bash
    ./run_tests.sh
    ```
 
 5. Use development workflow tools:
+
    ```bash
    ./dev_workflow.sh format-all
    ```

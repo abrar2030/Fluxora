@@ -27,7 +27,7 @@ spec:
   config:
     region: us-east-1
     s3ForcePathStyle: "false"
-    kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/KEY-ID"  # Encrypted backups
+    kmsKeyId: "arn:aws:kms:us-east-1:ACCOUNT:key/KEY-ID" # Encrypted backups
     serverSideEncryption: "aws:kms"
 
 ---
@@ -55,7 +55,7 @@ metadata:
     compliance: "pci-dss,gdpr,soc2"
     backup-type: "full"
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM UTC
+  schedule: "0 2 * * *" # Daily at 2 AM UTC
   template:
     metadata:
       labels:
@@ -63,59 +63,59 @@ spec:
         compliance: "financial"
     spec:
       includedNamespaces:
-      - fluxora
-      - fluxora-staging
-      - monitoring
-      - logging
-      - security
+        - fluxora
+        - fluxora-staging
+        - monitoring
+        - logging
+        - security
 
       excludedResources:
-      - events
-      - events.events.k8s.io
+        - events
+        - events.events.k8s.io
 
       includeClusterResources: true
       snapshotVolumes: true
 
       # Retention policy for compliance
-      ttl: 2555h  # 7 years retention for financial compliance
+      ttl: 2555h # 7 years retention for financial compliance
 
       storageLocation: fluxora-backup-storage
       volumeSnapshotLocations:
-      - fluxora-volume-snapshots
+        - fluxora-volume-snapshots
 
       hooks:
         resources:
-        - name: database-backup-hook
-          includedNamespaces:
-          - fluxora
-          labelSelector:
-            matchLabels:
-              app: mysql
-          pre:
-          - exec:
-              container: mysql
-              command:
-              - /bin/bash
-              - -c
-              - "mysqldump --single-transaction --routines --triggers --all-databases > /backup/mysql-backup.sql"
-              onError: Fail
-              timeout: 30m
+          - name: database-backup-hook
+            includedNamespaces:
+              - fluxora
+            labelSelector:
+              matchLabels:
+                app: mysql
+            pre:
+              - exec:
+                  container: mysql
+                  command:
+                    - /bin/bash
+                    - -c
+                    - "mysqldump --single-transaction --routines --triggers --all-databases > /backup/mysql-backup.sql"
+                  onError: Fail
+                  timeout: 30m
 
-        - name: redis-backup-hook
-          includedNamespaces:
-          - fluxora
-          labelSelector:
-            matchLabels:
-              app: redis
-          pre:
-          - exec:
-              container: redis
-              command:
-              - /bin/bash
-              - -c
-              - "redis-cli BGSAVE && while [ $(redis-cli LASTSAVE) -eq $(redis-cli LASTSAVE) ]; do sleep 1; done"
-              onError: Fail
-              timeout: 10m
+          - name: redis-backup-hook
+            includedNamespaces:
+              - fluxora
+            labelSelector:
+              matchLabels:
+                app: redis
+            pre:
+              - exec:
+                  container: redis
+                  command:
+                    - /bin/bash
+                    - -c
+                    - "redis-cli BGSAVE && while [ $(redis-cli LASTSAVE) -eq $(redis-cli LASTSAVE) ]; do sleep 1; done"
+                  onError: Fail
+                  timeout: 10m
 
 ---
 # Hourly Incremental Backup Schedule
@@ -128,7 +128,7 @@ metadata:
     compliance: "pci-dss,gdpr,soc2"
     backup-type: "incremental"
 spec:
-  schedule: "0 * * * *"  # Every hour
+  schedule: "0 * * * *" # Every hour
   template:
     metadata:
       labels:
@@ -136,23 +136,23 @@ spec:
         compliance: "financial"
     spec:
       includedNamespaces:
-      - fluxora
+        - fluxora
 
       # Only backup resources that change frequently
       includedResources:
-      - secrets
-      - configmaps
-      - persistentvolumeclaims
-      - persistentvolumes
+        - secrets
+        - configmaps
+        - persistentvolumeclaims
+        - persistentvolumes
 
       includeClusterResources: false
       snapshotVolumes: true
 
-      ttl: 168h  # 7 days retention for incremental backups
+      ttl: 168h # 7 days retention for incremental backups
 
       storageLocation: fluxora-backup-storage
       volumeSnapshotLocations:
-      - fluxora-volume-snapshots
+        - fluxora-volume-snapshots
 
 ---
 # Cross-Region Backup Replication
@@ -170,7 +170,7 @@ spec:
     bucket: fluxora-disaster-recovery-backups-west
     prefix: kubernetes-backups-dr
   config:
-    region: us-west-2  # Different region for DR
+    region: us-west-2 # Different region for DR
     s3ForcePathStyle: "false"
     kmsKeyId: "arn:aws:kms:us-west-2:ACCOUNT:key/KEY-ID"
     serverSideEncryption: "aws:kms"
@@ -186,7 +186,7 @@ metadata:
     app: database-backup
     compliance: "pci-dss,gdpr,soc2"
 spec:
-  schedule: "0 1 * * *"  # Daily at 1 AM UTC
+  schedule: "0 1 * * *" # Daily at 1 AM UTC
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 3
@@ -205,93 +205,93 @@ spec:
             fsGroup: 10001
 
           containers:
-          - name: mysql-backup
-            image: mysql:8.0
-            command:
-            - /bin/bash
-            - -c
-            - |
-              set -e
+            - name: mysql-backup
+              image: mysql:8.0
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
 
-              # Create backup directory with timestamp
-              BACKUP_DIR="/backups/mysql/$(date +%Y%m%d_%H%M%S)"
-              mkdir -p "$BACKUP_DIR"
+                  # Create backup directory with timestamp
+                  BACKUP_DIR="/backups/mysql/$(date +%Y%m%d_%H%M%S)"
+                  mkdir -p "$BACKUP_DIR"
 
-              # Full database backup
-              mysqldump \
-                --host="$MYSQL_HOST" \
-                --port="$MYSQL_PORT" \
-                --user="$MYSQL_USER" \
-                --password="$MYSQL_PASSWORD" \
-                --single-transaction \
-                --routines \
-                --triggers \
-                --all-databases \
-                --compress \
-                --result-file="$BACKUP_DIR/full_backup.sql"
+                  # Full database backup
+                  mysqldump \
+                    --host="$MYSQL_HOST" \
+                    --port="$MYSQL_PORT" \
+                    --user="$MYSQL_USER" \
+                    --password="$MYSQL_PASSWORD" \
+                    --single-transaction \
+                    --routines \
+                    --triggers \
+                    --all-databases \
+                    --compress \
+                    --result-file="$BACKUP_DIR/full_backup.sql"
 
-              # Compress backup
-              gzip "$BACKUP_DIR/full_backup.sql"
+                  # Compress backup
+                  gzip "$BACKUP_DIR/full_backup.sql"
 
-              # Upload to S3 with encryption
-              aws s3 cp "$BACKUP_DIR/full_backup.sql.gz" \
-                "s3://fluxora-database-backups/mysql/$(date +%Y/%m/%d)/full_backup_$(date +%H%M%S).sql.gz" \
-                --server-side-encryption aws:kms \
-                --ssm-kms-key-id "$KMS_KEY_ID"
+                  # Upload to S3 with encryption
+                  aws s3 cp "$BACKUP_DIR/full_backup.sql.gz" \
+                    "s3://fluxora-database-backups/mysql/$(date +%Y/%m/%d)/full_backup_$(date +%H%M%S).sql.gz" \
+                    --server-side-encryption aws:kms \
+                    --ssm-kms-key-id "$KMS_KEY_ID"
 
-              # Verify backup integrity
-              gunzip -t "$BACKUP_DIR/full_backup.sql.gz"
+                  # Verify backup integrity
+                  gunzip -t "$BACKUP_DIR/full_backup.sql.gz"
 
-              # Clean up local backup (keep S3 copy)
-              rm -rf "$BACKUP_DIR"
+                  # Clean up local backup (keep S3 copy)
+                  rm -rf "$BACKUP_DIR"
 
-              echo "Database backup completed successfully"
+                  echo "Database backup completed successfully"
 
-            env:
-            - name: MYSQL_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: host
-            - name: MYSQL_PORT
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: port
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: username
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-credentials
-                  key: password
-            - name: KMS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: backup-encryption-key
-                  key: kms-key-id
-            - name: AWS_DEFAULT_REGION
-              value: "us-east-1"
+              env:
+                - name: MYSQL_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-credentials
+                      key: host
+                - name: MYSQL_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-credentials
+                      key: port
+                - name: MYSQL_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-credentials
+                      key: username
+                - name: MYSQL_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: mysql-credentials
+                      key: password
+                - name: KMS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: backup-encryption-key
+                      key: kms-key-id
+                - name: AWS_DEFAULT_REGION
+                  value: "us-east-1"
 
-            volumeMounts:
-            - name: backup-storage
-              mountPath: /backups
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
 
-            resources:
-              limits:
-                cpu: 1000m
-                memory: 2Gi
-              requests:
-                cpu: 500m
-                memory: 1Gi
+              resources:
+                limits:
+                  cpu: 1000m
+                  memory: 2Gi
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
 
           volumes:
-          - name: backup-storage
-            emptyDir:
-              sizeLimit: 10Gi
+            - name: backup-storage
+              emptyDir:
+                sizeLimit: 10Gi
 
           restartPolicy: OnFailure
           serviceAccountName: backup-service-account
@@ -307,9 +307,9 @@ metadata:
     app: dr-testing
     compliance: "pci-dss,gdpr,soc2"
 spec:
-  schedule: "0 3 1 * *"  # Monthly on the 1st at 3 AM UTC
+  schedule: "0 3 1 * *" # Monthly on the 1st at 3 AM UTC
   concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 12  # Keep 1 year of test results
+  successfulJobsHistoryLimit: 12 # Keep 1 year of test results
   failedJobsHistoryLimit: 12
   jobTemplate:
     spec:
@@ -326,89 +326,89 @@ spec:
             fsGroup: 10001
 
           containers:
-          - name: dr-test-runner
-            image: fluxora/dr-test-runner:latest
-            command:
-            - /bin/bash
-            - -c
-            - |
-              set -e
+            - name: dr-test-runner
+              image: fluxora/dr-test-runner:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
 
-              echo "Starting Disaster Recovery Test - $(date)"
+                  echo "Starting Disaster Recovery Test - $(date)"
 
-              # Test 1: Backup Integrity Verification
-              echo "Testing backup integrity..."
-              velero backup describe --details $(velero backup get | grep Completed | head -1 | awk '{print $1}')
+                  # Test 1: Backup Integrity Verification
+                  echo "Testing backup integrity..."
+                  velero backup describe --details $(velero backup get | grep Completed | head -1 | awk '{print $1}')
 
-              # Test 2: Database Backup Restoration Test
-              echo "Testing database backup restoration..."
-              # Create test namespace
-              kubectl create namespace dr-test-$(date +%s) || true
+                  # Test 2: Database Backup Restoration Test
+                  echo "Testing database backup restoration..."
+                  # Create test namespace
+                  kubectl create namespace dr-test-$(date +%s) || true
 
-              # Restore latest backup to test namespace
-              velero restore create dr-test-$(date +%s) \
-                --from-backup $(velero backup get | grep Completed | head -1 | awk '{print $1}') \
-                --namespace-mappings fluxora:dr-test-$(date +%s)
+                  # Restore latest backup to test namespace
+                  velero restore create dr-test-$(date +%s) \
+                    --from-backup $(velero backup get | grep Completed | head -1 | awk '{print $1}') \
+                    --namespace-mappings fluxora:dr-test-$(date +%s)
 
-              # Wait for restore to complete
-              sleep 300
+                  # Wait for restore to complete
+                  sleep 300
 
-              # Verify restored resources
-              kubectl get pods -n dr-test-$(date +%s)
-              kubectl get services -n dr-test-$(date +%s)
-              kubectl get secrets -n dr-test-$(date +%s)
+                  # Verify restored resources
+                  kubectl get pods -n dr-test-$(date +%s)
+                  kubectl get services -n dr-test-$(date +%s)
+                  kubectl get secrets -n dr-test-$(date +%s)
 
-              # Test 3: Application Functionality Test
-              echo "Testing restored application functionality..."
-              # Add application-specific tests here
+                  # Test 3: Application Functionality Test
+                  echo "Testing restored application functionality..."
+                  # Add application-specific tests here
 
-              # Test 4: Data Integrity Verification
-              echo "Testing data integrity..."
-              # Add data integrity checks here
+                  # Test 4: Data Integrity Verification
+                  echo "Testing data integrity..."
+                  # Add data integrity checks here
 
-              # Test 5: Performance Baseline Test
-              echo "Testing performance baseline..."
-              # Add performance tests here
+                  # Test 5: Performance Baseline Test
+                  echo "Testing performance baseline..."
+                  # Add performance tests here
 
-              # Cleanup test resources
-              kubectl delete namespace dr-test-$(date +%s) || true
+                  # Cleanup test resources
+                  kubectl delete namespace dr-test-$(date +%s) || true
 
-              # Generate test report
-              cat > /tmp/dr-test-report.json << EOF
-              {
-                "test_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-                "test_type": "monthly_dr_test",
-                "results": {
-                  "backup_integrity": "PASSED",
-                  "database_restoration": "PASSED",
-                  "application_functionality": "PASSED",
-                  "data_integrity": "PASSED",
-                  "performance_baseline": "PASSED"
-                },
-                "rto_achieved": "15 minutes",
-                "rpo_achieved": "1 hour",
-                "compliance_status": "COMPLIANT"
-              }
-              EOF
+                  # Generate test report
+                  cat > /tmp/dr-test-report.json << EOF
+                  {
+                    "test_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+                    "test_type": "monthly_dr_test",
+                    "results": {
+                      "backup_integrity": "PASSED",
+                      "database_restoration": "PASSED",
+                      "application_functionality": "PASSED",
+                      "data_integrity": "PASSED",
+                      "performance_baseline": "PASSED"
+                    },
+                    "rto_achieved": "15 minutes",
+                    "rpo_achieved": "1 hour",
+                    "compliance_status": "COMPLIANT"
+                  }
+                  EOF
 
-              # Upload test report
-              aws s3 cp /tmp/dr-test-report.json \
-                "s3://fluxora-compliance-reports/dr-tests/$(date +%Y/%m)/dr-test-$(date +%Y%m%d).json" \
-                --server-side-encryption aws:kms
+                  # Upload test report
+                  aws s3 cp /tmp/dr-test-report.json \
+                    "s3://fluxora-compliance-reports/dr-tests/$(date +%Y/%m)/dr-test-$(date +%Y%m%d).json" \
+                    --server-side-encryption aws:kms
 
-              echo "Disaster Recovery Test Completed Successfully - $(date)"
+                  echo "Disaster Recovery Test Completed Successfully - $(date)"
 
-            env:
-            - name: AWS_DEFAULT_REGION
-              value: "us-east-1"
+              env:
+                - name: AWS_DEFAULT_REGION
+                  value: "us-east-1"
 
-            resources:
-              limits:
-                cpu: 500m
-                memory: 1Gi
-              requests:
-                cpu: 250m
-                memory: 512Mi
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+                requests:
+                  cpu: 250m
+                  memory: 512Mi
 
           restartPolicy: OnFailure
           serviceAccountName: dr-test-service-account
@@ -486,15 +486,15 @@ metadata:
   labels:
     compliance: "pci-dss,gdpr,soc2"
 rules:
-- apiGroups: [""]
-  resources: ["*"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["apps"]
-  resources: ["*"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["velero.io"]
-  resources: ["*"]
-  verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["velero.io"]
+    resources: ["*"]
+    verbs: ["*"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -504,9 +504,9 @@ metadata:
   labels:
     compliance: "pci-dss,gdpr,soc2"
 subjects:
-- kind: ServiceAccount
-  name: backup-service-account
-  namespace: disaster-recovery
+  - kind: ServiceAccount
+    name: backup-service-account
+    namespace: disaster-recovery
 roleRef:
   kind: ClusterRole
   name: backup-operator
@@ -531,15 +531,15 @@ metadata:
   labels:
     compliance: "pci-dss,gdpr,soc2"
 rules:
-- apiGroups: [""]
-  resources: ["namespaces", "pods", "services", "secrets", "configmaps"]
-  verbs: ["*"]
-- apiGroups: ["apps"]
-  resources: ["deployments", "statefulsets", "daemonsets"]
-  verbs: ["*"]
-- apiGroups: ["velero.io"]
-  resources: ["backups", "restores"]
-  verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["namespaces", "pods", "services", "secrets", "configmaps"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["*"]
+  - apiGroups: ["velero.io"]
+    resources: ["backups", "restores"]
+    verbs: ["*"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -549,9 +549,9 @@ metadata:
   labels:
     compliance: "pci-dss,gdpr,soc2"
 subjects:
-- kind: ServiceAccount
-  name: dr-test-service-account
-  namespace: disaster-recovery
+  - kind: ServiceAccount
+    name: dr-test-service-account
+    namespace: disaster-recovery
 roleRef:
   kind: ClusterRole
   name: dr-test-operator

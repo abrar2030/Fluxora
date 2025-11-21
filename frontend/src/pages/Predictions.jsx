@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useDataService } from '../utils/dataService';
+import React, { useState, useEffect } from "react";
+import { useDataService } from "../utils/dataService";
 import {
   Box,
   Typography,
@@ -23,13 +23,13 @@ import {
   Chip,
   useTheme,
   CircularProgress,
-  Skeleton
-} from '@mui/material';
+  Skeleton,
+} from "@mui/material";
 import {
   Timeline as TimelineIcon,
   CalendarToday as CalendarIcon,
-  Send as SendIcon
-} from '@mui/icons-material';
+  Send as SendIcon,
+} from "@mui/icons-material";
 import {
   LineChart,
   Line,
@@ -38,8 +38,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+} from "recharts";
 
 const Predictions = () => {
   const theme = useTheme();
@@ -47,25 +47,25 @@ const Predictions = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [predictionData, setPredictionData] = useState([]);
-  const [meterIds, setMeterIds] = useState(['meter_001', 'meter_002']);
-  const [selectedMeters, setSelectedMeters] = useState(['meter_001']);
+  const [meterIds, setMeterIds] = useState(["meter_001", "meter_002"]);
+  const [selectedMeters, setSelectedMeters] = useState(["meter_001"]);
   const [dateRange, setDateRange] = useState({
-    start: '2023-04-14',
-    end: '2023-04-15'
+    start: "2023-04-14",
+    end: "2023-04-15",
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // Get prediction data
         const data = getPredictionData(24);
         setPredictionData(data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching prediction data:', error);
+        console.error("Error fetching prediction data:", error);
         setLoading(false);
       }
     };
@@ -80,7 +80,7 @@ const Predictions = () => {
   const handleDateChange = (event) => {
     setDateRange({
       ...dateRange,
-      [event.target.name]: event.target.value
+      [event.target.name]: event.target.value,
     });
   };
 
@@ -95,11 +95,11 @@ const Predictions = () => {
   };
 
   // Format data for chart
-  const chartData = predictionData.map(item => ({
-    name: item.timestamp.split(' ')[1],
+  const chartData = predictionData.map((item) => ({
+    name: item.timestamp.split(" ")[1],
     prediction: item.prediction,
     lower: item.lower,
-    upper: item.upper
+    upper: item.upper,
   }));
 
   // Skeleton loader for prediction form
@@ -133,7 +133,14 @@ const Predictions = () => {
   const ResultsSkeleton = () => (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Box>
             <Skeleton variant="text" width={150} height={32} />
             <Skeleton variant="text" width={200} />
@@ -143,7 +150,14 @@ const Predictions = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        <Box sx={{ height: 400, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Box
+          sx={{
+            height: 400,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <CircularProgress />
         </Box>
       </CardContent>
@@ -160,7 +174,9 @@ const Predictions = () => {
       </Typography>
 
       {/* Prediction Form */}
-      {loading ? <FormSkeleton /> : (
+      {loading ? (
+        <FormSkeleton />
+      ) : (
         <Card sx={{ mb: 4 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -179,7 +195,7 @@ const Predictions = () => {
                     value={selectedMeters}
                     onChange={handleMeterChange}
                     renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {selected.map((value) => (
                           <Chip key={value} label={value} size="small" />
                         ))}
@@ -225,15 +241,26 @@ const Predictions = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Grid
+                item
+                xs={12}
+                md={2}
+                sx={{ display: "flex", alignItems: "center" }}
+              >
                 <Button
                   variant="contained"
                   fullWidth
-                  startIcon={submitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                  startIcon={
+                    submitting ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <SendIcon />
+                    )
+                  }
                   onClick={handleSubmit}
                   disabled={submitting}
                 >
-                  {submitting ? 'Generating...' : 'Generate'}
+                  {submitting ? "Generating..." : "Generate"}
                 </Button>
               </Grid>
             </Grid>
@@ -242,25 +269,34 @@ const Predictions = () => {
       )}
 
       {/* Prediction Results */}
-      {loading ? <ResultsSkeleton /> : (
+      {loading ? (
+        <ResultsSkeleton />
+      ) : (
         <Card>
           <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
               <Box>
                 <Typography variant="h6" gutterBottom>
                   Prediction Results
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <CalendarIcon fontSize="small" color="action" />
                   <Typography variant="body2" color="text.secondary">
                     {dateRange.start} to {dateRange.end}
                   </Typography>
                   <Chip
-                    label={selectedMeters.join(', ')}
+                    label={selectedMeters.join(", ")}
                     size="small"
                     sx={{
-                      backgroundColor: theme.palette.primary.light + '20',
-                      color: theme.palette.primary.main
+                      backgroundColor: theme.palette.primary.light + "20",
+                      color: theme.palette.primary.main,
                     }}
                   />
                 </Box>
@@ -319,7 +355,13 @@ const Predictions = () => {
             </Box>
 
             {/* Prediction Table */}
-            <TableContainer component={Paper} sx={{ boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
+            <TableContainer
+              component={Paper}
+              sx={{
+                boxShadow: "none",
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
               <Table sx={{ minWidth: 650 }} aria-label="prediction table">
                 <TableHead>
                   <TableRow>
@@ -334,21 +376,27 @@ const Predictions = () => {
                   {predictionData.map((row) => (
                     <TableRow
                       key={row.timestamp}
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <TableCell component="th" scope="row">
                         {row.timestamp}
                       </TableCell>
-                      <TableCell align="right">{row.prediction.toFixed(1)}</TableCell>
-                      <TableCell align="right">{row.lower.toFixed(1)}</TableCell>
-                      <TableCell align="right">{row.upper.toFixed(1)}</TableCell>
+                      <TableCell align="right">
+                        {row.prediction.toFixed(1)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row.lower.toFixed(1)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {row.upper.toFixed(1)}
+                      </TableCell>
                       <TableCell align="right">
                         <Chip
                           label="95%"
                           size="small"
                           sx={{
-                            backgroundColor: theme.palette.success.light + '20',
-                            color: theme.palette.success.main
+                            backgroundColor: theme.palette.success.light + "20",
+                            color: theme.palette.success.main,
                           }}
                         />
                       </TableCell>

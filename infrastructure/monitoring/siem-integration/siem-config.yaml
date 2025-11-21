@@ -92,62 +92,62 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       containers:
-      - name: siem-forwarder
-        image: fluxora/siem-forwarder:latest
-        ports:
-        - containerPort: 8080
-          name: http
-        - containerPort: 9090
-          name: metrics
-        volumeMounts:
-        - name: config
-          mountPath: /etc/siem-forwarder/config.yaml
-          subPath: siem-config.yaml
-        - name: siem-credentials
-          mountPath: /etc/siem
-          readOnly: true
-        - name: tls-certs
-          mountPath: /etc/ssl/certs
-          readOnly: true
-        env:
-        - name: SIEM_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              name: siem-integration-config
-              key: siem.endpoint
-        - name: LOG_LEVEL
-          value: "INFO"
-        - name: METRICS_ENABLED
-          value: "true"
-        resources:
-          limits:
-            cpu: 500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 512Mi
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 15
-          periodSeconds: 10
+        - name: siem-forwarder
+          image: fluxora/siem-forwarder:latest
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 9090
+              name: metrics
+          volumeMounts:
+            - name: config
+              mountPath: /etc/siem-forwarder/config.yaml
+              subPath: siem-config.yaml
+            - name: siem-credentials
+              mountPath: /etc/siem
+              readOnly: true
+            - name: tls-certs
+              mountPath: /etc/ssl/certs
+              readOnly: true
+          env:
+            - name: SIEM_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: siem-integration-config
+                  key: siem.endpoint
+            - name: LOG_LEVEL
+              value: "INFO"
+            - name: METRICS_ENABLED
+              value: "true"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
       volumes:
-      - name: config
-        configMap:
-          name: siem-integration-config
-      - name: siem-credentials
-        secret:
-          secretName: siem-credentials
-      - name: tls-certs
-        secret:
-          secretName: siem-tls-certs
+        - name: config
+          configMap:
+            name: siem-integration-config
+        - name: siem-credentials
+          secret:
+            secretName: siem-credentials
+        - name: tls-certs
+          secret:
+            secretName: siem-tls-certs
 ---
 # SIEM Forwarder Service
 apiVersion: v1
@@ -161,12 +161,12 @@ spec:
   selector:
     app: siem-forwarder
   ports:
-  - port: 8080
-    name: http
-    protocol: TCP
-  - port: 9090
-    name: metrics
-    protocol: TCP
+    - port: 8080
+      name: http
+      protocol: TCP
+    - port: 9090
+      name: metrics
+      protocol: TCP
 ---
 # Security Event Rules ConfigMap
 apiVersion: v1
@@ -449,7 +449,7 @@ spec:
     matchLabels:
       app: siem-forwarder
   endpoints:
-  - port: metrics
-    interval: 30s
-    path: /metrics
-    scheme: http
+    - port: metrics
+      interval: 30s
+      path: /metrics
+      scheme: http

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 // Mock data service for development and production
 const mockDataService = {
@@ -7,7 +7,7 @@ const mockDataService = {
     const data = [];
     for (let i = 0; i < hours; i++) {
       data.push({
-        name: `${i.toString().padStart(2, '0')}:00`,
+        name: `${i.toString().padStart(2, "0")}:00`,
         consumption: Math.floor(Math.random() * 200) + 100,
       });
     }
@@ -21,7 +21,7 @@ const mockDataService = {
       const prediction = Math.floor(Math.random() * 200) + 100;
       const variance = prediction * 0.1; // 10% variance for confidence intervals
       data.push({
-        timestamp: `2023-04-14 ${i.toString().padStart(2, '0')}:00`,
+        timestamp: `2023-04-14 ${i.toString().padStart(2, "0")}:00`,
         prediction: prediction,
         lower: prediction - variance,
         upper: prediction + variance,
@@ -44,15 +44,18 @@ const mockDataService = {
   getHealthStatus: async () => {
     // Always return mock data to ensure the app works in static environments
     return {
-      status: 'healthy',
-      version: '1.0.0-static'
+      status: "healthy",
+      version: "1.0.0-static",
     };
-  }
+  },
 };
 
 // Custom hook for data fetching
 export const useDataService = () => {
-  const [apiStatus, setApiStatus] = useState({ status: 'loading', version: '' });
+  const [apiStatus, setApiStatus] = useState({
+    status: "loading",
+    version: "",
+  });
 
   useEffect(() => {
     const checkApiStatus = async () => {
@@ -60,8 +63,8 @@ export const useDataService = () => {
         const status = await mockDataService.getHealthStatus();
         setApiStatus(status);
       } catch (error) {
-        console.error('Failed to get API status, using fallback', error);
-        setApiStatus({ status: 'healthy', version: '1.0.0-fallback' });
+        console.error("Failed to get API status, using fallback", error);
+        setApiStatus({ status: "healthy", version: "1.0.0-fallback" });
       }
     };
 

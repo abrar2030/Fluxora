@@ -25,7 +25,7 @@ metadata:
     fluxora.com/environment: "development"
     fluxora.com/auto-sync: "enabled"
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: fluxora
 
@@ -46,18 +46,18 @@ spec:
 
       # Environment-specific patches
       patches:
-      - target:
-          kind: Deployment
-          name: fluxora-backend
-        patch: |-
-          - op: replace
-            path: /spec/replicas
-            value: 1
+        - target:
+            kind: Deployment
+            name: fluxora-backend
+          patch: |-
+            - op: replace
+              path: /spec/replicas
+              value: 1
 
       # Images
       images:
-      - fluxora-backend=ghcr.io/fluxora/backend:dev-latest
-      - fluxora-frontend=ghcr.io/fluxora/frontend:dev-latest
+        - fluxora-backend=ghcr.io/fluxora/backend:dev-latest
+        - fluxora-frontend=ghcr.io/fluxora/frontend:dev-latest
 
   destination:
     server: https://kubernetes.default.svc
@@ -69,11 +69,11 @@ spec:
       selfHeal: true
       allowEmpty: false
     syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ApplyOutOfSyncOnly=true
-    - RespectIgnoreDifferences=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
 
     retry:
       limit: 5
@@ -86,14 +86,14 @@ spec:
 
   # Health checks
   ignoreDifferences:
-  - group: apps
-    kind: Deployment
-    jsonPointers:
-    - /spec/replicas
-  - group: ""
-    kind: Secret
-    jsonPointers:
-    - /data
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data
 
 ---
 # ArgoCD Application for Staging Environment
@@ -111,7 +111,7 @@ metadata:
     fluxora.com/auto-sync: "enabled"
     fluxora.com/approval-required: "false"
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: fluxora
 
@@ -130,17 +130,17 @@ spec:
         argocd.argoproj.io/tracking-id: fluxora-staging
 
       patches:
-      - target:
-          kind: Deployment
-          name: fluxora-backend
-        patch: |-
-          - op: replace
-            path: /spec/replicas
-            value: 2
+        - target:
+            kind: Deployment
+            name: fluxora-backend
+          patch: |-
+            - op: replace
+              path: /spec/replicas
+              value: 2
 
       images:
-      - fluxora-backend=ghcr.io/fluxora/backend:staging-latest
-      - fluxora-frontend=ghcr.io/fluxora/frontend:staging-latest
+        - fluxora-backend=ghcr.io/fluxora/backend:staging-latest
+        - fluxora-frontend=ghcr.io/fluxora/frontend:staging-latest
 
   destination:
     server: https://kubernetes.default.svc
@@ -152,10 +152,10 @@ spec:
       selfHeal: true
       allowEmpty: false
     syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
 
     retry:
       limit: 3
@@ -180,11 +180,11 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
     fluxora.com/environment: "production"
-    fluxora.com/auto-sync: "disabled"  # Manual approval required
+    fluxora.com/auto-sync: "disabled" # Manual approval required
     fluxora.com/approval-required: "true"
     fluxora.com/change-window: "sunday-02:00-06:00-utc"
   finalizers:
-  - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: fluxora
 
@@ -203,8 +203,8 @@ spec:
         fluxora.com/deployment-strategy: "blue-green"
 
       images:
-      - fluxora-backend=ghcr.io/fluxora/backend:v1.0.0
-      - fluxora-frontend=ghcr.io/fluxora/frontend:v1.0.0
+        - fluxora-backend=ghcr.io/fluxora/backend:v1.0.0
+        - fluxora-frontend=ghcr.io/fluxora/frontend:v1.0.0
 
   destination:
     server: https://kubernetes.default.svc
@@ -214,11 +214,11 @@ spec:
     # Manual sync for production
     automated: null
     syncOptions:
-    - CreateNamespace=true
-    - PrunePropagationPolicy=foreground
-    - PruneLast=true
-    - ApplyOutOfSyncOnly=true
-    - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
+      - Validate=true
 
     retry:
       limit: 2
@@ -227,7 +227,7 @@ spec:
         factor: 2
         maxDuration: 10m
 
-  revisionHistoryLimit: 50  # Extended history for compliance
+  revisionHistoryLimit: 50 # Extended history for compliance
 
 ---
 # ArgoCD Project for Fluxora
@@ -246,116 +246,116 @@ spec:
 
   # Source repositories
   sourceRepos:
-  - https://github.com/fluxora/infrastructure
-  - https://github.com/fluxora/application
-  - https://helm.fluxora.com/*
+    - https://github.com/fluxora/infrastructure
+    - https://github.com/fluxora/application
+    - https://helm.fluxora.com/*
 
   # Destination clusters and namespaces
   destinations:
-  - namespace: fluxora
-    server: https://kubernetes.default.svc
-  - namespace: fluxora-dev
-    server: https://kubernetes.default.svc
-  - namespace: fluxora-staging
-    server: https://kubernetes.default.svc
-  - namespace: monitoring
-    server: https://kubernetes.default.svc
-  - namespace: logging
-    server: https://kubernetes.default.svc
-  - namespace: database
-    server: https://kubernetes.default.svc
-  - namespace: encryption
-    server: https://kubernetes.default.svc
+    - namespace: fluxora
+      server: https://kubernetes.default.svc
+    - namespace: fluxora-dev
+      server: https://kubernetes.default.svc
+    - namespace: fluxora-staging
+      server: https://kubernetes.default.svc
+    - namespace: monitoring
+      server: https://kubernetes.default.svc
+    - namespace: logging
+      server: https://kubernetes.default.svc
+    - namespace: database
+      server: https://kubernetes.default.svc
+    - namespace: encryption
+      server: https://kubernetes.default.svc
 
   # Cluster resource whitelist
   clusterResourceWhitelist:
-  - group: ""
-    kind: Namespace
-  - group: rbac.authorization.k8s.io
-    kind: ClusterRole
-  - group: rbac.authorization.k8s.io
-    kind: ClusterRoleBinding
-  - group: storage.k8s.io
-    kind: StorageClass
-  - group: networking.k8s.io
-    kind: NetworkPolicy
-  - group: policy
-    kind: PodSecurityPolicy
-  - group: admissionregistration.k8s.io
-    kind: ValidatingAdmissionWebhook
-  - group: admissionregistration.k8s.io
-    kind: MutatingAdmissionWebhook
+    - group: ""
+      kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: storage.k8s.io
+      kind: StorageClass
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: policy
+      kind: PodSecurityPolicy
+    - group: admissionregistration.k8s.io
+      kind: ValidatingAdmissionWebhook
+    - group: admissionregistration.k8s.io
+      kind: MutatingAdmissionWebhook
 
   # Namespace resource whitelist
   namespaceResourceWhitelist:
-  - group: ""
-    kind: "*"
-  - group: apps
-    kind: "*"
-  - group: batch
-    kind: "*"
-  - group: extensions
-    kind: "*"
-  - group: networking.k8s.io
-    kind: "*"
-  - group: autoscaling
-    kind: "*"
-  - group: monitoring.coreos.com
-    kind: "*"
-  - group: external-secrets.io
-    kind: "*"
-  - group: velero.io
-    kind: "*"
+    - group: ""
+      kind: "*"
+    - group: apps
+      kind: "*"
+    - group: batch
+      kind: "*"
+    - group: extensions
+      kind: "*"
+    - group: networking.k8s.io
+      kind: "*"
+    - group: autoscaling
+      kind: "*"
+    - group: monitoring.coreos.com
+      kind: "*"
+    - group: external-secrets.io
+      kind: "*"
+    - group: velero.io
+      kind: "*"
 
   # RBAC roles
   roles:
-  - name: admin
-    description: "Full access to Fluxora project"
-    policies:
-    - p, proj:fluxora:admin, applications, *, fluxora/*, allow
-    - p, proj:fluxora:admin, repositories, *, *, allow
-    - p, proj:fluxora:admin, certificates, *, *, allow
-    groups:
-    - fluxora:platform-team
-    - fluxora:devops-team
+    - name: admin
+      description: "Full access to Fluxora project"
+      policies:
+        - p, proj:fluxora:admin, applications, *, fluxora/*, allow
+        - p, proj:fluxora:admin, repositories, *, *, allow
+        - p, proj:fluxora:admin, certificates, *, *, allow
+      groups:
+        - fluxora:platform-team
+        - fluxora:devops-team
 
-  - name: developer
-    description: "Developer access to non-production environments"
-    policies:
-    - p, proj:fluxora:developer, applications, get, fluxora/fluxora-development, allow
-    - p, proj:fluxora:developer, applications, sync, fluxora/fluxora-development, allow
-    - p, proj:fluxora:developer, applications, get, fluxora/fluxora-staging, allow
-    - p, proj:fluxora:developer, repositories, get, *, allow
-    groups:
-    - fluxora:developers
+    - name: developer
+      description: "Developer access to non-production environments"
+      policies:
+        - p, proj:fluxora:developer, applications, get, fluxora/fluxora-development, allow
+        - p, proj:fluxora:developer, applications, sync, fluxora/fluxora-development, allow
+        - p, proj:fluxora:developer, applications, get, fluxora/fluxora-staging, allow
+        - p, proj:fluxora:developer, repositories, get, *, allow
+      groups:
+        - fluxora:developers
 
-  - name: readonly
-    description: "Read-only access for monitoring and compliance"
-    policies:
-    - p, proj:fluxora:readonly, applications, get, fluxora/*, allow
-    - p, proj:fluxora:readonly, repositories, get, *, allow
-    groups:
-    - fluxora:compliance-team
-    - fluxora:security-team
-    - fluxora:monitoring-team
+    - name: readonly
+      description: "Read-only access for monitoring and compliance"
+      policies:
+        - p, proj:fluxora:readonly, applications, get, fluxora/*, allow
+        - p, proj:fluxora:readonly, repositories, get, *, allow
+      groups:
+        - fluxora:compliance-team
+        - fluxora:security-team
+        - fluxora:monitoring-team
 
   # Sync windows for production deployments
   syncWindows:
-  - kind: allow
-    schedule: "0 2-6 * * 0"  # Sunday 2-6 AM UTC
-    duration: 4h
-    applications:
-    - fluxora-production
-    manualSync: true
-    timeZone: "UTC"
+    - kind: allow
+      schedule: "0 2-6 * * 0" # Sunday 2-6 AM UTC
+      duration: 4h
+      applications:
+        - fluxora-production
+      manualSync: true
+      timeZone: "UTC"
 
-  - kind: deny
-    schedule: "0 0-23 * * 1-6"  # Monday-Saturday (block production deployments)
-    duration: 24h
-    applications:
-    - fluxora-production
-    manualSync: false
-    timeZone: "UTC"
+    - kind: deny
+      schedule: "0 0-23 * * 1-6" # Monday-Saturday (block production deployments)
+      duration: 24h
+      applications:
+        - fluxora-production
+      manualSync: false
+      timeZone: "UTC"
 
 ---
 # ArgoCD Repository Configuration
@@ -372,8 +372,8 @@ metadata:
 stringData:
   type: git
   url: https://github.com/fluxora/infrastructure
-  password: ""  # Set via external secrets
-  username: ""  # Set via external secrets
+  password: "" # Set via external secrets
+  username: "" # Set via external secrets
 
 ---
 # ArgoCD Notifications Configuration

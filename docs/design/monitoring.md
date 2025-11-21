@@ -588,624 +588,532 @@ class TracingManager:
 ```yaml
 # grafana-dashboard.json
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": "-- Grafana --",
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "annotations":
+    {
+      "list":
+        [
+          {
+            "builtIn": 1,
+            "datasource": "-- Grafana --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard",
+          },
+        ],
+    },
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
   "id": 1,
   "links": [],
-  "panels": [
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
+  "panels":
+    [
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "hiddenSeries": false,
+        "id": 2,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": "sum(rate(fluxora_api_requests_total[5m])) by (endpoint)",
+              "interval": "",
+              "legendFormat": "{{endpoint}}",
+              "refId": "A",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Request Rate",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "hiddenSeries": false,
+        "id": 4,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(fluxora_api_request_latency_seconds_bucket[5m])) by (le, endpoint))",
+              "interval": "",
+              "legendFormat": "{{endpoint}}",
+              "refId": "A",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Request Latency (p95)",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "s",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "hiddenSeries": false,
-      "id": 2,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "hiddenSeries": false,
+        "id": 6,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": "sum(rate(fluxora_api_errors_total[5m])) by (type)",
+              "interval": "",
+              "legendFormat": "{{type}}",
+              "refId": "A",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Error Rate",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "hiddenSeries": false,
+        "id": 8,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": "fluxora_api_circuit_breaker_state",
+              "interval": "",
+              "legendFormat": "{{name}}",
+              "refId": "A",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Circuit Breaker State",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(rate(fluxora_api_requests_total[5m])) by (endpoint)",
-          "interval": "",
-          "legendFormat": "{{endpoint}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Request Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+        "hiddenSeries": false,
+        "id": 10,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": 'fluxora_api_resource_usage{resource="cpu"}',
+              "interval": "",
+              "legendFormat": "CPU",
+              "refId": "A",
+            },
+            {
+              "expr": 'fluxora_api_resource_usage{resource="memory"}',
+              "interval": "",
+              "legendFormat": "Memory",
+              "refId": "B",
+            },
+            {
+              "expr": 'fluxora_api_resource_usage{resource="disk"}',
+              "interval": "",
+              "legendFormat": "Disk",
+              "refId": "C",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Resource Usage",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "percent",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
+      {
+        "aliasColors": {},
+        "bars": false,
+        "dashLength": 10,
+        "dashes": false,
+        "datasource": "Prometheus",
+        "fieldConfig": { "defaults": { "custom": {} }, "overrides": [] },
+        "fill": 1,
+        "fillGradient": 0,
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+        "hiddenSeries": false,
+        "id": 12,
+        "legend":
+          {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false,
+          },
+        "lines": true,
+        "linewidth": 1,
+        "nullPointMode": "null",
+        "options": { "alertThreshold": true },
+        "percentage": false,
+        "pluginVersion": "7.3.7",
+        "pointradius": 2,
+        "points": false,
+        "renderer": "flot",
+        "seriesOverrides": [],
+        "spaceLength": 10,
+        "stack": false,
+        "steppedLine": false,
+        "targets":
+          [
+            {
+              "expr": "fluxora_api_prediction_accuracy",
+              "interval": "",
+              "legendFormat": "{{model}} - {{metric}}",
+              "refId": "A",
+            },
+          ],
+        "thresholds": [],
+        "timeFrom": null,
+        "timeRegions": [],
+        "timeShift": null,
+        "title": "Prediction Accuracy",
+        "tooltip": { "shared": true, "sort": 0, "value_type": "individual" },
+        "type": "graph",
+        "xaxis":
+          {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": [],
+          },
+        "yaxes":
+          [
+            {
+              "format": "percentunit",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true,
+            },
+          ],
+        "yaxis": { "align": false, "alignLevel": null },
       },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      },
-      "hiddenSeries": false,
-      "id": 4,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(fluxora_api_request_latency_seconds_bucket[5m])) by (le, endpoint))",
-          "interval": "",
-          "legendFormat": "{{endpoint}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Request Latency (p95)",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "s",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "hiddenSeries": false,
-      "id": 6,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(rate(fluxora_api_errors_total[5m])) by (type)",
-          "interval": "",
-          "legendFormat": "{{type}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Error Rate",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "hiddenSeries": false,
-      "id": 8,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "fluxora_api_circuit_breaker_state",
-          "interval": "",
-          "legendFormat": "{{name}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Circuit Breaker State",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      },
-      "hiddenSeries": false,
-      "id": 10,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "fluxora_api_resource_usage{resource=\"cpu\"}",
-          "interval": "",
-          "legendFormat": "CPU",
-          "refId": "A"
-        },
-        {
-          "expr": "fluxora_api_resource_usage{resource=\"memory\"}",
-          "interval": "",
-          "legendFormat": "Memory",
-          "refId": "B"
-        },
-        {
-          "expr": "fluxora_api_resource_usage{resource=\"disk\"}",
-          "interval": "",
-          "legendFormat": "Disk",
-          "refId": "C"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Resource Usage",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "percent",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      },
-      "hiddenSeries": false,
-      "id": 12,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "fluxora_api_prediction_accuracy",
-          "interval": "",
-          "legendFormat": "{{model}} - {{metric}}",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Prediction Accuracy",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "percentunit",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    }
-  ],
+    ],
   "refresh": "5s",
   "schemaVersion": 26,
   "style": "dark",
   "tags": [],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "timezone": "",
   "title": "Fluxora Dashboard",
   "uid": "fluxora",
-  "version": 1
+  "version": 1,
 }
 ```
 
@@ -1519,28 +1427,28 @@ spec:
         app: prometheus
     spec:
       containers:
-      - name: prometheus
-        image: prom/prometheus:v2.30.3
-        ports:
-        - containerPort: 9090
-        volumeMounts:
-        - name: prometheus-config
-          mountPath: /etc/prometheus/
-        - name: prometheus-storage
-          mountPath: /prometheus/
-        resources:
-          limits:
-            cpu: "1000m"
-            memory: "1Gi"
-          requests:
-            cpu: "500m"
-            memory: "500Mi"
+        - name: prometheus
+          image: prom/prometheus:v2.30.3
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage
+              mountPath: /prometheus/
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "500Mi"
       volumes:
-      - name: prometheus-config
-        configMap:
-          name: prometheus-config
-      - name: prometheus-storage
-        emptyDir: {}
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: prometheus-storage
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -1551,8 +1459,8 @@ spec:
   selector:
     app: prometheus
   ports:
-  - port: 9090
-    targetPort: 9090
+    - port: 9090
+      targetPort: 9090
   type: ClusterIP
 ---
 apiVersion: v1
@@ -1603,33 +1511,33 @@ spec:
         app: grafana
     spec:
       containers:
-      - name: grafana
-        image: grafana/grafana:8.2.2
-        ports:
-        - containerPort: 3000
-        volumeMounts:
-        - name: grafana-storage
-          mountPath: /var/lib/grafana
-        - name: grafana-datasources
-          mountPath: /etc/grafana/provisioning/datasources
-        - name: grafana-dashboards
-          mountPath: /etc/grafana/provisioning/dashboards
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
+        - name: grafana
+          image: grafana/grafana:8.2.2
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-dashboards
+              mountPath: /etc/grafana/provisioning/dashboards
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
       volumes:
-      - name: grafana-storage
-        emptyDir: {}
-      - name: grafana-datasources
-        configMap:
-          name: grafana-datasources
-      - name: grafana-dashboards
-        configMap:
-          name: grafana-dashboards
+        - name: grafana-storage
+          emptyDir: {}
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service
@@ -1640,8 +1548,8 @@ spec:
   selector:
     app: grafana
   ports:
-  - port: 3000
-    targetPort: 3000
+    - port: 3000
+      targetPort: 3000
   type: ClusterIP
 ---
 apiVersion: v1
@@ -1698,27 +1606,27 @@ spec:
         app: jaeger
     spec:
       containers:
-      - name: jaeger
-        image: jaegertracing/all-in-one:1.27
-        ports:
-        - containerPort: 5775
-          protocol: UDP
-        - containerPort: 6831
-          protocol: UDP
-        - containerPort: 6832
-          protocol: UDP
-        - containerPort: 5778
-        - containerPort: 16686
-        - containerPort: 14268
-        - containerPort: 14250
-        - containerPort: 9411
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
+        - name: jaeger
+          image: jaegertracing/all-in-one:1.27
+          ports:
+            - containerPort: 5775
+              protocol: UDP
+            - containerPort: 6831
+              protocol: UDP
+            - containerPort: 6832
+              protocol: UDP
+            - containerPort: 5778
+            - containerPort: 16686
+            - containerPort: 14268
+            - containerPort: 14250
+            - containerPort: 9411
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -1729,20 +1637,20 @@ spec:
   selector:
     app: jaeger
   ports:
-  - name: agent-compact
-    port: 6831
-    protocol: UDP
-    targetPort: 6831
-  - name: agent-binary
-    port: 6832
-    protocol: UDP
-    targetPort: 6832
-  - name: query
-    port: 16686
-    targetPort: 16686
-  - name: collector
-    port: 14268
-    targetPort: 14268
+    - name: agent-compact
+      port: 6831
+      protocol: UDP
+      targetPort: 6831
+    - name: agent-binary
+      port: 6832
+      protocol: UDP
+      targetPort: 6832
+    - name: query
+      port: 16686
+      targetPort: 16686
+    - name: collector
+      port: 14268
+      targetPort: 14268
   type: ClusterIP
 ```
 
@@ -1766,29 +1674,29 @@ spec:
         app: elasticsearch
     spec:
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
-        ports:
-        - containerPort: 9200
-        - containerPort: 9300
-        env:
-        - name: discovery.type
-          value: single-node
-        - name: ES_JAVA_OPTS
-          value: -Xms512m -Xmx512m
-        resources:
-          limits:
-            cpu: "1000m"
-            memory: "1Gi"
-          requests:
-            cpu: "500m"
-            memory: "512Mi"
-        volumeMounts:
-        - name: elasticsearch-data
-          mountPath: /usr/share/elasticsearch/data
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
+          ports:
+            - containerPort: 9200
+            - containerPort: 9300
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: ES_JAVA_OPTS
+              value: -Xms512m -Xmx512m
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
       volumes:
-      - name: elasticsearch-data
-        emptyDir: {}
+        - name: elasticsearch-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -1799,12 +1707,12 @@ spec:
   selector:
     app: elasticsearch
   ports:
-  - name: rest
-    port: 9200
-    targetPort: 9200
-  - name: inter-node
-    port: 9300
-    targetPort: 9300
+    - name: rest
+      port: 9200
+      targetPort: 9200
+    - name: inter-node
+      port: 9300
+      targetPort: 9300
   type: ClusterIP
 ```
 
@@ -1826,20 +1734,20 @@ spec:
         app: kibana
     spec:
       containers:
-      - name: kibana
-        image: docker.elastic.co/kibana/kibana:7.15.1
-        ports:
-        - containerPort: 5601
-        env:
-        - name: ELASTICSEARCH_HOSTS
-          value: http://elasticsearch:9200
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:7.15.1
+          ports:
+            - containerPort: 5601
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: http://elasticsearch:9200
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -1850,8 +1758,8 @@ spec:
   selector:
     app: kibana
   ports:
-  - port: 5601
-    targetPort: 5601
+    - port: 5601
+      targetPort: 5601
   type: ClusterIP
 ```
 
@@ -1873,28 +1781,28 @@ spec:
         app: logstash
     spec:
       containers:
-      - name: logstash
-        image: docker.elastic.co/logstash/logstash:7.15.1
-        ports:
-        - containerPort: 5044
-        - containerPort: 9600
-        env:
-        - name: LS_JAVA_OPTS
-          value: -Xms256m -Xmx256m
-        resources:
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-        volumeMounts:
-        - name: logstash-config
-          mountPath: /usr/share/logstash/pipeline/
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:7.15.1
+          ports:
+            - containerPort: 5044
+            - containerPort: 9600
+          env:
+            - name: LS_JAVA_OPTS
+              value: -Xms256m -Xmx256m
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: logstash-config
+              mountPath: /usr/share/logstash/pipeline/
       volumes:
-      - name: logstash-config
-        configMap:
-          name: logstash-config
+        - name: logstash-config
+          configMap:
+            name: logstash-config
 ---
 apiVersion: v1
 kind: Service
@@ -1905,12 +1813,12 @@ spec:
   selector:
     app: logstash
   ports:
-  - name: beats
-    port: 5044
-    targetPort: 5044
-  - name: http
-    port: 9600
-    targetPort: 9600
+    - name: beats
+      port: 5044
+      targetPort: 5044
+    - name: http
+      port: 9600
+      targetPort: 9600
   type: ClusterIP
 ---
 apiVersion: v1

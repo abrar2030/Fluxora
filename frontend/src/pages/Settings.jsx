@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useDataService } from '../utils/dataService';
+import React, { useState, useEffect } from "react";
+import { useDataService } from "../utils/dataService";
 import {
   Box,
   Typography,
@@ -20,8 +20,8 @@ import {
   Alert,
   Snackbar,
   useTheme,
-  Skeleton
-} from '@mui/material';
+  Skeleton,
+} from "@mui/material";
 import {
   Save as SaveIcon,
   Notifications as NotificationsIcon,
@@ -30,8 +30,8 @@ import {
   Language as LanguageIcon,
   ColorLens as ThemeIcon,
   Delete as DeleteIcon,
-  Refresh as RefreshIcon
-} from '@mui/icons-material';
+  Refresh as RefreshIcon,
+} from "@mui/icons-material";
 
 const Settings = () => {
   const theme = useTheme();
@@ -40,20 +40,20 @@ const Settings = () => {
     notifications: true,
     darkMode: false,
     dataRetention: 90,
-    apiKey: 'sk_test_51HG7LkKF5YG78D6H2QsJgYbIhaeEDq',
-    language: 'en',
-    autoRefresh: true
+    apiKey: "sk_test_51HG7LkKF5YG78D6H2QsJgYbIhaeEDq",
+    language: "en",
+    autoRefresh: true,
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
-    message: '',
-    severity: 'success'
+    message: "",
+    severity: "success",
   });
 
   useEffect(() => {
     // Simulate loading settings from API
     const loadSettings = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1200));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       setLoading(false);
     };
 
@@ -63,7 +63,7 @@ const Settings = () => {
   const handleSettingChange = (setting, value) => {
     setSettings({
       ...settings,
-      [setting]: value
+      [setting]: value,
     });
   };
 
@@ -81,24 +81,27 @@ const Settings = () => {
     // Simulate saving settings to API
     setSnackbar({
       open: true,
-      message: 'Settings saved successfully!',
-      severity: 'success'
+      message: "Settings saved successfully!",
+      severity: "success",
     });
   };
 
   const handleCloseSnackbar = () => {
     setSnackbar({
       ...snackbar,
-      open: false
+      open: false,
     });
   };
 
   const handleResetApiKey = () => {
-    handleSettingChange('apiKey', 'sk_test_' + Math.random().toString(36).substring(2, 15));
+    handleSettingChange(
+      "apiKey",
+      "sk_test_" + Math.random().toString(36).substring(2, 15),
+    );
     setSnackbar({
       open: true,
-      message: 'API key regenerated successfully!',
-      severity: 'info'
+      message: "API key regenerated successfully!",
+      severity: "info",
     });
   };
 
@@ -156,14 +159,16 @@ const Settings = () => {
       <Grid container spacing={3}>
         {/* General Settings */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 General Settings
               </Typography>
               <Divider sx={{ mb: 3 }} />
 
-              {loading ? <SettingsSkeleton /> : (
+              {loading ? (
+                <SettingsSkeleton />
+              ) : (
                 <List>
                   <ListItem>
                     <ListItemIcon>
@@ -255,14 +260,16 @@ const Settings = () => {
 
         {/* Data & Security */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Data & Security
               </Typography>
               <Divider sx={{ mb: 3 }} />
 
-              {loading ? <SettingsSkeleton /> : (
+              {loading ? (
+                <SettingsSkeleton />
+              ) : (
                 <>
                   <List>
                     <ListItem>
@@ -283,7 +290,9 @@ const Settings = () => {
                           size="small"
                           sx={{ width: 100 }}
                           InputProps={{
-                            endAdornment: <Typography variant="caption">days</Typography>,
+                            endAdornment: (
+                              <Typography variant="caption">days</Typography>
+                            ),
                           }}
                         />
                       </ListItemSecondaryAction>
@@ -325,8 +334,9 @@ const Settings = () => {
                     </ListItem>
 
                     <ListItem>
-                      <Alert severity="warning" sx={{ width: '100%' }}>
-                        Regenerating your API key will invalidate the previous key immediately.
+                      <Alert severity="warning" sx={{ width: "100%" }}>
+                        Regenerating your API key will invalidate the previous
+                        key immediately.
                       </Alert>
                     </ListItem>
                   </List>
@@ -361,9 +371,13 @@ const Settings = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

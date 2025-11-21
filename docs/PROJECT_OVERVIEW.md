@@ -1,9 +1,11 @@
 # Fluxora Project Overview
 
 ## Introduction
+
 Fluxora is a comprehensive project that appears to be a full-stack application with machine learning capabilities. The project follows a well-organized structure with separate components for frontend, backend, infrastructure, and data processing.
 
 ## Project Structure
+
 - `frontend/`: User interface components
 - `src/`: Backend and core application logic
 - `infrastructure/`: Infrastructure and deployment configurations
@@ -15,6 +17,7 @@ Fluxora is a comprehensive project that appears to be a full-stack application w
 - `docs/`: Project documentation
 
 ## Key Components
+
 1. **Frontend**: Web-based user interface
 2. **Backend**: Core application logic and API services
 3. **Infrastructure**: Cloud and deployment configurations
@@ -22,6 +25,7 @@ Fluxora is a comprehensive project that appears to be a full-stack application w
 5. **Monitoring**: System health and performance tracking
 
 ## Technology Stack
+
 - Python (based on requirements.txt)
 - DVC for data version control
 - Git for version control
@@ -29,6 +33,7 @@ Fluxora is a comprehensive project that appears to be a full-stack application w
 - Shell scripts for automation
 
 ## Development Workflow
+
 1. Development environment setup
 2. Code changes and testing
 3. Version control and documentation

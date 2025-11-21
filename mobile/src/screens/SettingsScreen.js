@@ -1,18 +1,28 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Appbar, List, Switch, Divider, Card, Title, Paragraph, useTheme } from 'react-native-paper';
+import React from "react";
+import { View, StyleSheet, ScrollView } from "react-native";
+import {
+  Appbar,
+  List,
+  Switch,
+  Divider,
+  Card,
+  Title,
+  Paragraph,
+  useTheme,
+} from "react-native-paper";
 
 const SettingsScreen = ({ navigation }) => {
   const theme = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false); // This would typically control the theme
 
-  const toggleNotifications = () => setNotificationsEnabled(previousState => !previousState);
+  const toggleNotifications = () =>
+    setNotificationsEnabled((previousState) => !previousState);
   const toggleDarkMode = () => {
-    setDarkModeEnabled(previousState => !previousState);
+    setDarkModeEnabled((previousState) => !previousState);
     // In a real app, you would likely trigger a theme change here
     // e.g., using a context or state management library
-    alert('Dark mode toggle is illustrative. Theme switching not implemented.');
+    alert("Dark mode toggle is illustrative. Theme switching not implemented.");
   };
 
   return (
@@ -52,16 +62,18 @@ const SettingsScreen = ({ navigation }) => {
 
         {/* Placeholder for other settings like Account, Data Usage etc. */}
         <List.Section title="Account">
-            <List.Item
-                title="Profile"
-                left={() => <List.Icon icon="account-circle-outline" />}
-                onPress={() => alert('Navigate to Profile Screen (Not Implemented)')}
-            />
-            <List.Item
-                title="Logout"
-                left={() => <List.Icon icon="logout" />}
-                onPress={() => alert('Logout Action (Not Implemented)')}
-            />
+          <List.Item
+            title="Profile"
+            left={() => <List.Icon icon="account-circle-outline" />}
+            onPress={() =>
+              alert("Navigate to Profile Screen (Not Implemented)")
+            }
+          />
+          <List.Item
+            title="Logout"
+            left={() => <List.Icon icon="logout" />}
+            onPress={() => alert("Logout Action (Not Implemented)")}
+          />
         </List.Section>
 
         <Divider style={styles.divider} />
@@ -70,7 +82,9 @@ const SettingsScreen = ({ navigation }) => {
           <Card.Content>
             <Title>About Fluxora</Title>
             <Paragraph>Version: 1.0.0</Paragraph>
-            <Paragraph>Manage your energy predictions and analytics on the go.</Paragraph>
+            <Paragraph>
+              Manage your energy predictions and analytics on the go.
+            </Paragraph>
           </Card.Content>
         </Card>
       </ScrollView>
@@ -81,7 +95,7 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   content: {
     flex: 1,

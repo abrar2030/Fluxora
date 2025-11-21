@@ -12,7 +12,7 @@ metadata:
     compliance: "pci-dss,gdpr,soc2"
 spec:
   serviceName: redis-cluster
-  replicas: 6  # 3 masters + 3 replicas for HA
+  replicas: 6 # 3 masters + 3 replicas for HA
   selector:
     matchLabels:
       app: redis
@@ -38,309 +38,309 @@ spec:
           type: RuntimeDefault
 
       initContainers:
-      - name: redis-init
-        image: redis:7.2-alpine
-        command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
+        - name: redis-init
+          image: redis:7.2-alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
 
-          # Create Redis configuration directory
-          mkdir -p /data/conf
+              # Create Redis configuration directory
+              mkdir -p /data/conf
 
-          # Generate Redis configuration
-          cat > /data/conf/redis.conf << EOF
-          # Network and Security
-          bind 0.0.0.0
-          port 6379
-          protected-mode yes
-          requirepass ${REDIS_PASSWORD}
-          masterauth ${REDIS_PASSWORD}
+              # Generate Redis configuration
+              cat > /data/conf/redis.conf << EOF
+              # Network and Security
+              bind 0.0.0.0
+              port 6379
+              protected-mode yes
+              requirepass ${REDIS_PASSWORD}
+              masterauth ${REDIS_PASSWORD}
 
-          # TLS Configuration
-          tls-port 6380
-          tls-cert-file /etc/redis/certs/redis.crt
-          tls-key-file /etc/redis/certs/redis.key
-          tls-ca-cert-file /etc/redis/certs/ca.crt
-          tls-protocols "TLSv1.2 TLSv1.3"
-          tls-ciphers "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
-          tls-ciphersuites "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256"
+              # TLS Configuration
+              tls-port 6380
+              tls-cert-file /etc/redis/certs/redis.crt
+              tls-key-file /etc/redis/certs/redis.key
+              tls-ca-cert-file /etc/redis/certs/ca.crt
+              tls-protocols "TLSv1.2 TLSv1.3"
+              tls-ciphers "ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS"
+              tls-ciphersuites "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256"
 
-          # Cluster Configuration
-          cluster-enabled yes
-          cluster-config-file nodes.conf
-          cluster-node-timeout 15000
-          cluster-announce-hostname redis-cluster-\${HOSTNAME##*-}.redis-cluster.database.svc.cluster.local
-          cluster-announce-port 6379
-          cluster-announce-tls-port 6380
+              # Cluster Configuration
+              cluster-enabled yes
+              cluster-config-file nodes.conf
+              cluster-node-timeout 15000
+              cluster-announce-hostname redis-cluster-\${HOSTNAME##*-}.redis-cluster.database.svc.cluster.local
+              cluster-announce-port 6379
+              cluster-announce-tls-port 6380
 
-          # Persistence Configuration
-          save 900 1
-          save 300 10
-          save 60 10000
-          rdbcompression yes
-          rdbchecksum yes
-          dbfilename dump.rdb
-          dir /data
+              # Persistence Configuration
+              save 900 1
+              save 300 10
+              save 60 10000
+              rdbcompression yes
+              rdbchecksum yes
+              dbfilename dump.rdb
+              dir /data
 
-          # AOF Configuration
-          appendonly yes
-          appendfilename "appendonly.aof"
-          appendfsync everysec
-          no-appendfsync-on-rewrite no
-          auto-aof-rewrite-percentage 100
-          auto-aof-rewrite-min-size 64mb
-          aof-load-truncated yes
-          aof-use-rdb-preamble yes
+              # AOF Configuration
+              appendonly yes
+              appendfilename "appendonly.aof"
+              appendfsync everysec
+              no-appendfsync-on-rewrite no
+              auto-aof-rewrite-percentage 100
+              auto-aof-rewrite-min-size 64mb
+              aof-load-truncated yes
+              aof-use-rdb-preamble yes
 
-          # Memory Management
-          maxmemory 2gb
-          maxmemory-policy allkeys-lru
-          maxmemory-samples 5
+              # Memory Management
+              maxmemory 2gb
+              maxmemory-policy allkeys-lru
+              maxmemory-samples 5
 
-          # Logging
-          loglevel notice
-          logfile /var/log/redis/redis.log
-          syslog-enabled yes
-          syslog-ident redis
-          syslog-facility local0
+              # Logging
+              loglevel notice
+              logfile /var/log/redis/redis.log
+              syslog-enabled yes
+              syslog-ident redis
+              syslog-facility local0
 
-          # Security Settings
-          rename-command FLUSHDB ""
-          rename-command FLUSHALL ""
-          rename-command KEYS ""
-          rename-command CONFIG "CONFIG_${REDIS_CONFIG_COMMAND_SUFFIX}"
-          rename-command SHUTDOWN "SHUTDOWN_${REDIS_CONFIG_COMMAND_SUFFIX}"
-          rename-command DEBUG ""
-          rename-command EVAL ""
-          rename-command SCRIPT ""
+              # Security Settings
+              rename-command FLUSHDB ""
+              rename-command FLUSHALL ""
+              rename-command KEYS ""
+              rename-command CONFIG "CONFIG_${REDIS_CONFIG_COMMAND_SUFFIX}"
+              rename-command SHUTDOWN "SHUTDOWN_${REDIS_CONFIG_COMMAND_SUFFIX}"
+              rename-command DEBUG ""
+              rename-command EVAL ""
+              rename-command SCRIPT ""
 
-          # Client Settings
-          timeout 300
-          tcp-keepalive 300
-          tcp-backlog 511
+              # Client Settings
+              timeout 300
+              tcp-keepalive 300
+              tcp-backlog 511
 
-          # Performance Tuning
-          hash-max-ziplist-entries 512
-          hash-max-ziplist-value 64
-          list-max-ziplist-size -2
-          list-compress-depth 0
-          set-max-intset-entries 512
-          zset-max-ziplist-entries 128
-          zset-max-ziplist-value 64
-          hll-sparse-max-bytes 3000
-          stream-node-max-bytes 4096
-          stream-node-max-entries 100
+              # Performance Tuning
+              hash-max-ziplist-entries 512
+              hash-max-ziplist-value 64
+              list-max-ziplist-size -2
+              list-compress-depth 0
+              set-max-intset-entries 512
+              zset-max-ziplist-entries 128
+              zset-max-ziplist-value 64
+              hll-sparse-max-bytes 3000
+              stream-node-max-bytes 4096
+              stream-node-max-entries 100
 
-          # Slow Log
-          slowlog-log-slower-than 10000
-          slowlog-max-len 128
+              # Slow Log
+              slowlog-log-slower-than 10000
+              slowlog-max-len 128
 
-          # Latency Monitoring
-          latency-monitor-threshold 100
+              # Latency Monitoring
+              latency-monitor-threshold 100
 
-          # Client Output Buffer Limits
-          client-output-buffer-limit normal 0 0 0
-          client-output-buffer-limit replica 256mb 64mb 60
-          client-output-buffer-limit pubsub 32mb 8mb 60
+              # Client Output Buffer Limits
+              client-output-buffer-limit normal 0 0 0
+              client-output-buffer-limit replica 256mb 64mb 60
+              client-output-buffer-limit pubsub 32mb 8mb 60
 
-          # Notifications
-          notify-keyspace-events Ex
-          EOF
+              # Notifications
+              notify-keyspace-events Ex
+              EOF
 
-          # Set proper permissions
-          chown -R redis:redis /data
-          chmod 750 /data
-          chmod 640 /data/conf/redis.conf
+              # Set proper permissions
+              chown -R redis:redis /data
+              chmod 750 /data
+              chmod 640 /data/conf/redis.conf
 
-        env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: password
-        - name: REDIS_CONFIG_COMMAND_SUFFIX
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: config-suffix
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
+            - name: REDIS_CONFIG_COMMAND_SUFFIX
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: config-suffix
 
-        volumeMounts:
-        - name: redis-data
-          mountPath: /data
-        - name: redis-certs
-          mountPath: /etc/redis/certs
-          readOnly: true
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-certs
+              mountPath: /etc/redis/certs
+              readOnly: true
 
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
-          allowPrivilegeEscalation: true
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: true
 
       containers:
-      - name: redis
-        image: redis:7.2-alpine
-        ports:
-        - containerPort: 6379
-          name: redis
-        - containerPort: 6380
-          name: redis-tls
-        - containerPort: 16379
-          name: cluster-bus
+        - name: redis
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 6379
+              name: redis
+            - containerPort: 6380
+              name: redis-tls
+            - containerPort: 16379
+              name: cluster-bus
 
-        command:
-        - redis-server
-        - /data/conf/redis.conf
+          command:
+            - redis-server
+            - /data/conf/redis.conf
 
-        env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: password
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
 
-        volumeMounts:
-        - name: redis-data
-          mountPath: /data
-        - name: redis-certs
-          mountPath: /etc/redis/certs
-          readOnly: true
-        - name: redis-logs
-          mountPath: /var/log/redis
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-certs
+              mountPath: /etc/redis/certs
+              readOnly: true
+            - name: redis-logs
+              mountPath: /var/log/redis
 
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 3Gi
-          requests:
-            cpu: 500m
-            memory: 2Gi
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 3Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
 
-        livenessProbe:
-          exec:
-            command:
-            - redis-cli
-            - --tls
-            - --cert
-            - /etc/redis/certs/redis.crt
-            - --key
-            - /etc/redis/certs/redis.key
-            - --cacert
-            - /etc/redis/certs/ca.crt
-            - -a
-            - $(REDIS_PASSWORD)
-            - ping
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --tls
+                - --cert
+                - /etc/redis/certs/redis.crt
+                - --key
+                - /etc/redis/certs/redis.key
+                - --cacert
+                - /etc/redis/certs/ca.crt
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
 
-        readinessProbe:
-          exec:
-            command:
-            - redis-cli
-            - --tls
-            - --cert
-            - /etc/redis/certs/redis.crt
-            - --key
-            - /etc/redis/certs/redis.key
-            - --cacert
-            - /etc/redis/certs/ca.crt
-            - -a
-            - $(REDIS_PASSWORD)
-            - ping
-          initialDelaySeconds: 15
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --tls
+                - --cert
+                - /etc/redis/certs/redis.crt
+                - --key
+                - /etc/redis/certs/redis.key
+                - --cacert
+                - /etc/redis/certs/ca.crt
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 999
-          runAsGroup: 999
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
 
-      # Redis Exporter for Monitoring
-      - name: redis-exporter
-        image: oliver006/redis_exporter:latest
-        ports:
-        - containerPort: 9121
-          name: metrics
+        # Redis Exporter for Monitoring
+        - name: redis-exporter
+          image: oliver006/redis_exporter:latest
+          ports:
+            - containerPort: 9121
+              name: metrics
 
-        env:
-        - name: REDIS_ADDR
-          value: "rediss://localhost:6380"
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: password
-        - name: REDIS_EXPORTER_TLS_CLIENT_CERT_FILE
-          value: "/etc/redis/certs/redis.crt"
-        - name: REDIS_EXPORTER_TLS_CLIENT_KEY_FILE
-          value: "/etc/redis/certs/redis.key"
-        - name: REDIS_EXPORTER_TLS_CA_CERT_FILE
-          value: "/etc/redis/certs/ca.crt"
-        - name: REDIS_EXPORTER_SKIP_TLS_VERIFICATION
-          value: "false"
+          env:
+            - name: REDIS_ADDR
+              value: "rediss://localhost:6380"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
+            - name: REDIS_EXPORTER_TLS_CLIENT_CERT_FILE
+              value: "/etc/redis/certs/redis.crt"
+            - name: REDIS_EXPORTER_TLS_CLIENT_KEY_FILE
+              value: "/etc/redis/certs/redis.key"
+            - name: REDIS_EXPORTER_TLS_CA_CERT_FILE
+              value: "/etc/redis/certs/ca.crt"
+            - name: REDIS_EXPORTER_SKIP_TLS_VERIFICATION
+              value: "false"
 
-        args:
-        - --include-system-metrics
-        - --export-client-list
-        - --check-keys=*
-        - --check-single-keys=*
+          args:
+            - --include-system-metrics
+            - --export-client-list
+            - --check-keys=*
+            - --check-single-keys=*
 
-        volumeMounts:
-        - name: redis-certs
-          mountPath: /etc/redis/certs
-          readOnly: true
+          volumeMounts:
+            - name: redis-certs
+              mountPath: /etc/redis/certs
+              readOnly: true
 
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 59000
-          runAsGroup: 59000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
       volumes:
-      - name: redis-certs
-        secret:
-          secretName: redis-tls-certs
-          defaultMode: 0400
-      - name: redis-logs
-        emptyDir:
-          sizeLimit: 1Gi
+        - name: redis-certs
+          secret:
+            secretName: redis-tls-certs
+            defaultMode: 0400
+        - name: redis-logs
+          emptyDir:
+            sizeLimit: 1Gi
 
       serviceAccountName: redis-service-account
 
   volumeClaimTemplates:
-  - metadata:
-      name: redis-data
-      labels:
-        app: redis
-        compliance: "pci-dss,gdpr,soc2"
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: "gp3-encrypted"
-      resources:
-        requests:
-          storage: 50Gi
+    - metadata:
+        name: redis-data
+        labels:
+          app: redis
+          compliance: "pci-dss,gdpr,soc2"
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "gp3-encrypted"
+        resources:
+          requests:
+            storage: 50Gi
 
 ---
 # Redis Cluster Service
@@ -359,15 +359,15 @@ spec:
     app: redis
     component: cache
   ports:
-  - port: 6379
-    name: redis
-    protocol: TCP
-  - port: 6380
-    name: redis-tls
-    protocol: TCP
-  - port: 16379
-    name: cluster-bus
-    protocol: TCP
+    - port: 6379
+      name: redis
+      protocol: TCP
+    - port: 6380
+      name: redis-tls
+      protocol: TCP
+    - port: 16379
+      name: cluster-bus
+      protocol: TCP
 
 ---
 # Redis Cluster Headless Service for Discovery
@@ -386,12 +386,12 @@ spec:
     app: redis
     component: cache
   ports:
-  - port: 6379
-    name: redis
-    protocol: TCP
-  - port: 6380
-    name: redis-tls
-    protocol: TCP
+    - port: 6379
+      name: redis
+      protocol: TCP
+    - port: 6380
+      name: redis-tls
+      protocol: TCP
 
 ---
 # Redis Cluster Initialization Job
@@ -418,71 +418,71 @@ spec:
         fsGroup: 999
 
       containers:
-      - name: redis-cluster-init
-        image: redis:7.2-alpine
-        command:
-        - /bin/sh
-        - -c
-        - |
-          set -e
+        - name: redis-cluster-init
+          image: redis:7.2-alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
 
-          echo "Waiting for Redis pods to be ready..."
-          sleep 60
+              echo "Waiting for Redis pods to be ready..."
+              sleep 60
 
-          # Build cluster node list
-          NODES=""
-          for i in $(seq 0 5); do
-            NODES="$NODES redis-cluster-$i.redis-cluster.database.svc.cluster.local:6379"
-          done
+              # Build cluster node list
+              NODES=""
+              for i in $(seq 0 5); do
+                NODES="$NODES redis-cluster-$i.redis-cluster.database.svc.cluster.local:6379"
+              done
 
-          echo "Creating Redis cluster with nodes: $NODES"
+              echo "Creating Redis cluster with nodes: $NODES"
 
-          # Create cluster
-          redis-cli \
-            --cluster create $NODES \
-            --cluster-replicas 1 \
-            --cluster-yes \
-            -a $REDIS_PASSWORD
+              # Create cluster
+              redis-cli \
+                --cluster create $NODES \
+                --cluster-replicas 1 \
+                --cluster-yes \
+                -a $REDIS_PASSWORD
 
-          echo "Redis cluster created successfully"
+              echo "Redis cluster created successfully"
 
-          # Verify cluster status
-          redis-cli \
-            -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
-            -p 6379 \
-            -a $REDIS_PASSWORD \
-            cluster info
+              # Verify cluster status
+              redis-cli \
+                -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
+                -p 6379 \
+                -a $REDIS_PASSWORD \
+                cluster info
 
-          redis-cli \
-            -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
-            -p 6379 \
-            -a $REDIS_PASSWORD \
-            cluster nodes
+              redis-cli \
+                -h redis-cluster-0.redis-cluster.database.svc.cluster.local \
+                -p 6379 \
+                -a $REDIS_PASSWORD \
+                cluster nodes
 
-        env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: password
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
 
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 999
-          runAsGroup: 999
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
       restartPolicy: OnFailure
       serviceAccountName: redis-service-account
@@ -510,12 +510,12 @@ metadata:
     app: redis
     compliance: "pci-dss,gdpr,soc2"
 rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["configmaps", "secrets"]
-  verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -527,9 +527,9 @@ metadata:
     app: redis
     compliance: "pci-dss,gdpr,soc2"
 subjects:
-- kind: ServiceAccount
-  name: redis-service-account
-  namespace: database
+  - kind: ServiceAccount
+    name: redis-service-account
+    namespace: database
 roleRef:
   kind: Role
   name: redis-role
@@ -566,77 +566,77 @@ spec:
         fsGroup: 999
 
       containers:
-      - name: redis-sentinel
-        image: redis:7.2-alpine
-        ports:
-        - containerPort: 26379
-          name: sentinel
+        - name: redis-sentinel
+          image: redis:7.2-alpine
+          ports:
+            - containerPort: 26379
+              name: sentinel
 
-        command:
-        - redis-sentinel
-        - /etc/redis/sentinel.conf
+          command:
+            - redis-sentinel
+            - /etc/redis/sentinel.conf
 
-        env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: redis-credentials
-              key: password
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-credentials
+                  key: password
 
-        volumeMounts:
-        - name: sentinel-config
-          mountPath: /etc/redis
-          readOnly: true
-        - name: redis-certs
-          mountPath: /etc/redis/certs
-          readOnly: true
+          volumeMounts:
+            - name: sentinel-config
+              mountPath: /etc/redis
+              readOnly: true
+            - name: redis-certs
+              mountPath: /etc/redis/certs
+              readOnly: true
 
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
 
-        livenessProbe:
-          exec:
-            command:
-            - redis-cli
-            - -p
-            - "26379"
-            - ping
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -p
+                - "26379"
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
 
-        readinessProbe:
-          exec:
-            command:
-            - redis-cli
-            - -p
-            - "26379"
-            - ping
-          initialDelaySeconds: 15
-          periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -p
+                - "26379"
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 5
 
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 999
-          runAsGroup: 999
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
       volumes:
-      - name: sentinel-config
-        configMap:
-          name: redis-sentinel-config
-      - name: redis-certs
-        secret:
-          secretName: redis-tls-certs
-          defaultMode: 0400
+        - name: sentinel-config
+          configMap:
+            name: redis-sentinel-config
+        - name: redis-certs
+          secret:
+            secretName: redis-tls-certs
+            defaultMode: 0400
 
       serviceAccountName: redis-service-account
 

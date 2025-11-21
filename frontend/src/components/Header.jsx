@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -12,16 +12,16 @@ import {
   Tooltip,
   InputBase,
   alpha,
-  useTheme
-} from '@mui/material';
+  useTheme,
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
   Search as SearchIcon,
   AccountCircle,
   Settings as SettingsIcon,
-  ExitToApp as LogoutIcon
-} from '@mui/icons-material';
+  ExitToApp as LogoutIcon,
+} from "@mui/icons-material";
 
 const Header = ({ handleDrawerToggle }) => {
   const theme = useTheme();
@@ -49,9 +49,9 @@ const Header = ({ handleDrawerToggle }) => {
       position="fixed"
       sx={{
         zIndex: theme.zIndex.drawer + 1,
-        backgroundColor: 'background.paper',
-        color: 'text.primary',
-        boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.05)'
+        backgroundColor: "background.paper",
+        color: "text.primary",
+        boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.05)",
       }}
     >
       <Toolbar>
@@ -60,48 +60,52 @@ const Header = ({ handleDrawerToggle }) => {
           aria-label="open drawer"
           edge="start"
           onClick={handleDrawerToggle}
-          sx={{ mr: 2, display: { sm: 'none' } }}
+          sx={{ mr: 2, display: { sm: "none" } }}
         >
           <MenuIcon />
         </IconButton>
 
-        <Box sx={{
-          position: 'relative',
-          borderRadius: 2,
-          backgroundColor: alpha(theme.palette.common.black, 0.04),
-          '&:hover': {
-            backgroundColor: alpha(theme.palette.common.black, 0.08),
-          },
-          marginRight: 2,
-          marginLeft: 0,
-          width: '100%',
-          maxWidth: '400px',
-          [theme.breakpoints.up('sm')]: {
-            marginLeft: 3,
-            width: 'auto',
-          },
-        }}>
-          <Box sx={{
-            padding: theme.spacing(0, 2),
-            height: '100%',
-            position: 'absolute',
-            pointerEvents: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
+        <Box
+          sx={{
+            position: "relative",
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.common.black, 0.04),
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.common.black, 0.08),
+            },
+            marginRight: 2,
+            marginLeft: 0,
+            width: "100%",
+            maxWidth: "400px",
+            [theme.breakpoints.up("sm")]: {
+              marginLeft: 3,
+              width: "auto",
+            },
+          }}
+        >
+          <Box
+            sx={{
+              padding: theme.spacing(0, 2),
+              height: "100%",
+              position: "absolute",
+              pointerEvents: "none",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <SearchIcon />
           </Box>
           <InputBase
             placeholder="Search…"
             sx={{
-              color: 'inherit',
+              color: "inherit",
               padding: theme.spacing(1, 1, 1, 0),
               paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-              transition: theme.transitions.create('width'),
-              width: '100%',
-              [theme.breakpoints.up('md')]: {
-                width: '20ch',
+              transition: theme.transitions.create("width"),
+              width: "100%",
+              [theme.breakpoints.up("md")]: {
+                width: "20ch",
               },
             }}
           />
@@ -109,12 +113,9 @@ const Header = ({ handleDrawerToggle }) => {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
           <Tooltip title="Notifications">
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationsMenuOpen}
-            >
+            <IconButton color="inherit" onClick={handleNotificationsMenuOpen}>
               <Badge badgeContent={4} color="error">
                 <NotificationsIcon />
               </Badge>
@@ -134,7 +135,7 @@ const Header = ({ handleDrawerToggle }) => {
                 sx={{
                   width: 32,
                   height: 32,
-                  backgroundColor: theme.palette.primary.main
+                  backgroundColor: theme.palette.primary.main,
                 }}
               >
                 <AccountCircle />
@@ -148,20 +149,24 @@ const Header = ({ handleDrawerToggle }) => {
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         keepMounted
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="subtitle1" fontWeight="bold">Admin User</Typography>
-          <Typography variant="body2" color="text.secondary">admin@fluxora.com</Typography>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Admin User
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            admin@fluxora.com
+          </Typography>
         </Box>
         <MenuItem onClick={handleMenuClose}>
           <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
@@ -177,25 +182,31 @@ const Header = ({ handleDrawerToggle }) => {
       <Menu
         anchorEl={notificationsAnchorEl}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         keepMounted
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
+          vertical: "top",
+          horizontal: "right",
         }}
         open={Boolean(notificationsAnchorEl)}
         onClose={handleNotificationsMenuClose}
       >
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant="subtitle1" fontWeight="bold">Notifications</Typography>
+          <Typography variant="subtitle1" fontWeight="bold">
+            Notifications
+          </Typography>
         </Box>
         <MenuItem onClick={handleNotificationsMenuClose}>
-          <Typography variant="body2">Energy consumption spike detected</Typography>
+          <Typography variant="body2">
+            Energy consumption spike detected
+          </Typography>
         </MenuItem>
         <MenuItem onClick={handleNotificationsMenuClose}>
-          <Typography variant="body2">New prediction model available</Typography>
+          <Typography variant="body2">
+            New prediction model available
+          </Typography>
         </MenuItem>
         <MenuItem onClick={handleNotificationsMenuClose}>
           <Typography variant="body2">System update completed</Typography>

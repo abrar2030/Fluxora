@@ -1,11 +1,13 @@
 # System Architecture
 
 ## Overview
+
 Fluxora follows a modern, scalable architecture designed for maintainability and performance. The system is divided into several key components that work together to provide a robust application. The project has recently undergone restructuring to consolidate shared functionalities and improve modularity.
 
 ## System Components
 
 ### 1. Frontend Layer (Conceptual - Not Implemented in Detail)
+
 - **Technology**: Assumed to be a React-based web application (as per `web-frontend` structure).
 - **Key Features**:
   - Responsive UI components
@@ -15,11 +17,13 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 - **Directory**: `web-frontend/` (Contains placeholders, not fully implemented)
 
 ### 2. Mobile Frontend Layer (Conceptual - Not Implemented)
+
 - **Technology**: Assumed to be a React Native or similar mobile application.
 - **Key Features**: Mobile-specific UI, native integrations.
 - **Directory**: `mobile-frontend/` (Contains placeholders, not fully implemented)
 
 ### 3. Backend/Shared Logic Layer
+
 - **Technology**: Python-based modules and utilities.
 - **Key Features**:
   - Core business logic (if applicable, currently focused on utilities)
@@ -35,6 +39,7 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
   - `packages/shared/visualization/`: Contains `plot_utils.py` for generating various plots.
 
 ### 4. Monitoring and Tools Layer
+
 - **Components**:
   - Scripts for monitoring model performance and data drift.
   - Example Grafana dashboard configuration.
@@ -45,6 +50,7 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 - **Directory**: `tools/monitoring/` (Consolidated from the previous `monitoring/`)
 
 ### 5. Notebooks and Experimentation
+
 - **Components**:
   - Jupyter notebooks for data exploration, model experimentation, and visualization.
   - Utility scripts for notebook environments.
@@ -57,12 +63,14 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 ## Data Flow (Conceptual)
 
 ### Request Flow (If a full application with API was present)
+
 1. Client request (Web/Mobile) -> API Gateway (if used)
 2. API Gateway -> Backend Services (e.g., FastAPI/Flask app using `packages/shared` logic)
 3. Backend Services -> Data Layer / Feature Store
 4. Response flows back through the same path.
 
 ### Data Processing Flow (ML Pipeline Focus)
+
 1. Data ingestion (handled by `packages/shared/data/make_dataset.py` or external scripts).
 2. Feature Engineering (conceptualized in `packages/shared/features/`).
 3. Feature Storage/Retrieval (`packages/shared/data/feature_store.py`).
@@ -73,11 +81,13 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 ## Security Architecture (Conceptual - Standard Practices)
 
 ### Authentication (If applicable)
+
 - JWT-based authentication for APIs.
 - OAuth 2.0 integration.
 - Role-based access control.
 
 ### Data Security
+
 - Encryption at rest and in transit.
 - Secure key management.
 - Secure handling of sensitive data in configurations and logs (leveraging the logger for appropriate levels).
@@ -85,21 +95,25 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 ## Scalability Considerations (Conceptual)
 
 ### Horizontal Scaling
+
 - Stateless services if backend APIs are developed.
 - Load balancing.
 
 ### Vertical Scaling
+
 - Resource optimization in data processing and model serving.
 - Efficient use of libraries like Pandas/Numpy.
 
 ## Monitoring and Logging (Implemented)
 
 ### System Monitoring
+
 - **Application Metrics**: Custom metrics for model performance, API requests, and latency are exposed via Prometheus client in `tools/monitoring/performance.py`.
 - **Data Drift**: Detected using `tools/monitoring/drift_detection.py` with Evidently, with alerts via `packages/shared/utils/alert_handler.py`.
 - **System Resources**: Monitored by `packages/shared/utils/monitoring.py` (CPU, memory, disk).
 
 ### Logging
+
 - **Structured Logging**: Implemented via `packages/shared/utils/logger.py`, providing configurable and consistent logging across modules.
 - **Log Aggregation**: (External setup) Logs can be directed to files or stdout for collection by systems like ELK stack or Splunk.
 - **Error Tracking**: Alerts for critical errors are handled by `packages/shared/utils/alert_handler.py`.
@@ -107,14 +121,17 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 ## Deployment Architecture (Conceptual)
 
 ### Environments
+
 - Development, Staging, Production (standard practice).
 
 ### CI/CD Pipeline
+
 - Automated testing, building, and deployment (standard practice).
 
 ## Technology Stack (Current & Assumed)
 
 ### Core & Utilities (Python)
+
 - Pandas, NumPy for data manipulation.
 - Scikit-learn for ML tasks (metrics, model splitting).
 - Evidently for data drift detection.
@@ -122,15 +139,19 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 - Matplotlib, Seaborn for plotting.
 
 ### Frontend (Assumed/Placeholder)
+
 - React, Redux/Context API, CSS Modules/Styled Components, Axios.
 
 ### Backend API (Conceptual - if built)
+
 - Python, FastAPI/Flask, SQLAlchemy, Pydantic.
 
 ### Infrastructure (Conceptual)
+
 - Docker, Kubernetes, Terraform, Cloud Provider (AWS/GCP/Azure).
 
 ## Key Changes from Restructuring:
+
 - The `src/` directory has been removed, and its relevant functionalities (data processing, features, models, utils) have been consolidated into `packages/shared/`.
 - The `monitoring/` directory has been removed, and its contents merged into `tools/monitoring/`.
 - Empty placeholder directories like `packages/ui/` and `packages/utils/` (top-level) have been removed.
@@ -138,6 +159,7 @@ Fluxora follows a modern, scalable architecture designed for maintainability and
 - Monitoring scripts in `tools/monitoring/` (`drift_detection.py`, `performance.py`) have been made more robust and integrated with the shared utilities.
 
 ## Additional Resources
+
 - [Project Overview](PROJECT_OVERVIEW.md)
 - [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
 - [API Documentation](API_DOCS.md) (Needs review for relevance to current structure)

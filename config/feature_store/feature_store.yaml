@@ -2,6 +2,6 @@ project: energy_forecasting
 registry: s3://your-bucket/feature_store/registry.db
 provider: aws
 online_store:
-    type: redis
-    connection_string: "redis:6379"
+  type: redis
+  connection_string: "redis:6379"
 entity_key_serialization_version: 2

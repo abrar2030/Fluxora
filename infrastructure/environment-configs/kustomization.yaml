@@ -13,18 +13,18 @@ metadata:
 
 # Base Resources
 resources:
-- ../kubernetes/base/backend-deployment.yaml
-- ../kubernetes/base/frontend-deployment.yaml
-- ../kubernetes/base/backend-service.yaml
-- ../kubernetes/base/frontend-service.yaml
-- ../kubernetes/base/ingress.yaml
-- ../database/mysql-cluster.yaml
-- ../database/redis-cluster.yaml
-- ../storage/storage-classes.yaml
-- ../monitoring/prometheus-config.yaml
-- ../monitoring/alertmanager-config.yaml
-- ../secrets-management/main.tf
-- ../compliance/main.tf
+  - ../kubernetes/base/backend-deployment.yaml
+  - ../kubernetes/base/frontend-deployment.yaml
+  - ../kubernetes/base/backend-service.yaml
+  - ../kubernetes/base/frontend-service.yaml
+  - ../kubernetes/base/ingress.yaml
+  - ../database/mysql-cluster.yaml
+  - ../database/redis-cluster.yaml
+  - ../storage/storage-classes.yaml
+  - ../monitoring/prometheus-config.yaml
+  - ../monitoring/alertmanager-config.yaml
+  - ../secrets-management/main.tf
+  - ../compliance/main.tf
 
 # Common Labels
 commonLabels:
@@ -44,90 +44,90 @@ namespace: fluxora
 
 # Images (will be overridden in overlays)
 images:
-- name: fluxora-backend
-  newName: ghcr.io/fluxora/backend
-  newTag: latest
-- name: fluxora-frontend
-  newName: ghcr.io/fluxora/frontend
-  newTag: latest
+  - name: fluxora-backend
+    newName: ghcr.io/fluxora/backend
+    newTag: latest
+  - name: fluxora-frontend
+    newName: ghcr.io/fluxora/frontend
+    newTag: latest
 
 # ConfigMap Generator
 configMapGenerator:
-- name: fluxora-config
-  literals:
-  - APP_NAME=fluxora
-  - ENVIRONMENT=base
-  - LOG_LEVEL=INFO
-  - METRICS_ENABLED=true
-  - AUDIT_LOGGING=true
-  - COMPLIANCE_MODE=financial
-  - PCI_DSS_ENABLED=true
-  - GDPR_ENABLED=true
-  - SOC2_ENABLED=true
+  - name: fluxora-config
+    literals:
+      - APP_NAME=fluxora
+      - ENVIRONMENT=base
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - AUDIT_LOGGING=true
+      - COMPLIANCE_MODE=financial
+      - PCI_DSS_ENABLED=true
+      - GDPR_ENABLED=true
+      - SOC2_ENABLED=true
 
 # Secret Generator
 secretGenerator:
-- name: fluxora-secrets
-  literals:
-  - DATABASE_PASSWORD=placeholder  # Will be replaced by external secrets
-  - JWT_SECRET=placeholder
-  - API_KEY=placeholder
-  type: Opaque
+  - name: fluxora-secrets
+    literals:
+      - DATABASE_PASSWORD=placeholder # Will be replaced by external secrets
+      - JWT_SECRET=placeholder
+      - API_KEY=placeholder
+    type: Opaque
 
 # Patches
 patches:
-# Security Context Patch
-- target:
-    kind: Deployment
-    labelSelector: "app.kubernetes.io/name=fluxora"
-  patch: |-
-    - op: add
-      path: /spec/template/spec/securityContext
-      value:
-        runAsNonRoot: true
-        runAsUser: 10001
-        runAsGroup: 10001
-        fsGroup: 10001
-        seccompProfile:
-          type: RuntimeDefault
+  # Security Context Patch
+  - target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/name=fluxora"
+    patch: |-
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+          fsGroup: 10001
+          seccompProfile:
+            type: RuntimeDefault
 
-# Resource Limits Patch
-- target:
-    kind: Deployment
-    name: fluxora-backend
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-          ephemeral-storage: 2Gi
-        requests:
-          cpu: 1000m
-          memory: 2Gi
-          ephemeral-storage: 1Gi
+  # Resource Limits Patch
+  - target:
+      kind: Deployment
+      name: fluxora-backend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+            ephemeral-storage: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+            ephemeral-storage: 1Gi
 
-# Compliance Labels Patch
-- target:
-    kind: "*"
-  patch: |-
-    - op: add
-      path: /metadata/labels/compliance.fluxora.com~1data-classification
-      value: restricted
-    - op: add
-      path: /metadata/labels/compliance.fluxora.com~1backup-required
-      value: "true"
-    - op: add
-      path: /metadata/labels/compliance.fluxora.com~1encryption-required
-      value: "true"
+  # Compliance Labels Patch
+  - target:
+      kind: "*"
+    patch: |-
+      - op: add
+        path: /metadata/labels/compliance.fluxora.com~1data-classification
+        value: restricted
+      - op: add
+        path: /metadata/labels/compliance.fluxora.com~1backup-required
+        value: "true"
+      - op: add
+        path: /metadata/labels/compliance.fluxora.com~1encryption-required
+        value: "true"
 
 # Replicas
 replicas:
-- name: fluxora-backend
-  count: 3
-- name: fluxora-frontend
-  count: 3
+  - name: fluxora-backend
+    count: 3
+  - name: fluxora-frontend
+    count: 3
 
 ---
 # Development Environment Overlay
@@ -141,7 +141,7 @@ metadata:
 
 # Base
 resources:
-- ../base
+  - ../base
 
 # Namespace Override
 namespace: fluxora-dev
@@ -159,70 +159,70 @@ commonAnnotations:
 
 # Images with development tags
 images:
-- name: fluxora-backend
-  newName: ghcr.io/fluxora/backend
-  newTag: dev-latest
-- name: fluxora-frontend
-  newName: ghcr.io/fluxora/frontend
-  newTag: dev-latest
+  - name: fluxora-backend
+    newName: ghcr.io/fluxora/backend
+    newTag: dev-latest
+  - name: fluxora-frontend
+    newName: ghcr.io/fluxora/frontend
+    newTag: dev-latest
 
 # Development ConfigMap
 configMapGenerator:
-- name: fluxora-config
-  behavior: merge
-  literals:
-  - ENVIRONMENT=development
-  - LOG_LEVEL=DEBUG
-  - DEBUG_MODE=true
-  - RATE_LIMITING=false
-  - CACHE_TTL=60
+  - name: fluxora-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - DEBUG_MODE=true
+      - RATE_LIMITING=false
+      - CACHE_TTL=60
 
 # Development Replicas
 replicas:
-- name: fluxora-backend
-  count: 1
-- name: fluxora-frontend
-  count: 1
+  - name: fluxora-backend
+    count: 1
+  - name: fluxora-frontend
+    count: 1
 
 # Development-specific Patches
 patches:
-# Reduce resource requirements for development
-- target:
-    kind: Deployment
-    name: fluxora-backend
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 1000m
-          memory: 2Gi
-        requests:
-          cpu: 500m
-          memory: 1Gi
+  # Reduce resource requirements for development
+  - target:
+      kind: Deployment
+      name: fluxora-backend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
 
-- target:
-    kind: Deployment
-    name: fluxora-frontend
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 512Mi
+  - target:
+      kind: Deployment
+      name: fluxora-frontend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
 
-# Development ingress
-- target:
-    kind: Ingress
-    name: fluxora-ingress
-  patch: |-
-    - op: replace
-      path: /spec/rules/0/host
-      value: dev.fluxora.com
+  # Development ingress
+  - target:
+      kind: Ingress
+      name: fluxora-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: dev.fluxora.com
 
 ---
 # Staging Environment Overlay
@@ -236,7 +236,7 @@ metadata:
 
 # Base
 resources:
-- ../base
+  - ../base
 
 # Namespace Override
 namespace: fluxora-staging
@@ -254,56 +254,56 @@ commonAnnotations:
 
 # Images with staging tags
 images:
-- name: fluxora-backend
-  newName: ghcr.io/fluxora/backend
-  newTag: staging-latest
-- name: fluxora-frontend
-  newName: ghcr.io/fluxora/frontend
-  newTag: staging-latest
+  - name: fluxora-backend
+    newName: ghcr.io/fluxora/backend
+    newTag: staging-latest
+  - name: fluxora-frontend
+    newName: ghcr.io/fluxora/frontend
+    newTag: staging-latest
 
 # Staging ConfigMap
 configMapGenerator:
-- name: fluxora-config
-  behavior: merge
-  literals:
-  - ENVIRONMENT=staging
-  - LOG_LEVEL=INFO
-  - DEBUG_MODE=false
-  - RATE_LIMITING=true
-  - CACHE_TTL=300
+  - name: fluxora-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=INFO
+      - DEBUG_MODE=false
+      - RATE_LIMITING=true
+      - CACHE_TTL=300
 
 # Staging Replicas
 replicas:
-- name: fluxora-backend
-  count: 2
-- name: fluxora-frontend
-  count: 2
+  - name: fluxora-backend
+    count: 2
+  - name: fluxora-frontend
+    count: 2
 
 # Staging-specific Patches
 patches:
-# Moderate resource requirements for staging
-- target:
-    kind: Deployment
-    name: fluxora-backend
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 1500m
-          memory: 3Gi
-        requests:
-          cpu: 750m
-          memory: 1.5Gi
+  # Moderate resource requirements for staging
+  - target:
+      kind: Deployment
+      name: fluxora-backend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 1500m
+            memory: 3Gi
+          requests:
+            cpu: 750m
+            memory: 1.5Gi
 
-# Staging ingress
-- target:
-    kind: Ingress
-    name: fluxora-ingress
-  patch: |-
-    - op: replace
-      path: /spec/rules/0/host
-      value: staging.fluxora.com
+  # Staging ingress
+  - target:
+      kind: Ingress
+      name: fluxora-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: staging.fluxora.com
 
 ---
 # Production Environment Overlay
@@ -317,7 +317,7 @@ metadata:
 
 # Base
 resources:
-- ../base
+  - ../base
 
 # Namespace Override
 namespace: fluxora
@@ -337,122 +337,122 @@ commonAnnotations:
 
 # Images with production tags
 images:
-- name: fluxora-backend
-  newName: ghcr.io/fluxora/backend
-  newTag: v1.0.0
-- name: fluxora-frontend
-  newName: ghcr.io/fluxora/frontend
-  newTag: v1.0.0
+  - name: fluxora-backend
+    newName: ghcr.io/fluxora/backend
+    newTag: v1.0.0
+  - name: fluxora-frontend
+    newName: ghcr.io/fluxora/frontend
+    newTag: v1.0.0
 
 # Production ConfigMap
 configMapGenerator:
-- name: fluxora-config
-  behavior: merge
-  literals:
-  - ENVIRONMENT=production
-  - LOG_LEVEL=WARN
-  - DEBUG_MODE=false
-  - RATE_LIMITING=true
-  - CACHE_TTL=3600
-  - SECURITY_HEADERS=strict
-  - CORS_ORIGINS=https://fluxora.com,https://www.fluxora.com
+  - name: fluxora-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=WARN
+      - DEBUG_MODE=false
+      - RATE_LIMITING=true
+      - CACHE_TTL=3600
+      - SECURITY_HEADERS=strict
+      - CORS_ORIGINS=https://fluxora.com,https://www.fluxora.com
 
 # Production Replicas (uses base values)
 replicas:
-- name: fluxora-backend
-  count: 5
-- name: fluxora-frontend
-  count: 3
+  - name: fluxora-backend
+    count: 5
+  - name: fluxora-frontend
+    count: 3
 
 # Production-specific Patches
 patches:
-# Production resource requirements
-- target:
-    kind: Deployment
-    name: fluxora-backend
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 2000m
-          memory: 4Gi
-          ephemeral-storage: 2Gi
-        requests:
-          cpu: 1000m
-          memory: 2Gi
-          ephemeral-storage: 1Gi
+  # Production resource requirements
+  - target:
+      kind: Deployment
+      name: fluxora-backend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+            ephemeral-storage: 2Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+            ephemeral-storage: 1Gi
 
-# Production ingress with multiple hosts
-- target:
-    kind: Ingress
-    name: fluxora-ingress
-  patch: |-
-    - op: replace
-      path: /spec/rules
-      value:
-      - host: fluxora.com
-        http:
-          paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: fluxora-frontend
-                port:
-                  number: 80
-      - host: www.fluxora.com
-        http:
-          paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: fluxora-frontend
-                port:
-                  number: 80
-      - host: api.fluxora.com
-        http:
-          paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: fluxora-backend
-                port:
-                  number: 8000
+  # Production ingress with multiple hosts
+  - target:
+      kind: Ingress
+      name: fluxora-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules
+        value:
+        - host: fluxora.com
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: fluxora-frontend
+                  port:
+                    number: 80
+        - host: www.fluxora.com
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: fluxora-frontend
+                  port:
+                    number: 80
+        - host: api.fluxora.com
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: fluxora-backend
+                  port:
+                    number: 8000
 
-# Production TLS configuration
-- target:
-    kind: Ingress
-    name: fluxora-ingress
-  patch: |-
-    - op: add
-      path: /spec/tls
-      value:
-      - secretName: fluxora-com-tls
-        hosts:
-        - fluxora.com
-        - www.fluxora.com
-      - secretName: api-fluxora-com-tls
-        hosts:
-        - api.fluxora.com
+  # Production TLS configuration
+  - target:
+      kind: Ingress
+      name: fluxora-ingress
+    patch: |-
+      - op: add
+        path: /spec/tls
+        value:
+        - secretName: fluxora-com-tls
+          hosts:
+          - fluxora.com
+          - www.fluxora.com
+        - secretName: api-fluxora-com-tls
+          hosts:
+          - api.fluxora.com
 
-# Production security annotations
-- target:
-    kind: Ingress
-    name: fluxora-ingress
-  patch: |-
-    - op: add
-      path: /metadata/annotations/nginx.ingress.kubernetes.io~1configuration-snippet
-      value: |
-        more_set_headers "X-Frame-Options: DENY";
-        more_set_headers "X-Content-Type-Options: nosniff";
-        more_set_headers "X-XSS-Protection: 1; mode=block";
-        more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
-        more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.fluxora.com; frame-ancestors 'none';";
-        more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
-        more_set_headers "Permissions-Policy: geolocation=(), microphone=(), camera=()";
+  # Production security annotations
+  - target:
+      kind: Ingress
+      name: fluxora-ingress
+    patch: |-
+      - op: add
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1configuration-snippet
+        value: |
+          more_set_headers "X-Frame-Options: DENY";
+          more_set_headers "X-Content-Type-Options: nosniff";
+          more_set_headers "X-XSS-Protection: 1; mode=block";
+          more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
+          more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.fluxora.com; frame-ancestors 'none';";
+          more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+          more_set_headers "Permissions-Policy: geolocation=(), microphone=(), camera=()";
 
 ---
 # Multi-Region Production Overlay
@@ -466,7 +466,7 @@ metadata:
 
 # Base
 resources:
-- ../production
+  - ../production
 
 # Multi-region Labels
 commonLabels:
@@ -482,47 +482,47 @@ commonAnnotations:
 
 # Multi-region ConfigMap
 configMapGenerator:
-- name: fluxora-config
-  behavior: merge
-  literals:
-  - DEPLOYMENT_STRATEGY=multi-region
-  - PRIMARY_REGION=us-east-1
-  - SECONDARY_REGION=us-west-2
-  - CROSS_REGION_REPLICATION=true
-  - DISASTER_RECOVERY_ENABLED=true
+  - name: fluxora-config
+    behavior: merge
+    literals:
+      - DEPLOYMENT_STRATEGY=multi-region
+      - PRIMARY_REGION=us-east-1
+      - SECONDARY_REGION=us-west-2
+      - CROSS_REGION_REPLICATION=true
+      - DISASTER_RECOVERY_ENABLED=true
 
 # Multi-region Patches
 patches:
-# Add region-specific node affinity
-- target:
-    kind: Deployment
-    labelSelector: "app.kubernetes.io/name=fluxora"
-  patch: |-
-    - op: add
-      path: /spec/template/spec/affinity/nodeAffinity
-      value:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: topology.kubernetes.io/region
-              operator: In
-              values:
-              - us-east-1
-              - us-west-2
+  # Add region-specific node affinity
+  - target:
+      kind: Deployment
+      labelSelector: "app.kubernetes.io/name=fluxora"
+    patch: |-
+      - op: add
+        path: /spec/template/spec/affinity/nodeAffinity
+        value:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values:
+                - us-east-1
+                - us-west-2
 
-# Add pod disruption budgets
-- target:
-    kind: Deployment
-    name: fluxora-backend
-  patch: |-
-    - op: add
-      path: /spec/template/metadata/annotations/fluxora.com~1pdb-min-available
-      value: "80%"
+  # Add pod disruption budgets
+  - target:
+      kind: Deployment
+      name: fluxora-backend
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/annotations/fluxora.com~1pdb-min-available
+        value: "80%"
 
-- target:
-    kind: Deployment
-    name: fluxora-frontend
-  patch: |-
-    - op: add
-      path: /spec/template/metadata/annotations/fluxora.com~1pdb-min-available
-      value: "66%"
+  - target:
+      kind: Deployment
+      name: fluxora-frontend
+    patch: |-
+      - op: add
+        path: /spec/template/metadata/annotations/fluxora.com~1pdb-min-available
+        value: "66%"

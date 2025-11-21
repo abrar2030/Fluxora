@@ -35,98 +35,98 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       initContainers:
-      - name: increase-vm-max-map
-        image: busybox:1.35
-        command: ['sh', '-c', 'sysctl -w vm.max_map_count=262144']
-        securityContext:
-          privileged: true
-      - name: increase-fd-ulimit
-        image: busybox:1.35
-        command: ['sh', '-c', 'ulimit -n 65536']
-        securityContext:
-          privileged: true
+        - name: increase-vm-max-map
+          image: busybox:1.35
+          command: ["sh", "-c", "sysctl -w vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+        - name: increase-fd-ulimit
+          image: busybox:1.35
+          command: ["sh", "-c", "ulimit -n 65536"]
+          securityContext:
+            privileged: true
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-        ports:
-        - containerPort: 9200
-          name: rest
-          protocol: TCP
-        - containerPort: 9300
-          name: inter-node
-          protocol: TCP
-        volumeMounts:
-        - name: data
-          mountPath: /usr/share/elasticsearch/data
-        - name: config
-          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-          subPath: elasticsearch.yml
-        - name: certs
-          mountPath: /usr/share/elasticsearch/config/certs
-          readOnly: true
-        env:
-        - name: cluster.name
-          value: fluxora-logging-cluster
-        - name: node.name
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: discovery.seed_hosts
-          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
-        - name: cluster.initial_master_nodes
-          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
-        - name: ES_JAVA_OPTS
-          value: "-Xms2g -Xmx2g"
-        - name: xpack.security.enabled
-          value: "true"
-        - name: xpack.security.http.ssl.enabled
-          value: "true"
-        - name: xpack.security.transport.ssl.enabled
-          value: "true"
-        - name: ELASTIC_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: password
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-          requests:
-            cpu: 1000m
-            memory: 2Gi
-        livenessProbe:
-          httpGet:
-            path: /_cluster/health
-            port: 9200
-            scheme: HTTPS
-          initialDelaySeconds: 90
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /_cluster/health?wait_for_status=yellow&timeout=5s
-            port: 9200
-            scheme: HTTPS
-          initialDelaySeconds: 60
-          periodSeconds: 10
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+          ports:
+            - containerPort: 9200
+              name: rest
+              protocol: TCP
+            - containerPort: 9300
+              name: inter-node
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+            - name: config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+            - name: certs
+              mountPath: /usr/share/elasticsearch/config/certs
+              readOnly: true
+          env:
+            - name: cluster.name
+              value: fluxora-logging-cluster
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: discovery.seed_hosts
+              value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+            - name: cluster.initial_master_nodes
+              value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+            - name: ES_JAVA_OPTS
+              value: "-Xms2g -Xmx2g"
+            - name: xpack.security.enabled
+              value: "true"
+            - name: xpack.security.http.ssl.enabled
+              value: "true"
+            - name: xpack.security.transport.ssl.enabled
+              value: "true"
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: password
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTPS
+            initialDelaySeconds: 90
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health?wait_for_status=yellow&timeout=5s
+              port: 9200
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 10
       volumes:
-      - name: config
-        configMap:
-          name: elasticsearch-config
-      - name: certs
-        secret:
-          secretName: elasticsearch-certs
+        - name: config
+          configMap:
+            name: elasticsearch-config
+        - name: certs
+          secret:
+            secretName: elasticsearch-certs
   volumeClaimTemplates:
-  - metadata:
-      name: data
-      labels:
-        app: elasticsearch
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "gp3-encrypted"
-      resources:
-        requests:
-          storage: 100Gi
+    - metadata:
+        name: data
+        labels:
+          app: elasticsearch
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "gp3-encrypted"
+        resources:
+          requests:
+            storage: 100Gi
 ---
 # Elasticsearch Service
 apiVersion: v1
@@ -141,10 +141,10 @@ spec:
   selector:
     app: elasticsearch
   ports:
-  - port: 9200
-    name: rest
-  - port: 9300
-    name: inter-node
+    - port: 9200
+      name: rest
+    - port: 9300
+      name: inter-node
 ---
 # Elasticsearch Configuration
 apiVersion: v1
@@ -221,68 +221,68 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       containers:
-      - name: logstash
-        image: docker.elastic.co/logstash/logstash:8.11.0
-        ports:
-        - containerPort: 5044
-          name: beats
-        - containerPort: 9600
-          name: http
-        volumeMounts:
-        - name: config
-          mountPath: /usr/share/logstash/config/logstash.yml
-          subPath: logstash.yml
-        - name: pipeline
-          mountPath: /usr/share/logstash/pipeline
-        - name: patterns
-          mountPath: /usr/share/logstash/patterns
-        - name: certs
-          mountPath: /usr/share/logstash/config/certs
-          readOnly: true
-        env:
-        - name: LS_JAVA_OPTS
-          value: "-Xmx2g -Xms2g"
-        - name: ELASTICSEARCH_HOSTS
-          value: "https://elasticsearch:9200"
-        - name: ELASTICSEARCH_USERNAME
-          value: "logstash_writer"
-        - name: ELASTICSEARCH_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: logstash_password
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-          requests:
-            cpu: 1000m
-            memory: 2Gi
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 9600
-          initialDelaySeconds: 60
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 9600
-          initialDelaySeconds: 30
-          periodSeconds: 10
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.11.0
+          ports:
+            - containerPort: 5044
+              name: beats
+            - containerPort: 9600
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/logstash/config/logstash.yml
+              subPath: logstash.yml
+            - name: pipeline
+              mountPath: /usr/share/logstash/pipeline
+            - name: patterns
+              mountPath: /usr/share/logstash/patterns
+            - name: certs
+              mountPath: /usr/share/logstash/config/certs
+              readOnly: true
+          env:
+            - name: LS_JAVA_OPTS
+              value: "-Xmx2g -Xms2g"
+            - name: ELASTICSEARCH_HOSTS
+              value: "https://elasticsearch:9200"
+            - name: ELASTICSEARCH_USERNAME
+              value: "logstash_writer"
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: logstash_password
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+            requests:
+              cpu: 1000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
-      - name: config
-        configMap:
-          name: logstash-config
-      - name: pipeline
-        configMap:
-          name: logstash-pipeline
-      - name: patterns
-        configMap:
-          name: logstash-patterns
-      - name: certs
-        secret:
-          secretName: elasticsearch-certs
+        - name: config
+          configMap:
+            name: logstash-config
+        - name: pipeline
+          configMap:
+            name: logstash-pipeline
+        - name: patterns
+          configMap:
+            name: logstash-patterns
+        - name: certs
+          secret:
+            secretName: elasticsearch-certs
 ---
 # Logstash Service
 apiVersion: v1
@@ -296,12 +296,12 @@ spec:
   selector:
     app: logstash
   ports:
-  - port: 5044
-    name: beats
-    protocol: TCP
-  - port: 9600
-    name: http
-    protocol: TCP
+    - port: 5044
+      name: beats
+      protocol: TCP
+    - port: 9600
+      name: http
+      protocol: TCP
 ---
 # Logstash Configuration
 apiVersion: v1
@@ -571,54 +571,54 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       containers:
-      - name: kibana
-        image: docker.elastic.co/kibana/kibana:8.11.0
-        ports:
-        - containerPort: 5601
-          name: http
-        volumeMounts:
-        - name: config
-          mountPath: /usr/share/kibana/config/kibana.yml
-          subPath: kibana.yml
-        - name: certs
-          mountPath: /usr/share/kibana/config/certs
-          readOnly: true
-        env:
-        - name: ELASTICSEARCH_HOSTS
-          value: "https://elasticsearch:9200"
-        - name: ELASTICSEARCH_USERNAME
-          value: "kibana_system"
-        - name: ELASTICSEARCH_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: kibana_password
-        resources:
-          limits:
-            cpu: 1000m
-            memory: 2Gi
-          requests:
-            cpu: 500m
-            memory: 1Gi
-        livenessProbe:
-          httpGet:
-            path: /api/status
-            port: 5601
-          initialDelaySeconds: 120
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /api/status
-            port: 5601
-          initialDelaySeconds: 60
-          periodSeconds: 10
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.11.0
+          ports:
+            - containerPort: 5601
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/kibana/config/kibana.yml
+              subPath: kibana.yml
+            - name: certs
+              mountPath: /usr/share/kibana/config/certs
+              readOnly: true
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: "https://elasticsearch:9200"
+            - name: ELASTICSEARCH_USERNAME
+              value: "kibana_system"
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: kibana_password
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 10
       volumes:
-      - name: config
-        configMap:
-          name: kibana-config
-      - name: certs
-        secret:
-          secretName: elasticsearch-certs
+        - name: config
+          configMap:
+            name: kibana-config
+        - name: certs
+          secret:
+            secretName: elasticsearch-certs
 ---
 # Kibana Service
 apiVersion: v1
@@ -632,9 +632,9 @@ spec:
   selector:
     app: kibana
   ports:
-  - port: 5601
-    name: http
-    protocol: TCP
+    - port: 5601
+      name: http
+      protocol: TCP
   type: ClusterIP
 ---
 # Kibana Configuration
