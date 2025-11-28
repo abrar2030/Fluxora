@@ -13,7 +13,7 @@ jobs:
 
     env:
       BACKEND_DIR: code
-      WEB_FRONTEND_DIR: frontend
+      WEB_FRONTEND_DIR: web-frontend
 
     steps:
       # -------------------------------
@@ -70,12 +70,19 @@ jobs:
         working-directory: .
         run: npm ci
 
-      # Prettier: frontend
-      - name: Run Prettier Checks (frontend)
+      # Prettier: web-frontend
+      - name: Run Prettier Checks (web-frontend)
         working-directory: .
         run: |
-          echo "=== Running Prettier (frontend) ==="
-          ./node_modules/.bin/prettier --check "frontend/**/*.{js,jsx,ts,tsx,json,html,css,md}"
+          echo "=== Running Prettier (web-frontend) ==="
+          ./node_modules/.bin/prettier --check "web-frontend/**/*.{js,jsx,ts,tsx,json,html,css,md}"
+
+      # Prettier: mobile-frontend
+      - name: Run Prettier Checks (mobile-frontend)
+        working-directory: .
+        run: |
+          echo "=== Running Prettier (mobile-frontend) ==="
+          ./node_modules/.bin/prettier --check "mobile-frontend/**/*.{js,jsx,ts,tsx,json,html,css,md}"
 
       # -------------------------------
       # Done
