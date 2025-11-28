@@ -138,25 +138,3 @@ taskkill /PID <PID> /F
 2. Check encryption configuration
 3. Review access control lists
 4. Audit security logs
-
-## Getting Help
-
-### Support Channels
-
-1. Check project documentation
-2. Review issue tracker
-3. Contact development team
-4. Check community forums
-
-### Debugging Tools
-
-1. Use logging effectively
-2. Enable debug mode
-3. Use monitoring tools
-4. Check system metrics
-
-## Additional Resources
-
-- [Setup Guide](SETUP_GUIDE.md)
-- [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
-- [Architecture Documentation](ARCHITECTURE.md)
