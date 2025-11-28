@@ -9,7 +9,7 @@
 # - Mobile Frontend (React Native)
 # - Monitoring tools
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"

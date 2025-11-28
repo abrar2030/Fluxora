@@ -9,7 +9,7 @@
 # - Starting monitoring stack
 # - Checking service health
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"

@@ -9,7 +9,7 @@
 # - Database migrations
 # - Local development tasks
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"

@@ -3,7 +3,7 @@
 # Data Sync Script for Fluxora
 # This script synchronizes data from remote sources to local storage
 
-set -e
+set -euo pipefail
 
 # Configuration
 SOURCE_BUCKET="s3://energy-data-bucket/raw/"

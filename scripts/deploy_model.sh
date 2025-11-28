@@ -3,7 +3,7 @@
 # Model Deployment Script for Fluxora
 # This script handles the deployment of trained models to production
 
-set -e
+set -euo pipefail
 
 # Configuration
 MODEL_DIR="./models"

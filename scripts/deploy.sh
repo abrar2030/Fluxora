@@ -9,7 +9,7 @@
 # - Manages infrastructure provisioning
 # - Deploys application components
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"

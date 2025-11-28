@@ -11,7 +11,7 @@
 # - logs: View logs from containers
 # - clean: Remove all containers and images
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"

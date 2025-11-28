@@ -9,7 +9,7 @@
 # - Validates API responses
 # - Creates a collection of example requests
 
-set -e
+set -euo pipefail
 
 # Text formatting
 BOLD="\033[1m"
