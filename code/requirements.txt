@@ -1,0 +1,42 @@
+# Updated Requirements for Fluxora
+# Consolidated and verified dependencies based on code review and existing project files.
+
+# Core Framework & Web
+fastapi
+uvicorn
+pydantic
+starlette
+requests
+websockets
+fastapi-testclient
+
+# Data Processing & ML
+numpy
+pandas
+scikit-learn
+tensorflow
+xgboost
+mlflow
+optuna
+great-expectations
+feature-engine
+
+# Database & ORM
+sqlalchemy
+psycopg2-binary # Assuming PostgreSQL based on common use with SQLAlchemy
+alembic # Assuming for migrations
+
+# Monitoring & Observability
+prometheus-client
+opentelemetry
+opentelemetry-exporter-jaeger-thrift
+opentelemetry-sdk
+psutil
+
+# Cloud & Infrastructure
+boto3
+
+# Utilities
+pytest
+unittest
+plotly

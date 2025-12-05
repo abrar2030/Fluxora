@@ -1,312 +1,112 @@
-import logging
-import os
-from code.core.config import get_config
-from code.features.build_features import FeaturePipeline
-
-import mlflow
-import numpy as np
-import optuna
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+import joblib
+import os
+from typing import Tuple
+from datetime import datetime, timedelta
+import numpy as np
 
-logger = logging.getLogger(__name__)
+# Define the path to save the trained model
+MODEL_PATH = os.path.join(os.getcwd(), "fluxora_model.joblib")
 
-
-def load_data():
+def load_data_from_db(db_session=None) -> pd.DataFrame:
     """
-    Load training data from configured source
-
-    Returns:
-        DataFrame: Training data
+    Loads all energy data from the database into a pandas DataFrame.
+    
+    NOTE: In a real application, this would query the database. 
+    For now, we'll create dummy data for demonstration.
     """
-    config = get_config()
-    data_source = config.get("data", {}).get("source", "")
+    
+    # Create dummy data for demonstration
+    start_time = datetime.now() - timedelta(days=30)
+    timestamps = [start_time + timedelta(hours=i) for i in range(30 * 24)]
+    # Create a consumption pattern with a daily and weekly cycle
+    time_series_index = np.arange(len(timestamps))
+    daily_cycle = np.sin(time_series_index * 2 * np.pi / 24) * 10
+    weekly_cycle = np.sin(time_series_index * 2 * np.pi / (24 * 7)) * 20
+    base_load = 50
+    noise = np.random.normal(0, 5, len(timestamps))
+    
+    consumption = np.abs(base_load + daily_cycle + weekly_cycle + noise)
+    
+    df = pd.DataFrame({
+        'timestamp': timestamps,
+        'consumption_kwh': consumption,
+        'user_id': 1 
+    })
+    
+    return df
 
-    if data_source.startswith("s3://"):
-        # Load from S3
-        pass
-
-        import boto3
-
-        s3_path = data_source.replace("s3://", "")
-        bucket_name = s3_path.split("/")[0]
-        key = "/".join(s3_path.split("/")[1:])
-
-        s3 = boto3.client("s3")
-        obj = s3.get_object(Bucket=bucket_name, Key=key)
-        data = pd.read_csv(obj["Body"])
-    else:
-        # Load from local file
-        data = pd.read_csv(data_source)
-
-    return data
-
-
-def prepare_training_data(data):
+def train_model(df: pd.DataFrame) -> Tuple[RandomForestRegressor, dict]:
     """
-    Prepare data for training
-
+    Trains a RandomForestRegressor model on the processed data.
+    
     Args:
-        data: Raw data
-
+        df: Raw DataFrame containing the time-series data.
+        
     Returns:
-        X_train, X_val, y_train, y_val: Training and validation data
+        A tuple containing the trained model and a dictionary of evaluation metrics.
     """
-    # Extract features using the feature pipeline
-    pipeline = FeaturePipeline()
+    from ..data.features.feature_engineering import preprocess_data_for_model
+    
+    # 1. Preprocess data
+    processed_df = preprocess_data_for_model(df.copy())
+    
+    # 2. Define features (X) and target (y)
+    target_col = 'consumption_kwh'
+    # Features are all columns except the target, timestamp, and user_id
+    features = [col for col in processed_df.columns if col not in [target_col, 'timestamp', 'user_id']]
+    
+    X = processed_df[features]
+    y = processed_df[target_col]
+    
+    # 3. Split data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    
+    # 4. Initialize and train model
+    model = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    model.fit(X_train, y_train)
+    
+    # 5. Evaluate model
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    
+    metrics = {
+        "mean_squared_error": mse,
+        "r2_score": r2,
+        "feature_count": len(features),
+        "training_samples": len(X_train),
+        "test_samples": len(X_test)
+    }
+    
+    print(f"Model Training Complete. MSE: {mse:.4f}, R2: {r2:.4f}")
+    
+    return model, metrics
 
-    # Prepare data in the format expected by the pipeline
-    from code.backend.schemas import PredictionRequest
+def save_model(model: RandomForestRegressor, path: str = MODEL_PATH):
+    """Saves the trained model to a file."""
+    joblib.dump(model, path)
+    print(f"Model saved to {path}")
 
-    # Convert data to format expected by feature pipeline
-    request_data = PredictionRequest(
-        timestamps=data["timestamp"].tolist(),
-        meter_ids=data["meter_id"].tolist(),
-        context_features={
-            col: data[col].tolist()
-            for col in data.columns
-            if col not in ["timestamp", "meter_id", "target"]
-        },
-    )
-
-    # Transform features
-    X = pipeline.transform(request_data)
-    y = data["target"].values
-
-    # Split into training and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    return X_train, X_val, y_train, y_val
-
-
-def train_xgboost_model(X_train, y_train, X_val, y_val, params=None):
-    """
-    Train an XGBoost model
-
-    Args:
-        X_train: Training features
-        y_train: Training targets
-        X_val: Validation features
-        y_val: Validation targets
-        params: Model parameters
-
-    Returns:
-        Trained model
-    """
-    import xgboost as xgb
-
-    # Get default parameters from config if not provided
-    if params is None:
-        config = get_config()
-        params = config.get("model", {}).get("xgboost", {})
-
-    # Convert to DMatrix format
-    dtrain = xgb.DMatrix(X_train, label=y_train)
-    dval = xgb.DMatrix(X_val, label=y_val)
-
-    # Train model
-    model = xgb.train(
-        params,
-        dtrain,
-        num_boost_round=params.get("n_estimators", 100),
-        evals=[(dtrain, "train"), (dval, "val")],
-        early_stopping_rounds=10,
-        verbose_eval=False,
-    )
-
-    return model
-
-
-def train_lstm_model(X_train, y_train, X_val, y_val, params=None):
-    """
-    Train an LSTM model
-
-    Args:
-        X_train: Training features
-        y_train: Training targets
-        X_val: Validation features
-        y_val: Validation targets
-        params: Model parameters
-
-    Returns:
-        Trained model
-    """
-    import tensorflow as tf
-    from tensorflow.keras.layers import LSTM, Dense, Dropout
-    from tensorflow.keras.models import Sequential
-
-    # Get default parameters from config if not provided
-    if params is None:
-        config = get_config()
-        params = config.get("model", {}).get("lstm", {})
-
-    # Reshape input for LSTM [samples, timesteps, features]
-    # Assuming 1 timestep for simplicity
-    X_train_reshaped = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
-    X_val_reshaped = X_val.reshape((X_val.shape[0], 1, X_val.shape[1]))
-
-    # Build model
-    model = Sequential()
-    model.add(
-        LSTM(
-            units=params.get("units", 50),
-            input_shape=(1, X_train.shape[1]),
-            return_sequences=False,
-        )
-    )
-    model.add(Dropout(params.get("dropout", 0.2)))
-    model.add(Dense(1))
-
-    # Compile model
-    model.compile(optimizer="adam", loss="mse", metrics=["mae"])
-
-    # Train model
-    model.fit(
-        X_train_reshaped,
-        y_train,
-        epochs=params.get("epochs", 50),
-        batch_size=params.get("batch_size", 32),
-        validation_data=(X_val_reshaped, y_val),
-        verbose=0,
-        callbacks=[
-            tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=5, restore_best_weights=True
-            )
-        ],
-    )
-
-    return model
-
-
-def objective(trial):
-    """
-    Objective function for hyperparameter optimization
-
-    Args:
-        trial: Optuna trial object
-
-    Returns:
-        Validation error
-    """
-    # Load data
-    data = load_data()
-    X_train, X_val, y_train, y_val = prepare_training_data(data)
-
-    # Get model type from config
-    config = get_config()
-    model_type = config.get("model", {}).get("type", "xgboost")
-
-    if model_type == "xgboost":
-        # Define hyperparameters to optimize
-        params = {
-            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1, log=True),
-            "n_estimators": trial.suggest_int("n_estimators", 100, 1000),
-            "max_depth": trial.suggest_int("max_depth", 3, 10),
-            "subsample": trial.suggest_float("subsample", 0.6, 1.0),
-            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
-            "min_child_weight": trial.suggest_int("min_child_weight", 1, 10),
-            "objective": "reg:squarederror",
-            "eval_metric": "rmse",
-        }
-
-        # Train model
-        model = train_xgboost_model(X_train, y_train, X_val, y_val, params)
-
-        # Evaluate model
-        import xgboost as xgb
-
-        dval = xgb.DMatrix(X_val, label=y_val)
-        y_pred = model.predict(dval)
-
-    elif model_type == "lstm":
-        # Define hyperparameters to optimize
-        params = {
-            "units": trial.suggest_int("units", 32, 256),
-            "dropout": trial.suggest_float("dropout", 0.1, 0.5),
-            "batch_size": trial.suggest_int("batch_size", 16, 128),
-            "epochs": 50,  # Fixed for optimization
-        }
-
-        # Train model
-        model = train_lstm_model(X_train, y_train, X_val, y_val, params)
-
-        # Evaluate model
-        X_val_reshaped = X_val.reshape((X_val.shape[0], 1, X_val.shape[1]))
-        y_pred = model.predict(X_val_reshaped).flatten()
-
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
-
-    # Calculate RMSE
-    rmse = np.sqrt(np.mean((y_pred - y_val) ** 2))
-
-    return rmse
-
-
-def train_model():
-    """
-    Train a model with the best hyperparameters
-
-    Returns:
-        Trained model
-    """
-    # Start MLflow run
-    mlflow.start_run()
-
-    # Load data
-    data = load_data()
-    X_train, X_val, y_train, y_val = prepare_training_data(data)
-
-    # Get model type from config
-    config = get_config()
-    model_type = config.get("model", {}).get("type", "xgboost")
-
-    # Optimize hyperparameters
-    study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=10)
-
-    # Log best parameters
-    best_params = study.best_params
-    for param_name, param_value in best_params.items():
-        mlflow.log_param(param_name, param_value)
-
-    # Train model with best parameters
-    if model_type == "xgboost":
-        # Add fixed parameters
-        best_params["objective"] = "reg:squarederror"
-        best_params["eval_metric"] = "rmse"
-
-        model = train_xgboost_model(X_train, y_train, X_val, y_val, best_params)
-
-        # Save model
-        model_dir = f"models/{model_type}/latest"
-        os.makedirs(model_dir, exist_ok=True)
-        model.save_model(f"{model_dir}/model.xgb")
-
-        # Log model to MLflow
-        mlflow.xgboost.log_model(model, "model")
-
-    elif model_type == "lstm":
-        model = train_lstm_model(X_train, y_train, X_val, y_val, best_params)
-
-        # Save model
-        model_dir = f"models/{model_type}/latest"
-        os.makedirs(model_dir, exist_ok=True)
-        model.save(f"{model_dir}/model")
-
-        # Log model to MLflow
-        mlflow.tensorflow.log_model(model, "model")
-
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
-
-    # End MLflow run
-    mlflow.end_run()
-
-    return model
-
+def run_training_pipeline(db_session=None):
+    """Full pipeline to load data, train model, and save it."""
+    print("Starting training pipeline...")
+    
+    # 1. Load data
+    data_df = load_data_from_db(db_session)
+    
+    # 2. Train model
+    model, metrics = train_model(data_df)
+    
+    # 3. Save model
+    save_model(model)
+    
+    return metrics
 
 if __name__ == "__main__":
-    train_model()
+    metrics = run_training_pipeline()
+    print("\nFinal Metrics:")
+    print(metrics)

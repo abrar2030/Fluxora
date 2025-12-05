@@ -1,17 +1,14 @@
-"""
-Dependencies module for API tests.
-This is a stub implementation to allow tests to run.
-"""
-
 from typing import Generator
 
 from sqlalchemy.orm import Session
-
+from .database import SessionLocal
 
 def get_db() -> Generator[Session, None, None]:
     """
-    Stub implementation of get_db dependency.
-    Returns a mock session for testing.
+    Dependency that provides a database session.
     """
-    # This is just a stub to allow tests to run
-    yield None
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
