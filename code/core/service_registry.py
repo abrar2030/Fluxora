@@ -3,6 +3,10 @@ import os
 import requests
 from fastapi import FastAPI
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def register_service(app: FastAPI, service_name: str, service_version: str):
     """
@@ -31,11 +35,11 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
                 },
             )
             if response.status_code == 200:
-                print(f"Successfully registered service {service_id}")
+                logger.info(f"Successfully registered service {service_id}")
             else:
-                print(f"Failed to register service: {response.text}")
+                logger.info(f"Failed to register service: {response.text}")
         except Exception as e:
-            print(f"Error registering service: {str(e)}")
+            logger.info(f"Error registering service: {str(e)}")
 
     # Deregister service on shutdown
     @app.on_event("shutdown")
@@ -45,8 +49,8 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
                 f"{registry_url}/v1/agent/service/deregister/{service_id}"
             )
             if response.status_code == 200:
-                print(f"Successfully deregistered service {service_id}")
+                logger.info(f"Successfully deregistered service {service_id}")
             else:
-                print(f"Failed to deregister service: {response.text}")
+                logger.info(f"Failed to deregister service: {response.text}")
         except Exception as e:
-            print(f"Error deregistering service: {str(e)}")
+            logger.info(f"Error deregistering service: {str(e)}")

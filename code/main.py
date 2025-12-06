@@ -16,8 +16,8 @@ app = FastAPI(
 # CORS Middleware for frontend development
 origins = [
     "http://localhost",
-    "http://localhost:3000", # React default port
-    "http://localhost:5173", # Vite default port
+    "http://localhost:3000",  # React default port
+    "http://localhost:5173",  # Vite default port
 ]
 
 app.add_middleware(
@@ -33,6 +33,7 @@ app.include_router(auth.router, prefix="/v1")
 app.include_router(data.router, prefix="/v1")
 app.include_router(analytics.router, prefix="/v1")
 app.include_router(predictions.router, prefix="/v1")
+
 
 @app.get("/health", tags=["system"])
 def health_check():

@@ -7,6 +7,10 @@ import requests
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class SagaState(Enum):
     STARTED = "STARTED"
@@ -158,7 +162,7 @@ async def execute_saga(saga_id: str):
                 await compensate_saga(saga_id)
                 return
         except Exception as e:
-            print(f"Error executing step {step.id}: {str(e)}")
+            logger.info(f"Error executing step {step.id}: {str(e)}")
             step.state = StepState.FAILED
             await compensate_saga(saga_id)
             return
@@ -200,7 +204,7 @@ async def compensate_saga(saga_id: str):
                 else:
                     step.state = StepState.FAILED
             except Exception as e:
-                print(f"Error compensating step {step.id}: {str(e)}")
+                logger.info(f"Error compensating step {step.id}: {str(e)}")
                 step.state = StepState.FAILED
 
             saga.updated_at = time.time()
@@ -223,7 +227,7 @@ def get_service_url(service_name: str) -> Optional[str]:
                 return f"http://{service['ServiceAddress']}:{service['ServicePort']}"
         return None
     except Exception as e:
-        print(f"Error getting service URL: {str(e)}")
+        logger.info(f"Error getting service URL: {str(e)}")
         return None
 
 

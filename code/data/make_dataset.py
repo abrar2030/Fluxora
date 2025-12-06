@@ -3,6 +3,10 @@ import os
 import numpy as np
 import pandas as pd
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def generate_mock_data(
     start_date: str = "2023-01-01", end_date: str = "2023-01-31", num_meters: int = 5
@@ -66,7 +70,7 @@ def make_dataset(output_path: str = "data/raw/mock_data.csv"):
     """
     Generates the mock dataset and saves it to the specified path.
     """
-    print(f"Generating mock dataset...")
+    logger.info(f"Generating mock dataset...")
     data = generate_mock_data()
 
     # Create directory if it doesn't exist
@@ -74,7 +78,7 @@ def make_dataset(output_path: str = "data/raw/mock_data.csv"):
 
     # Save the data
     data.to_csv(output_path, index=False)
-    print(f"Mock dataset saved to {output_path}")
+    logger.info(f"Mock dataset saved to {output_path}")
 
 
 if __name__ == "__main__":

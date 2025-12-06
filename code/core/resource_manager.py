@@ -2,6 +2,10 @@ import json
 import os
 from typing import Any, Dict
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class ResourceManager:
     def __init__(self, resource_type: str):
@@ -53,8 +57,7 @@ class ResourceManager:
                 self._remove_persisted_state(transaction_id, resource_id)
             except Exception as e:
                 # Log the error but continue with other resources
-                print(f"Error committing resource {resource_key}: {str(e)}")
-
+                logger.info(f"Error committing resource {resource_key}: {str(e)}")
         return True
 
     def abort(self, transaction_id: str):
@@ -78,8 +81,7 @@ class ResourceManager:
                 self._remove_persisted_state(transaction_id, resource_id)
             except Exception as e:
                 # Log the error but continue with other resources
-                print(f"Error aborting resource {resource_key}: {str(e)}")
-
+                logger.info(f"Error aborting resource {resource_key}: {str(e)}")
         return True
 
     def _execute_operation(self, operation: str, data: Dict[str, Any]):

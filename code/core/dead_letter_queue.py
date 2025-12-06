@@ -11,6 +11,10 @@ from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_eng
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 # Database setup
 DATABASE_URL = "sqlite:///./dlq.db"  # Use PostgreSQL in production
 engine = create_engine(DATABASE_URL)
@@ -274,7 +278,7 @@ async def retry_message_delivery(message_id: str):
                 message.resolved_at = time.time()
                 db.commit()
         except Exception as e:
-            print(f"Error retrying message {message_id}: {str(e)}")
+            logger.info(f"Error retrying message {message_id}: {str(e)}")
     finally:
         db.close()
 
@@ -293,7 +297,7 @@ def get_service_url(service_name: str) -> Optional[str]:
                 return f"http://{service['ServiceAddress']}:{service['ServicePort']}"
         return None
     except Exception as e:
-        print(f"Error getting service URL: {str(e)}")
+        logger.info(f"Error getting service URL: {str(e)}")
         return None
 
 

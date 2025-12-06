@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class EnergyDataBase(BaseModel):
     consumption_kwh: float
     generation_kwh: float | None = None
@@ -8,8 +9,10 @@ class EnergyDataBase(BaseModel):
     temperature_c: float | None = None
     humidity_percent: float | None = None
 
+
 class EnergyDataCreate(EnergyDataBase):
     pass
+
 
 class EnergyData(EnergyDataBase):
     id: int

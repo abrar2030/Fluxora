@@ -3,6 +3,10 @@ import os
 import tensorflow as tf
 import xgboost as xgb
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def get_latest_model(model_type: str):
     """
@@ -19,7 +23,7 @@ def get_latest_model(model_type: str):
     if model_type == "xgboost":
         model_path = os.path.join(model_dir, "model.xgb")
         if not os.path.exists(model_path):
-            print(
+            logger.info(
                 f"Warning: XGBoost model not found at {model_path}. Returning a mock model."
             )
             from .predict import MockModel
@@ -33,7 +37,7 @@ def get_latest_model(model_type: str):
     elif model_type == "lstm":
         model_path = os.path.join(model_dir, "model")
         if not os.path.exists(model_path):
-            print(
+            logger.info(
                 f"Warning: LSTM model not found at {model_path}. Returning a mock model."
             )
             from .predict import MockModel
@@ -51,12 +55,11 @@ if __name__ == "__main__":
     # Example usage
     try:
         xgb_model = get_latest_model("xgboost")
-        print(f"Loaded XGBoost model: {xgb_model}")
+        logger.info(f"Loaded XGBoost model: {xgb_model}")
     except Exception as e:
-        print(f"Error loading XGBoost model: {e}")
-
+        logger.info(f"Error loading XGBoost model: {e}")
     try:
         lstm_model = get_latest_model("lstm")
-        print(f"Loaded LSTM model: {lstm_model}")
+        logger.info(f"Loaded LSTM model: {lstm_model}")
     except Exception as e:
-        print(f"Error loading LSTM model: {e}")
+        logger.info(f"Error loading LSTM model: {e}")

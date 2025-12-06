@@ -6,6 +6,10 @@ from datetime import datetime
 
 import boto3
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 def lambda_handler(event, context):
     """
@@ -62,8 +66,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(f"Error generating compliance report: {str(e)}")
-
+        logger.info(f"Error generating compliance report: {str(e)}")
         # Send error notification
         error_message = f"Failed to generate compliance report: {str(e)}"
         sns_client.publish(
@@ -121,7 +124,9 @@ def generate_compliance_report(config_client, app_name, environment):
                     report_data["general"].append(compliance_data)
 
         except Exception as e:
-            print(f"Error getting compliance details for rule {rule_name}: {str(e)}")
+            logger.info(
+                f"Error getting compliance details for rule {rule_name}: {str(e)}"
+            )
             continue
 
     return report_data

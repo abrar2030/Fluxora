@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class FeatureStore:
     """
@@ -46,7 +50,7 @@ class FeatureStore:
         """
         Mock implementation of materialize
         """
-        print(f"Materializing features from {start_date} to {end_date}")
+        logger.info(f"Materializing features from {start_date} to {end_date}")
         return True
 
 
