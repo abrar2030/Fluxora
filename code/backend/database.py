@@ -23,7 +23,6 @@ Base = declarative_base()
 def init_db():
     """Initializes the database by creating all tables."""
     # Import all models here so that they are registered with Base
-    from Fluxora.code.models import user, data
 
     Base.metadata.create_all(bind=engine)
 

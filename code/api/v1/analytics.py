@@ -167,6 +167,6 @@ def get_analytics(
     except ValueError as e:
         logger.info(f"ValueError calculating analytics: {e}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         logger.exception("Unexpected error calculating analytics")
         raise HTTPException(status_code=500, detail="Error calculating analytics data.")
