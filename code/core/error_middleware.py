@@ -1,6 +1,5 @@
 import traceback
 from typing import Any, Dict, Optional
-
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -18,7 +17,7 @@ class ErrorDetail:
         message: str,
         detail: Optional[str] = None,
         context: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> Any:
         self.code = code
         self.message = message
         self.detail = detail
@@ -29,13 +28,10 @@ class ErrorDetail:
         Convert to dictionary representation
         """
         result = {"code": self.code, "message": self.message}
-
         if self.detail:
             result["detail"] = self.detail
-
         if self.context:
             result["context"] = self.context
-
         return result
 
 
@@ -49,7 +45,7 @@ class ErrorResponse:
         error: ErrorDetail,
         request_id: Optional[str] = None,
         status_code: int = 500,
-    ):
+    ) -> Any:
         self.error = error
         self.request_id = request_id
         self.status_code = status_code
@@ -59,14 +55,12 @@ class ErrorResponse:
         Convert to dictionary representation
         """
         result = {"error": self.error.to_dict()}
-
         if self.request_id:
             result["request_id"] = self.request_id
-
         return result
 
 
-def add_error_handlers(app: FastAPI):
+def add_error_handlers(app: FastAPI) -> Any:
     """
     Add error handlers to the FastAPI application
     """
@@ -84,13 +78,11 @@ def add_error_handlers(app: FastAPI):
             detail=str(exc),
             context={"errors": exc.errors()},
         )
-
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=400,
         )
-
         return JSONResponse(status_code=400, content=error_response.to_dict())
 
     @app.exception_handler(HTTPException)
@@ -103,13 +95,11 @@ def add_error_handlers(app: FastAPI):
             message=exc.detail,
             context=getattr(exc, "headers", None),
         )
-
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=exc.status_code,
         )
-
         return JSONResponse(
             status_code=exc.status_code, content=error_response.to_dict()
         )
@@ -125,11 +115,9 @@ def add_error_handlers(app: FastAPI):
             detail=str(exc),
             context={"traceback": traceback.format_exc()},
         )
-
         error_response = ErrorResponse(
             error=error_detail,
             request_id=request.headers.get("X-Request-ID"),
             status_code=500,
         )
-
         return JSONResponse(status_code=500, content=error_response.to_dict())

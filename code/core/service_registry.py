@@ -1,14 +1,12 @@
 import os
-
 import requests
 from fastapi import FastAPI
-
 from core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def register_service(app: FastAPI, service_name: str, service_version: str):
+def register_service(app: FastAPI, service_name: str, service_version: str) -> Any:
     """
     Register service with the service registry
     """
@@ -16,7 +14,6 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
     service_id = f"{service_name}-{os.getenv('HOSTNAME', 'unknown')}"
     service_port = int(os.getenv("SERVICE_PORT", "8000"))
 
-    # Register service on startup
     @app.on_event("startup")
     async def startup_event():
         try:
@@ -41,7 +38,6 @@ def register_service(app: FastAPI, service_name: str, service_version: str):
         except Exception as e:
             logger.info(f"Error registering service: {str(e)}")
 
-    # Deregister service on shutdown
     @app.on_event("shutdown")
     async def shutdown_event():
         try:

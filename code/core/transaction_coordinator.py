@@ -40,7 +40,7 @@ class TransactionCoordinator:
     Coordinator for distributed transactions
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.transactions = {}
 
     def create_transaction(self) -> str:
@@ -63,7 +63,6 @@ class TransactionCoordinator:
         """
         if transaction_id not in self.transactions:
             return False
-
         self.transactions[transaction_id]["participants"].append(participant)
         return True
 
@@ -73,35 +72,23 @@ class TransactionCoordinator:
         """
         if transaction_id not in self.transactions:
             return False
-
         transaction = self.transactions[transaction_id]
-
-        # Only prepare if in CREATED state
         if transaction["status"] != TransactionStatus.CREATED:
             return False
-
-        # Prepare all participants
         prepared_participants = []
         for participant in transaction["participants"]:
             try:
                 if not participant.prepare(transaction_id):
-                    # If any participant fails to prepare, abort all participants
                     for p in transaction["participants"]:
                         p.abort(transaction_id)
-
                     transaction["status"] = TransactionStatus.ABORTED
                     return False
-
                 prepared_participants.append(participant)
             except Exception:
-                # If any participant throws an exception, abort all participants
                 for p in transaction["participants"]:
                     p.abort(transaction_id)
-
                 transaction["status"] = TransactionStatus.ABORTED
                 return False
-
-        # All participants prepared successfully
         transaction["status"] = TransactionStatus.PREPARED
         return True
 
@@ -111,26 +98,15 @@ class TransactionCoordinator:
         """
         if transaction_id not in self.transactions:
             return False
-
         transaction = self.transactions[transaction_id]
-
-        # Only commit if in PREPARED state
         if transaction["status"] != TransactionStatus.PREPARED:
             return False
-
-        # Commit all participants
         for participant in transaction["participants"]:
             try:
                 if not participant.commit(transaction_id):
-                    # If any participant fails to commit, we're in an inconsistent state
-                    # In a real system, we would need a recovery mechanism here
                     return False
             except Exception:
-                # If any participant throws an exception, we're in an inconsistent state
-                # In a real system, we would need a recovery mechanism here
                 return False
-
-        # All participants committed successfully
         transaction["status"] = TransactionStatus.COMMITTED
         return True
 
@@ -140,18 +116,12 @@ class TransactionCoordinator:
         """
         if transaction_id not in self.transactions:
             return False
-
         transaction = self.transactions[transaction_id]
-
-        # Abort all participants
         for participant in transaction["participants"]:
             try:
                 participant.abort(transaction_id)
             except Exception:
-                # Log the exception but continue aborting other participants
                 pass
-
-        # Mark transaction as aborted
         transaction["status"] = TransactionStatus.ABORTED
         return True
 
@@ -163,7 +133,6 @@ class TransactionCoordinator:
         """
         if transaction_id not in self.transactions:
             return None
-
         return self.transactions[transaction_id]["status"]
 
     def execute_transaction(self, transaction_id: str) -> bool:
@@ -172,5 +141,4 @@ class TransactionCoordinator:
         """
         if not self.prepare_transaction(transaction_id):
             return False
-
         return self.commit_transaction(transaction_id)

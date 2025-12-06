@@ -11,36 +11,27 @@ def retry(
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
     jitter: bool = True,
-):
+) -> Any:
     """
     Retry decorator with exponential backoff
     """
 
     def decorator(func: Callable) -> Callable:
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
             last_exception = None
             delay = base_delay
-
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
                 except retry_exceptions as e:
                     last_exception = e
-
-                    # Don't sleep on the last attempt
                     if attempt < max_attempts - 1:
-                        # Calculate sleep time with exponential backoff
-                        sleep_time = min(delay * (backoff_factor**attempt), max_delay)
-
-                        # Add jitter if enabled
+                        sleep_time = min(delay * backoff_factor**attempt, max_delay)
                         if jitter:
                             sleep_time = sleep_time * (0.5 + random.random())
-
-                        # Sleep before next attempt
                         time.sleep(sleep_time)
-
-            # If we get here, all attempts failed
             raise last_exception
 
         return wrapper

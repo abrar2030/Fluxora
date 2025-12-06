@@ -2,7 +2,6 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
-
 from ...backend.dependencies import get_db
 from ...backend.security import get_current_active_user
 from ...crud.data import create_data_record, get_data_records, get_data_by_time_range
@@ -17,7 +16,7 @@ def create_record(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
     data: EnergyDataCreate,
-):
+) -> Any:
     return create_data_record(db=db, data=data, user_id=current_user.id)
 
 
@@ -27,7 +26,7 @@ def read_records(
     db: Annotated[Session, Depends(get_db)],
     skip: int = 0,
     limit: int = 100,
-):
+) -> Any:
     records = get_data_records(db, user_id=current_user.id, skip=skip, limit=limit)
     return records
 
@@ -38,7 +37,7 @@ def query_records(
     db: Annotated[Session, Depends(get_db)],
     start_time: datetime,
     end_time: datetime,
-):
+) -> Any:
     records = get_data_by_time_range(
         db, user_id=current_user.id, start_time=start_time, end_time=end_time
     )

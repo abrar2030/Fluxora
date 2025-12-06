@@ -3,15 +3,13 @@ import sys
 import unittest
 from unittest.mock import Mock, patch
 
-# Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from fluxora.core.metrics import MetricsCollector
 
 
 class TestMetrics(unittest.TestCase):
-    def setUp(self):
-        # Clear the default registry before each test
+
+    def setUp(self) -> Any:
         from prometheus_client import REGISTRY
 
         collectors = list(REGISTRY._collector_to_names.keys())
@@ -19,7 +17,7 @@ class TestMetrics(unittest.TestCase):
             REGISTRY.unregister(collector)
 
     @patch("src.utils.metrics.start_http_server")
-    def test_start_metrics_server(self, mock_start_http_server):
+    def test_start_metrics_server(self, mock_start_http_server: Any) -> Any:
         """Test that start_metrics_server calls the Prometheus server start function"""
         collector = MetricsCollector(service_name="test_service", port=8000)
         collector.start_metrics_server()
@@ -27,98 +25,70 @@ class TestMetrics(unittest.TestCase):
 
     @patch("src.utils.metrics.Counter")
     @patch("src.utils.metrics.Histogram")
-    def test_track_request(self, mock_histogram, mock_counter):
+    def test_track_request(self, mock_histogram: Any, mock_counter: Any) -> Any:
         """Test that track_request increments the counter and observes the histogram"""
-        # Setup mocks
         mock_counter_instance = Mock()
         mock_counter.return_value = mock_counter_instance
         mock_counter_instance.labels.return_value = mock_counter_instance
-
         mock_histogram_instance = Mock()
         mock_histogram.return_value = mock_histogram_instance
         mock_histogram_instance.labels.return_value = mock_histogram_instance
-
-        # Create collector and track request
         collector = MetricsCollector(service_name="test_service")
         collector.track_request(method="GET", endpoint="/test", status=200, latency=0.1)
-
-        # Verify counter was incremented
         mock_counter_instance.labels.assert_called_with(
             method="GET", endpoint="/test", status=200
         )
         mock_counter_instance.inc.assert_called_once()
-
-        # Verify histogram was observed
         mock_histogram_instance.labels.assert_called_with(
             method="GET", endpoint="/test"
         )
         mock_histogram_instance.observe.assert_called_with(0.1)
 
     @patch("src.utils.metrics.Counter")
-    def test_track_error(self, mock_counter):
+    def test_track_error(self, mock_counter: Any) -> Any:
         """Test that track_error increments the error counter"""
-        # Setup mocks
         mock_counter_instance = Mock()
         mock_counter.return_value = mock_counter_instance
         mock_counter_instance.labels.return_value = mock_counter_instance
-
-        # Create collector and track error
         collector = MetricsCollector(service_name="test_service")
         collector.track_error(error_type="validation", error_code="invalid_input")
-
-        # Verify counter was incremented
         mock_counter_instance.labels.assert_called_with(
             type="validation", code="invalid_input"
         )
         mock_counter_instance.inc.assert_called_once()
 
     @patch("src.utils.metrics.Gauge")
-    def test_set_circuit_breaker_state(self, mock_gauge):
+    def test_set_circuit_breaker_state(self, mock_gauge: Any) -> Any:
         """Test that set_circuit_breaker_state sets the gauge value"""
-        # Setup mocks
         mock_gauge_instance = Mock()
         mock_gauge.return_value = mock_gauge_instance
         mock_gauge_instance.labels.return_value = mock_gauge_instance
-
-        # Create collector and set circuit breaker state
         collector = MetricsCollector(service_name="test_service")
         collector.set_circuit_breaker_state(name="user_service", state=1)
-
-        # Verify gauge was set
         mock_gauge_instance.labels.assert_called_with(name="user_service")
         mock_gauge_instance.set.assert_called_with(1)
 
     @patch("src.utils.metrics.Gauge")
-    def test_set_resource_usage(self, mock_gauge):
+    def test_set_resource_usage(self, mock_gauge: Any) -> Any:
         """Test that set_resource_usage sets the gauge value"""
-        # Setup mocks
         mock_gauge_instance = Mock()
         mock_gauge.return_value = mock_gauge_instance
         mock_gauge_instance.labels.return_value = mock_gauge_instance
-
-        # Create collector and set resource usage
         collector = MetricsCollector(service_name="test_service")
         collector.set_resource_usage(resource="cpu", unit="percent", value=75.5)
-
-        # Verify gauge was set
         mock_gauge_instance.labels.assert_called_with(resource="cpu", unit="percent")
         mock_gauge_instance.set.assert_called_with(75.5)
 
     @patch("src.utils.metrics.Gauge")
-    def test_set_prediction_accuracy(self, mock_gauge):
+    def test_set_prediction_accuracy(self, mock_gauge: Any) -> Any:
         """Test that set_prediction_accuracy sets the gauge value"""
-        # Setup mocks
         mock_gauge_instance = Mock()
         mock_gauge.return_value = mock_gauge_instance
         mock_gauge_instance.labels.return_value = mock_gauge_instance
-
-        # Create collector and set prediction accuracy
         collector = MetricsCollector(service_name="test_service")
         collector.set_prediction_accuracy(
             model="energy_forecast", metric="rmse", value=0.85
         )
-
-        # Verify gauge was set
         mock_gauge_instance.labels.assert_called_with(
             model="energy_forecast", metric="rmse"
         )
@@ -126,7 +96,9 @@ class TestMetrics(unittest.TestCase):
 
     @patch("src.utils.metrics.MetricsCollector.track_request")
     @patch("src.utils.metrics.MetricsCollector.track_error")
-    def test_request_timer_success(self, mock_track_error, mock_track_request):
+    def test_request_timer_success(
+        self, mock_track_error: Any, mock_track_request: Any
+    ) -> Any:
         """Test that request_timer decorator tracks successful requests"""
         collector = MetricsCollector(service_name="test_service")
 
@@ -135,7 +107,6 @@ class TestMetrics(unittest.TestCase):
             return "success"
 
         result = success_func()
-
         self.assertEqual(result, "success")
         mock_track_request.assert_called_once()
         self.assertEqual(mock_track_request.call_args[0][0], "GET")
@@ -146,7 +117,9 @@ class TestMetrics(unittest.TestCase):
 
     @patch("src.utils.metrics.MetricsCollector.track_request")
     @patch("src.utils.metrics.MetricsCollector.track_error")
-    def test_request_timer_failure(self, mock_track_error, mock_track_request):
+    def test_request_timer_failure(
+        self, mock_track_error: Any, mock_track_request: Any
+    ) -> Any:
         """Test that request_timer decorator tracks failed requests"""
         collector = MetricsCollector(service_name="test_service")
 
@@ -156,7 +129,6 @@ class TestMetrics(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             failure_func()
-
         mock_track_request.assert_called_once()
         self.assertEqual(mock_track_request.call_args[0][0], "GET")
         self.assertEqual(mock_track_request.call_args[0][1], "/test")

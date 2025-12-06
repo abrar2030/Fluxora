@@ -3,21 +3,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pydantic import BaseModel
-
 from ...backend.dependencies import get_db
 from ...backend.security import get_current_active_user
 from ...crud.data import get_data_by_time_range
 from ...schemas.user import User
 from ...models.data import EnergyData
-
 from core.logging import get_logger
 
 logger = get_logger(__name__)
-
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
-# Response model for analytics points
 class AnalyticsPoint(BaseModel):
     label: str
     consumption: float
@@ -29,7 +25,6 @@ class AnalyticsPoint(BaseModel):
 def calculate_analytics(records: List[EnergyData], period: str) -> List[Dict[str, Any]]:
     if not records:
         return []
-
     rows = []
     for r in records:
         rows.append(
@@ -49,17 +44,13 @@ def calculate_analytics(records: List[EnergyData], period: str) -> List[Dict[str
                 ),
             }
         )
-
     import pandas as pd
 
     df = pd.DataFrame(rows)
-
     if df.empty or df["timestamp"].isnull().all():
         return []
-
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
     df = df.dropna(subset=["timestamp"]).set_index("timestamp")
-
     if period == "week":
         freq = "D"
     elif period == "month":
@@ -68,34 +59,25 @@ def calculate_analytics(records: List[EnergyData], period: str) -> List[Dict[str
         freq = "W"
     else:
         raise ValueError("Invalid period: must be 'week', 'month', or 'year'")
-
     agg_map = {
         "consumption_kwh": "sum",
         "cost_usd": "sum",
         "temperature_c": "mean",
         "humidity_percent": "mean",
     }
-
     aggregated = df.resample(freq).agg(agg_map).reset_index()
-
     if aggregated.empty:
         return []
-
     aggregated["consumption_kwh"] = aggregated["consumption_kwh"].fillna(0.0)
     aggregated["cost_usd"] = aggregated["cost_usd"].fillna(0.0)
-
     temp_for_eff = aggregated["temperature_c"].fillna(1.0).replace(0.0, 1.0)
-    aggregated["efficiency"] = 100.0 - (aggregated["consumption_kwh"] / temp_for_eff)
-
+    aggregated["efficiency"] = 100.0 - aggregated["consumption_kwh"] / temp_for_eff
     results: List[Dict[str, Any]] = []
-
     for _, row in aggregated.iterrows():
         ts = row["timestamp"]
         label = ts.strftime("%Y-%m-%d")
-
         if period == "year":
             label = f"Week {ts.isocalendar()[1]}"
-
         results.append(
             {
                 "label": label,
@@ -109,7 +91,6 @@ def calculate_analytics(records: List[EnergyData], period: str) -> List[Dict[str
                 "efficiency": round(float(row["efficiency"]), 2),
             }
         )
-
     return results
 
 
@@ -118,9 +99,8 @@ def get_analytics(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
     period: str = "month",
-):
+) -> Any:
     end_time = datetime.utcnow()
-
     if period == "week":
         start_time = end_time - timedelta(days=7)
     elif period == "month":
@@ -132,11 +112,9 @@ def get_analytics(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid period. Must be 'week', 'month', or 'year'.",
         )
-
     records = get_data_by_time_range(
         db, user_id=current_user.id, start_time=start_time, end_time=end_time
     )
-
     if not records:
         return [
             {
@@ -161,7 +139,6 @@ def get_analytics(
                 "efficiency": 80.1,
             },
         ]
-
     try:
         return calculate_analytics(records, period)
     except ValueError as e:

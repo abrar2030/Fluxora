@@ -10,12 +10,11 @@ from fluxora.models.base import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Test database URL
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 
 @pytest.fixture(scope="session")
-def test_db_engine():
+def test_db_engine() -> Any:
     """Create a test database engine."""
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
@@ -24,7 +23,7 @@ def test_db_engine():
 
 
 @pytest.fixture(scope="function")
-def db_session(test_db_engine):
+def db_session(test_db_engine: Any) -> Any:
     """Create a new database session for a test."""
     TestingSessionLocal = sessionmaker(
         autocommit=False, autoflush=False, bind=test_db_engine
@@ -38,7 +37,7 @@ def db_session(test_db_engine):
 
 
 @pytest.fixture(scope="function")
-def client(db_session):
+def client(db_session: Any) -> Any:
     """Create a test client with a test database session."""
 
     def override_get_db():

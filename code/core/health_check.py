@@ -2,7 +2,6 @@ import socket
 import time
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
-
 import psutil
 from fastapi import FastAPI, Response, status
 
@@ -20,7 +19,7 @@ class DependencyStatus:
 
     def __init__(
         self, name: str, status: HealthStatus, details: Optional[Dict[str, Any]] = None
-    ):
+    ) -> Any:
         self.name = name
         self.status = status
         self.details = details or {}
@@ -37,12 +36,12 @@ class HealthCheck:
     Health check for a service
     """
 
-    def __init__(self, service_name: str):
+    def __init__(self, service_name: str) -> Any:
         self.service_name = service_name
         self.start_time = time.time()
         self.dependency_checks: List[Callable[[], DependencyStatus]] = []
 
-    def add_dependency_check(self, check_func: Callable[[], DependencyStatus]):
+    def add_dependency_check(self, check_func: Callable[[], DependencyStatus]) -> Any:
         """
         Add a dependency check
         """
@@ -52,30 +51,20 @@ class HealthCheck:
         """
         Check service health
         """
-        # Basic service info
         hostname = socket.gethostname()
         uptime = time.time() - self.start_time
-
-        # System metrics
         cpu_percent = psutil.cpu_percent()
         memory_percent = psutil.virtual_memory().percent
         disk_percent = psutil.disk_usage("/").percent
-
-        # Define thresholds
         cpu_threshold = 90
         memory_threshold = 90
         disk_threshold = 90
-
-        # Check dependencies
         dependencies = []
         dependency_status = HealthStatus.HEALTHY
-
         for check_func in self.dependency_checks:
             try:
                 status = check_func()
                 dependencies.append(status.to_dict())
-
-                # Update overall dependency status
                 if status.status == HealthStatus.UNHEALTHY:
                     dependency_status = HealthStatus.UNHEALTHY
                 elif (
@@ -92,8 +81,6 @@ class HealthCheck:
                     }
                 )
                 dependency_status = HealthStatus.UNHEALTHY
-
-        # Determine overall health status
         system_status = HealthStatus.HEALTHY
         if (
             cpu_percent >= cpu_threshold
@@ -101,7 +88,6 @@ class HealthCheck:
             or disk_percent >= disk_threshold
         ):
             system_status = HealthStatus.DEGRADED
-
         overall_status = HealthStatus.HEALTHY
         if (
             system_status == HealthStatus.DEGRADED
@@ -110,7 +96,6 @@ class HealthCheck:
             overall_status = HealthStatus.DEGRADED
         if dependency_status == HealthStatus.UNHEALTHY:
             overall_status = HealthStatus.UNHEALTHY
-
         return {
             "status": overall_status,
             "service": self.service_name,
@@ -126,7 +111,7 @@ class HealthCheck:
         }
 
 
-def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck):
+def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck) -> Any:
     """
     Add health check endpoints to the FastAPI application
     """
@@ -151,10 +136,8 @@ def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck):
         Readiness probe endpoint
         """
         health_status = health_check.check_health()
-
         if health_status["status"] == HealthStatus.UNHEALTHY:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-
         return health_status
 
     @app.get("/health/detailed")
@@ -163,14 +146,11 @@ def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck):
         Detailed health check endpoint
         """
         health_status = health_check.check_health()
-
         if health_status["status"] == HealthStatus.UNHEALTHY:
             response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-
         return health_status
 
 
-# Mock functions for dependencies
 def check_feature_store_connection() -> str:
     """Mock check for feature store connection."""
     return "ok"

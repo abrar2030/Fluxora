@@ -1,14 +1,12 @@
 import os
-
 import tensorflow as tf
 import xgboost as xgb
-
 from core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def get_latest_model(model_type: str):
+def get_latest_model(model_type: str) -> Any:
     """
     Loads the latest trained model based on the type.
 
@@ -19,7 +17,6 @@ def get_latest_model(model_type: str):
         The loaded model object.
     """
     model_dir = f"models/{model_type}/latest"
-
     if model_type == "xgboost":
         model_path = os.path.join(model_dir, "model.xgb")
         if not os.path.exists(model_path):
@@ -29,11 +26,9 @@ def get_latest_model(model_type: str):
             from .predict import MockModel
 
             return MockModel()
-
         model = xgb.Booster()
         model.load_model(model_path)
         return model
-
     elif model_type == "lstm":
         model_path = os.path.join(model_dir, "model")
         if not os.path.exists(model_path):
@@ -43,16 +38,13 @@ def get_latest_model(model_type: str):
             from .predict import MockModel
 
             return MockModel()
-
         model = tf.keras.models.load_model(model_path)
         return model
-
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
 
 if __name__ == "__main__":
-    # Example usage
     try:
         xgb_model = get_latest_model("xgboost")
         logger.info(f"Loaded XGBoost model: {xgb_model}")

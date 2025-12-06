@@ -4,14 +4,13 @@ import time
 import unittest
 from unittest.mock import MagicMock
 
-# Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from fluxora.core.retry import NonRetryableError, RetryableError, retry
 
 
 class TestRetry(unittest.TestCase):
-    def test_successful_call(self):
+
+    def test_successful_call(self) -> Any:
         """Test that a successful call returns the correct result"""
 
         @retry(max_attempts=3)
@@ -21,7 +20,7 @@ class TestRetry(unittest.TestCase):
         result = success_func()
         self.assertEqual(result, "success")
 
-    def test_retry_on_exception(self):
+    def test_retry_on_exception(self) -> Any:
         """Test that the function is retried on exception"""
         mock = MagicMock()
 
@@ -36,7 +35,7 @@ class TestRetry(unittest.TestCase):
         self.assertEqual(result, "success")
         self.assertEqual(mock.call_count, 2)
 
-    def test_max_attempts_reached(self):
+    def test_max_attempts_reached(self) -> Any:
         """Test that the function fails after max attempts"""
         mock = MagicMock()
 
@@ -47,10 +46,9 @@ class TestRetry(unittest.TestCase):
 
         with self.assertRaises(Exception):
             always_fail()
-
         self.assertEqual(mock.call_count, 3)
 
-    def test_retry_specific_exceptions(self):
+    def test_retry_specific_exceptions(self) -> Any:
         """Test that only specified exceptions trigger retry"""
         mock_retry = MagicMock()
         mock_no_retry = MagicMock()
@@ -67,11 +65,10 @@ class TestRetry(unittest.TestCase):
 
         with self.assertRaises(NonRetryableError):
             selective_retry()
-
         self.assertEqual(mock_retry.call_count, 1)
         self.assertEqual(mock_no_retry.call_count, 1)
 
-    def test_exponential_backoff(self):
+    def test_exponential_backoff(self) -> Any:
         """Test that exponential backoff increases delay between retries"""
         mock = MagicMock()
         start_time = time.time()
@@ -83,15 +80,12 @@ class TestRetry(unittest.TestCase):
 
         with self.assertRaises(Exception):
             always_fail()
-
         end_time = time.time()
         elapsed_time = end_time - start_time
-
-        # Expected delay: 0 + 0.1 + 0.2 = 0.3 seconds minimum
         self.assertGreaterEqual(elapsed_time, 0.3)
         self.assertEqual(mock.call_count, 3)
 
-    def test_max_delay(self):
+    def test_max_delay(self) -> Any:
         """Test that delay is capped at max_delay"""
         mock = MagicMock()
         start_time = time.time()
@@ -109,16 +103,10 @@ class TestRetry(unittest.TestCase):
 
         with self.assertRaises(Exception):
             always_fail()
-
         end_time = time.time()
         elapsed_time = end_time - start_time
-
-        # Expected delay: 0 + 0.1 + 0.2 = 0.3 seconds minimum
-        # Without max_delay it would be 0 + 0.1 + 1.0 = 1.1 seconds
         self.assertGreaterEqual(elapsed_time, 0.3)
-        self.assertLess(
-            elapsed_time, 1.0
-        )  # Should be less than what it would be without max_delay
+        self.assertLess(elapsed_time, 1.0)
         self.assertEqual(mock.call_count, 3)
 
 

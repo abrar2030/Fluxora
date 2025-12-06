@@ -4,15 +4,15 @@ from ..code.schemas.user import UserCreate
 from ..code.backend.security import get_password_hash
 
 
-def get_user(db: Session, user_id: int):
+def get_user(db: Session, user_id: int) -> Any:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(db: Session, email: str) -> Any:
     return db.query(User).filter(User.email == email).first()
 
 
-def create_user(db: Session, user: UserCreate):
+def create_user(db: Session, user: UserCreate) -> Any:
     hashed_password = get_password_hash(user.password)
     db_user = User(email=user.email, hashed_password=hashed_password)
     db.add(db_user)

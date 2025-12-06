@@ -9,7 +9,6 @@ def get_config() -> Dict[str, Any]:
     Returns:
         Dict: Configuration dictionary
     """
-    # Default configuration
     config = {
         "version": "1.0.0",
         "model_version": "0.1.0-test",
@@ -21,11 +20,10 @@ def get_config() -> Dict[str, Any]:
         "feature_store": {"path": "./config/feature_store"},
         "monitoring": {"enabled": True, "drift_threshold": 0.25},
     }
-
     return config
 
 
-def save_config(config: Dict[str, Any], path: str):
+def save_config(config: Dict[str, Any], path: str) -> Any:
     """
     Save configuration to file
 
@@ -35,9 +33,6 @@ def save_config(config: Dict[str, Any], path: str):
     """
     import json
 
-    # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(path), exist_ok=True)
-
-    # Save as JSON
     with open(path, "w") as f:
         json.dump(config, f, indent=2)

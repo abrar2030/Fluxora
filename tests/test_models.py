@@ -3,12 +3,11 @@ Model tests for Fluxora backend.
 """
 
 from datetime import datetime
-
 import pytest
 from fluxora.models.user import User
 
 
-def test_user_model_creation(db_session):
+def test_user_model_creation(db_session: Any) -> Any:
     """Test user model creation and validation."""
     user = User(
         email="test@example.com",
@@ -17,8 +16,6 @@ def test_user_model_creation(db_session):
     )
     db_session.add(user)
     db_session.commit()
-
-    # Test user was created
     assert user.id is not None
     assert user.email == "test@example.com"
     assert user.username == "testuser"
@@ -27,36 +24,22 @@ def test_user_model_creation(db_session):
     assert isinstance(user.updated_at, datetime)
 
 
-def test_user_model_validation(db_session):
+def test_user_model_validation(db_session: Any) -> Any:
     """Test user model validation rules."""
-    # Test email validation
     with pytest.raises(ValueError):
         User(
             email="invalid-email",
             username="testuser",
             hashed_password="hashedpassword123",
         )
-
-    # Test username validation
     with pytest.raises(ValueError):
-        User(
-            email="test@example.com",
-            username="",  # Empty username
-            hashed_password="hashedpassword123",
-        )
-
-    # Test password validation
+        User(email="test@example.com", username="", hashed_password="hashedpassword123")
     with pytest.raises(ValueError):
-        User(
-            email="test@example.com",
-            username="testuser",
-            hashed_password="",  # Empty password
-        )
+        User(email="test@example.com", username="testuser", hashed_password="")
 
 
-def test_user_model_unique_constraints(db_session):
+def test_user_model_unique_constraints(db_session: Any) -> Any:
     """Test user model unique constraints."""
-    # Create first user
     user1 = User(
         email="test@example.com",
         username="testuser",
@@ -64,33 +47,27 @@ def test_user_model_unique_constraints(db_session):
     )
     db_session.add(user1)
     db_session.commit()
-
-    # Try to create second user with same email
     user2 = User(
-        email="test@example.com",  # Same email
+        email="test@example.com",
         username="testuser2",
         hashed_password="hashedpassword456",
     )
     db_session.add(user2)
-    with pytest.raises(Exception):  # Should raise unique constraint violation
+    with pytest.raises(Exception):
         db_session.commit()
-
     db_session.rollback()
-
-    # Try to create second user with same username
     user3 = User(
         email="test2@example.com",
-        username="testuser",  # Same username
+        username="testuser",
         hashed_password="hashedpassword789",
     )
     db_session.add(user3)
-    with pytest.raises(Exception):  # Should raise unique constraint violation
+    with pytest.raises(Exception):
         db_session.commit()
 
 
-def test_user_model_relationships(db_session):
+def test_user_model_relationships(db_session: Any) -> Any:
     """Test user model relationships."""
-    # Create a user
     user = User(
         email="test@example.com",
         username="testuser",
@@ -98,8 +75,6 @@ def test_user_model_relationships(db_session):
     )
     db_session.add(user)
     db_session.commit()
-
-    # Test relationships are empty by default
     assert user.projects == []
     assert user.tasks == []
     assert user.comments == []

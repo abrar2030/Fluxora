@@ -1,19 +1,14 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
 from ..code.schemas.user import TokenData
 
-# Configuration
-SECRET_KEY = "YOUR_SECRET_KEY_HERE"  # TODO: Load from environment variable
+SECRET_KEY = "YOUR_SECRET_KEY_HERE"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-# Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -27,11 +22,10 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-# JWT Token Management
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> Any:
     """Create a JWT access token."""
     to_encode = data.copy()
     if expires_delta:
@@ -63,13 +57,10 @@ def decode_access_token(token: str) -> TokenData:
     return token_data
 
 
-# Dependency to get the current user
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Any:
     """Dependency to get the current authenticated user."""
     token_data = decode_access_token(token)
 
-    # TODO: Fetch user from database using token_data.email
-    # For now, return a mock user object
     class MockUser:
         id = 1
         email = token_data.email
@@ -79,8 +70,9 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
     return MockUser()
 
 
-# Dependency to get the current active user
-def get_current_active_user(current_user: Annotated[object, Depends(get_current_user)]):
+def get_current_active_user(
+    current_user: Annotated[object, Depends(get_current_user)],
+) -> Any:
     """Dependency to get the current active authenticated user."""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")

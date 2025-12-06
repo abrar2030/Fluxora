@@ -6,7 +6,7 @@ class TransactionRequest(BaseModel):
     transaction_id: str
 
 
-def add_transaction_endpoints(app: FastAPI, resource_manager):
+def add_transaction_endpoints(app: FastAPI, resource_manager: Any) -> Any:
     """
     Add transaction participant endpoints to the FastAPI application
     """
@@ -17,7 +17,6 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
         Prepare resources for the transaction
         """
         try:
-            # Prepare resources but don't commit yet
             resource_manager.prepare(request.transaction_id)
             return {"status": "prepared"}
         except Exception as e:
@@ -29,7 +28,6 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
         Commit the prepared transaction
         """
         try:
-            # Commit the prepared resources
             resource_manager.commit(request.transaction_id)
             return {"status": "committed"}
         except Exception as e:
@@ -41,7 +39,6 @@ def add_transaction_endpoints(app: FastAPI, resource_manager):
         Abort the transaction
         """
         try:
-            # Release any prepared resources
             resource_manager.abort(request.transaction_id)
             return {"status": "aborted"}
         except Exception as e:

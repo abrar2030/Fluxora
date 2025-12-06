@@ -19,7 +19,7 @@ class CachedDataFallback(FallbackStrategy):
     Fallback strategy that returns cached data
     """
 
-    def __init__(self, cache_provider: Callable[[], Any]):
+    def __init__(self, cache_provider: Callable[[], Any]) -> Any:
         self.cache_provider = cache_provider
 
     def execute(self, *args, **kwargs) -> Any:
@@ -34,7 +34,7 @@ class DefaultValueFallback(FallbackStrategy):
     Fallback strategy that returns a default value
     """
 
-    def __init__(self, default_value: Any):
+    def __init__(self, default_value: Any) -> Any:
         self.default_value = default_value
 
     def execute(self, *args, **kwargs) -> Any:
@@ -49,7 +49,7 @@ class ChainedFallback(FallbackStrategy):
     Fallback strategy that tries multiple strategies in sequence
     """
 
-    def __init__(self, strategies: List[FallbackStrategy]):
+    def __init__(self, strategies: List[FallbackStrategy]) -> Any:
         self.strategies = strategies
 
     def execute(self, *args, **kwargs) -> Any:
@@ -57,25 +57,23 @@ class ChainedFallback(FallbackStrategy):
         Try each strategy in sequence until one succeeds
         """
         last_exception = None
-
         for strategy in self.strategies:
             try:
                 return strategy.execute(*args, **kwargs)
             except Exception as e:
                 last_exception = e
-
-        # If we get here, all strategies failed
         if last_exception:
             raise last_exception
         raise Exception("All fallback strategies failed")
 
 
-def with_fallback(fallback_strategy: FallbackStrategy):
+def with_fallback(fallback_strategy: FallbackStrategy) -> Any:
     """
     Decorator that applies a fallback strategy to a function
     """
 
     def decorator(func: Callable) -> Callable:
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
             try:

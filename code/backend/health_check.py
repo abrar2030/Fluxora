@@ -3,14 +3,13 @@ from code.core.health_check import (
     check_feature_store_connection,
     check_model_versions,
 )
-
 from fastapi import APIRouter
 
 router = APIRouter()
 
 
 @router.get("/health")
-def health_check():
+def health_check() -> Any:
     return {
         "api_status": "ok",
         "feature_store": check_feature_store_connection(),
@@ -20,5 +19,5 @@ def health_check():
 
 
 @router.get("/ready")
-def readiness_probe():
+def readiness_probe() -> Any:
     return {"status": "ready"}
