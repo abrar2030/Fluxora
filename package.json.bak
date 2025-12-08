@@ -1,7 +1,7 @@
 {
   "name": "fluxora",
   "version": "1.0.0",
-  "description": "Fluxora",
+  "description": "![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/cicd.yml?branch=main&label=CI/CD&logo=github) [![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/abrar2030/Fluxora/actions) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)",
   "main": "index.js",
   "directories": {
     "doc": "docs",
