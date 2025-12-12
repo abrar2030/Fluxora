@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.appName }}-backend
-  namespace: {{ .Values.namespace | default "fluxora" }}
+  name: fluxora-backend
+  namespace: fluxora
   labels:
-    app: {{ .Values.appName }}-backend
+    app: fluxora-backend
     component: backend
-    version: {{ .Values.backend.image.tag }}
+    version: latest
     compliance: "pci-dss,gdpr,soc2"
     tier: application
   annotations:
@@ -15,29 +15,29 @@ metadata:
     fluxora.com/deployment-strategy: "rolling-update"
     fluxora.com/security-scan: "required"
 spec:
-  replicas: {{ .Values.backend.replicas | default 3 }}
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0  # Zero downtime deployment
+      maxUnavailable: 0 # Zero downtime deployment
   selector:
     matchLabels:
-      app: {{ .Values.appName }}-backend
+      app: fluxora-backend
       component: backend
   template:
     metadata:
       labels:
-        app: {{ .Values.appName }}-backend
+        app: fluxora-backend
         component: backend
-        version: {{ .Values.backend.image.tag }}
+        version: latest
         compliance: "pci-dss,gdpr,soc2"
         tier: application
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "{{ .Values.backend.metrics.port | default 9090 }}"
+        prometheus.io/port: "9090"
         prometheus.io/path: "/metrics"
-        fluxora.com/log-level: "{{ .Values.backend.logLevel | default 'INFO' }}"
+        fluxora.com/log-level: "INFO"
         fluxora.com/security-context: "restricted"
     spec:
       # Security Context - Financial Grade Security
@@ -51,7 +51,7 @@ spec:
         supplementalGroups: [10001]
 
       # Service Account with RBAC
-      serviceAccountName: {{ .Values.appName }}-backend-sa
+      serviceAccountName: fluxora-backend-sa
       automountServiceAccountToken: true
 
       # Node Selection and Affinity
@@ -63,398 +63,398 @@ spec:
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - {{ .Values.appName }}-backend
-            topologyKey: kubernetes.io/hostname
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - fluxora-backend
+              topologyKey: kubernetes.io/hostname
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: node.kubernetes.io/instance-type
-                operator: NotIn
-                values:
-                - spot
-                - preemptible
+              - matchExpressions:
+                  - key: node.kubernetes.io/instance-type
+                    operator: NotIn
+                    values:
+                      - spot
+                      - preemptible
 
       # Tolerations for dedicated nodes
       tolerations:
-      - key: "financial-workload"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
+        - key: "financial-workload"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
 
       # Init Containers for Security and Setup
       initContainers:
-      - name: security-scanner
-        image: {{ .Values.security.scanner.image }}:{{ .Values.security.scanner.tag }}
-        command: ["/bin/sh"]
-        args: ["-c", "echo 'Security scan completed' && exit 0"]
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 10001
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            cpu: 100m
-            memory: 128Mi
-          requests:
-            cpu: 50m
-            memory: 64Mi
+        - name: security-scanner
+          image: aquasec/trivy:latest:aquasec/trivy:latest
+          command: ["/bin/sh"]
+          args: ["-c", "echo 'Security scan completed' && exit 0"]
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
 
-      - name: database-migration
-        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
-        command: ["/app/scripts/migrate.sh"]
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: connection-string
-        - name: MIGRATION_TIMEOUT
-          value: "300"
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 10001
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-        volumeMounts:
-        - name: tmp-volume
-          mountPath: /tmp
+        - name: database-migration
+          image: registry.example.com/app/backend:latest
+          command: ["/app/scripts/migrate.sh"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: connection-string
+            - name: MIGRATION_TIMEOUT
+              value: "300"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
 
       containers:
-      - name: {{ .Values.appName }}-backend
-        image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
-        imagePullPolicy: {{ .Values.backend.image.pullPolicy | default "Always" }}
+        - name: fluxora-backend
+          image: registry.example.com/app/backend:latest
+          imagePullPolicy: Always
 
-        # Security Context - Pod Level
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 10001
-          runAsGroup: 10001
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-            add:
-            - NET_BIND_SERVICE  # Only if binding to privileged ports
+          # Security Context - Pod Level
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_BIND_SERVICE # Only if binding to privileged ports
 
-        ports:
-        - name: http
-          containerPort: {{ .Values.backend.containerPort | default 8000 }}
-          protocol: TCP
-        - name: metrics
-          containerPort: {{ .Values.backend.metrics.port | default 9090 }}
-          protocol: TCP
-        - name: health
-          containerPort: {{ .Values.backend.health.port | default 8080 }}
-          protocol: TCP
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+            - name: health
+              containerPort: 8080
+              protocol: TCP
 
-        # Resource Management - Financial Grade
-        resources:
-          limits:
-            cpu: {{ .Values.backend.resources.limits.cpu | default "2000m" }}
-            memory: {{ .Values.backend.resources.limits.memory | default "4Gi" }}
-            ephemeral-storage: "2Gi"
-          requests:
-            cpu: {{ .Values.backend.resources.requests.cpu | default "1000m" }}
-            memory: {{ .Values.backend.resources.requests.memory | default "2Gi" }}
-            ephemeral-storage: "1Gi"
+          # Resource Management - Financial Grade
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+              ephemeral-storage: "2Gi"
+            requests:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: "1Gi"
 
-        # Environment Variables - Secure Configuration
-        env:
-        - name: NODE_ENV
-          value: {{ .Values.environment }}
-        - name: APP_NAME
-          value: {{ .Values.appName }}
-        - name: APP_VERSION
-          value: {{ .Values.backend.image.tag }}
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
+          # Environment Variables - Secure Configuration
+          env:
+            - name: NODE_ENV
+              value: dev
+            - name: APP_NAME
+              value: fluxora
+            - name: APP_VERSION
+              value: latest
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
 
-        # Database Configuration
-        - name: DATABASE_HOST
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: host
-        - name: DATABASE_PORT
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: port
-        - name: DATABASE_NAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: database
-        - name: DATABASE_USER
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: username
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-db-credentials
-              key: password
+            # Database Configuration
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: host
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: port
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: database
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-db-credentials
+                  key: password
 
-        # Application Secrets
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-app-secrets
-              key: jwt-secret
-        - name: ENCRYPTION_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-app-secrets
-              key: encryption-key
-        - name: API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-app-secrets
-              key: api-key
+            # Application Secrets
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-app-secrets
+                  key: jwt-secret
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-app-secrets
+                  key: encryption-key
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-app-secrets
+                  key: api-key
 
-        # Redis Configuration
-        - name: REDIS_HOST
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-redis-credentials
-              key: host
-        - name: REDIS_PORT
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-redis-credentials
-              key: port
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.appName }}-redis-credentials
-              key: password
+            # Redis Configuration
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-redis-credentials
+                  key: host
+            - name: REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-redis-credentials
+                  key: port
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fluxora-redis-credentials
+                  key: password
 
-        # Compliance and Security Settings
-        - name: COMPLIANCE_MODE
-          value: "financial"
-        - name: AUDIT_LOGGING
-          value: "enabled"
-        - name: DATA_ENCRYPTION
-          value: "enabled"
-        - name: PCI_DSS_MODE
-          value: {{ .Values.compliance.pciDss | default "true" | quote }}
-        - name: GDPR_MODE
-          value: {{ .Values.compliance.gdpr | default "true" | quote }}
-        - name: SOC2_MODE
-          value: {{ .Values.compliance.soc2 | default "true" | quote }}
+            # Compliance and Security Settings
+            - name: COMPLIANCE_MODE
+              value: "financial"
+            - name: AUDIT_LOGGING
+              value: "enabled"
+            - name: DATA_ENCRYPTION
+              value: "enabled"
+            - name: PCI_DSS_MODE
+              value: "true"
+            - name: GDPR_MODE
+              value: "true"
+            - name: SOC2_MODE
+              value: "true"
 
-        # Logging Configuration
-        - name: LOG_LEVEL
-          value: {{ .Values.backend.logLevel | default "INFO" }}
-        - name: LOG_FORMAT
-          value: "json"
-        - name: LOG_DESTINATION
-          value: "stdout"
-        - name: AUDIT_LOG_ENABLED
-          value: "true"
+            # Logging Configuration
+            - name: LOG_LEVEL
+              value: INFO
+            - name: LOG_FORMAT
+              value: "json"
+            - name: LOG_DESTINATION
+              value: "stdout"
+            - name: AUDIT_LOG_ENABLED
+              value: "true"
 
-        # Performance and Monitoring
-        - name: METRICS_ENABLED
-          value: "true"
-        - name: TRACING_ENABLED
-          value: "true"
-        - name: HEALTH_CHECK_ENABLED
-          value: "true"
+            # Performance and Monitoring
+            - name: METRICS_ENABLED
+              value: "true"
+            - name: TRACING_ENABLED
+              value: "true"
+            - name: HEALTH_CHECK_ENABLED
+              value: "true"
 
-        # Volume Mounts
-        volumeMounts:
-        - name: tmp-volume
-          mountPath: /tmp
-        - name: app-cache
-          mountPath: /app/cache
-        - name: app-logs
-          mountPath: /app/logs
-        - name: app-config
-          mountPath: /app/config
-          readOnly: true
-        - name: ssl-certs
-          mountPath: /app/certs
-          readOnly: true
+          # Volume Mounts
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+            - name: app-cache
+              mountPath: /app/cache
+            - name: app-logs
+              mountPath: /app/logs
+            - name: app-config
+              mountPath: /app/config
+              readOnly: true
+            - name: ssl-certs
+              mountPath: /app/certs
+              readOnly: true
 
-        # Health Checks - Enhanced for Financial Applications
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: health
-            scheme: HTTP
-            httpHeaders:
-            - name: User-Agent
-              value: "k8s-liveness-probe"
-          initialDelaySeconds: 60
-          periodSeconds: 30
-          timeoutSeconds: 10
-          successThreshold: 1
-          failureThreshold: 3
+          # Health Checks - Enhanced for Financial Applications
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: health
+              scheme: HTTP
+              httpHeaders:
+                - name: User-Agent
+                  value: "k8s-liveness-probe"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
 
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: health
-            scheme: HTTP
-            httpHeaders:
-            - name: User-Agent
-              value: "k8s-readiness-probe"
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          successThreshold: 1
-          failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: health
+              scheme: HTTP
+              httpHeaders:
+                - name: User-Agent
+                  value: "k8s-readiness-probe"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
 
-        startupProbe:
-          httpGet:
-            path: /health/startup
-            port: health
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          successThreshold: 1
-          failureThreshold: 30
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: health
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 30
 
-        # Lifecycle Hooks
-        lifecycle:
-          preStop:
-            exec:
-              command: ["/app/scripts/graceful-shutdown.sh"]
+          # Lifecycle Hooks
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/app/scripts/graceful-shutdown.sh"]
 
-      # Sidecar Containers for Enhanced Security and Monitoring
-      - name: security-agent
-        image: {{ .Values.security.agent.image }}:{{ .Values.security.agent.tag }}
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 10002
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-        volumeMounts:
-        - name: security-logs
-          mountPath: /var/log/security
-        env:
-        - name: SECURITY_MODE
-          value: "financial"
-        - name: COMPLIANCE_FRAMEWORKS
-          value: "pci-dss,gdpr,soc2"
+        # Sidecar Containers for Enhanced Security and Monitoring
+        - name: security-agent
+          image: sysdig/agent:latest:sysdig/agent:latest
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10002
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: security-logs
+              mountPath: /var/log/security
+          env:
+            - name: SECURITY_MODE
+              value: "financial"
+            - name: COMPLIANCE_FRAMEWORKS
+              value: "pci-dss,gdpr,soc2"
 
-      - name: log-forwarder
-        image: {{ .Values.logging.forwarder.image }}:{{ .Values.logging.forwarder.tag }}
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 10003
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          limits:
-            cpu: 200m
-            memory: 256Mi
-          requests:
-            cpu: 100m
-            memory: 128Mi
-        volumeMounts:
-        - name: app-logs
-          mountPath: /var/log/app
-          readOnly: true
-        - name: security-logs
-          mountPath: /var/log/security
-          readOnly: true
-        env:
-        - name: LOG_DESTINATION
-          value: "elasticsearch"
-        - name: COMPLIANCE_TAGGING
-          value: "enabled"
+        - name: log-forwarder
+          image: fluent/fluent-bit:latest:fluent/fluent-bit:latest
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10003
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: app-logs
+              mountPath: /var/log/app
+              readOnly: true
+            - name: security-logs
+              mountPath: /var/log/security
+              readOnly: true
+          env:
+            - name: LOG_DESTINATION
+              value: "elasticsearch"
+            - name: COMPLIANCE_TAGGING
+              value: "enabled"
 
       # Volumes
       volumes:
-      - name: tmp-volume
-        emptyDir:
-          sizeLimit: 1Gi
-      - name: app-cache
-        emptyDir:
-          sizeLimit: 2Gi
-      - name: app-logs
-        emptyDir:
-          sizeLimit: 1Gi
-      - name: security-logs
-        emptyDir:
-          sizeLimit: 500Mi
-      - name: app-config
-        configMap:
-          name: {{ .Values.appName }}-backend-config
-          defaultMode: 0444
-      - name: ssl-certs
-        secret:
-          secretName: {{ .Values.appName }}-ssl-certs
-          defaultMode: 0444
+        - name: tmp-volume
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: app-cache
+          emptyDir:
+            sizeLimit: 2Gi
+        - name: app-logs
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: security-logs
+          emptyDir:
+            sizeLimit: 500Mi
+        - name: app-config
+          configMap:
+            name: fluxora-backend-config
+            defaultMode: 0444
+        - name: ssl-certs
+          secret:
+            secretName: fluxora-ssl-certs
+            defaultMode: 0444
 
       # Image Pull Secrets
       imagePullSecrets:
-      - name: {{ .Values.imagePullSecrets | default "fluxora-registry-secret" }}
+        - name: regcred
 
       # DNS Configuration
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
-        - name: ndots
-          value: "2"
-        - name: edns0
+          - name: ndots
+            value: "2"
+          - name: edns0
 
       # Termination Grace Period
       terminationGracePeriodSeconds: 60
 
       # Priority and Preemption
-      priorityClassName: {{ .Values.backend.priorityClass | default "financial-workload-high" }}
+      priorityClassName: financial-workload-high
 
       # Restart Policy
       restartPolicy: Always
