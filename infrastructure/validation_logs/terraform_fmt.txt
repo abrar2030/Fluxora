@@ -1,0 +1,9 @@
+environments/dev/terraform.tfvars
+environments/prod/terraform.tfvars
+environments/staging/terraform.tfvars
+main.tf
+modules/database/main.tf
+modules/security/main.tf
+modules/security/outputs.tf
+modules/security/variables.tf
+variables.tf

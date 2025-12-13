@@ -76,8 +76,14 @@ variable "db_password" {
 variable "default_tags" {
   description = "Default tags for all resources"
   type        = map(string)
-  default     = {
+  default = {
     Terraform   = "true"
     Environment = "dev"
   }
+}
+
+variable "admin_cidr_blocks" {
+  description = "CIDR blocks allowed for administrative access"
+  type        = list(string)
+  default     = ["10.0.0.0/8"]  # Restrict in production
 }

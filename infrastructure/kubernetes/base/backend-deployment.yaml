@@ -90,7 +90,7 @@ spec:
       # Init Containers for Security and Setup
       initContainers:
         - name: security-scanner
-          image: aquasec/trivy:latest:aquasec/trivy:latest
+          image: aquasec/trivy:0.48.0
           command: ["/bin/sh"]
           args: ["-c", "echo 'Security scan completed' && exit 0"]
           securityContext:
@@ -110,7 +110,7 @@ spec:
               memory: 64Mi
 
         - name: database-migration
-          image: registry.example.com/app/backend:latest
+          image: registry.example.com/app/backend:1.0.0
           command: ["/app/scripts/migrate.sh"]
           env:
             - name: DATABASE_URL
@@ -141,7 +141,7 @@ spec:
 
       containers:
         - name: fluxora-backend
-          image: registry.example.com/app/backend:latest
+          image: registry.example.com/app/backend:1.0.0
           imagePullPolicy: Always
 
           # Security Context - Pod Level
@@ -360,7 +360,7 @@ spec:
 
         # Sidecar Containers for Enhanced Security and Monitoring
         - name: security-agent
-          image: sysdig/agent:latest:sysdig/agent:latest
+          image: sysdig/sysdig:12.18.0
           securityContext:
             runAsNonRoot: true
             runAsUser: 10002
@@ -386,7 +386,7 @@ spec:
               value: "pci-dss,gdpr,soc2"
 
         - name: log-forwarder
-          image: fluent/fluent-bit:latest:fluent/fluent-bit:latest
+          image: fluent/fluent-bit:2.2.0
           securityContext:
             runAsNonRoot: true
             runAsUser: 10003

@@ -43,9 +43,9 @@ variable "common_tags" {
   description = "Common tags to be applied to all resources"
   type        = map(string)
   default = {
-    Project     = "fluxora"
-    ManagedBy   = "terraform"
-    Compliance  = "pci-dss,gdpr,soc2"
+    Project    = "fluxora"
+    ManagedBy  = "terraform"
+    Compliance = "pci-dss,gdpr,soc2"
   }
 }
 
@@ -151,7 +151,7 @@ variable "monitoring_endpoints" {
 
 variable "compliance_framework" {
   description = "Compliance framework requirements"
-  type        = object({
+  type = object({
     pci_dss = bool
     gdpr    = bool
     soc2    = bool
@@ -185,7 +185,7 @@ variable "network_segmentation_enabled" {
 
 variable "audit_log_destinations" {
   description = "List of destinations for audit logs"
-  type        = list(object({
+  type = list(object({
     type     = string
     endpoint = string
   }))
@@ -194,7 +194,7 @@ variable "audit_log_destinations" {
 
 variable "incident_response_contacts" {
   description = "List of contacts for incident response"
-  type        = list(object({
+  type = list(object({
     name  = string
     email = string
     role  = string
@@ -204,31 +204,31 @@ variable "incident_response_contacts" {
 
 variable "data_classification_levels" {
   description = "Data classification levels and their requirements"
-  type        = map(object({
+  type = map(object({
     encryption_required = bool
-    access_logging     = bool
-    retention_days     = number
+    access_logging      = bool
+    retention_days      = number
   }))
   default = {
     public = {
       encryption_required = false
-      access_logging     = false
-      retention_days     = 30
+      access_logging      = false
+      retention_days      = 30
     }
     internal = {
       encryption_required = true
-      access_logging     = true
-      retention_days     = 90
+      access_logging      = true
+      retention_days      = 90
     }
     confidential = {
       encryption_required = true
-      access_logging     = true
-      retention_days     = 365
+      access_logging      = true
+      retention_days      = 365
     }
     restricted = {
       encryption_required = true
-      access_logging     = true
-      retention_days     = 2555  # 7 years
+      access_logging      = true
+      retention_days      = 2555 # 7 years
     }
   }
 }

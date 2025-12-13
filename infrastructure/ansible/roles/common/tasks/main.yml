@@ -20,7 +20,7 @@
     state: present
 
 - name: Set timezone
-  timezone:
+  community.general.timezone:
     name: UTC
 
 - name: Configure firewall

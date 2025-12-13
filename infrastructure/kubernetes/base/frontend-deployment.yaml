@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: fluxora-frontend
-          image: registry.example.com/app/frontend:latest
+          image: registry.example.com/app/frontend:1.0.0
           imagePullPolicy: Always
           ports:
             - containerPort: 80
