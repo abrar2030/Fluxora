@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Any, Dict
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 
@@ -71,13 +71,33 @@ class ResourceManager:
     def _execute_operation(self, operation: str, data: Dict[str, Any]) -> Any:
         """
         Execute the operation on the resource
+        This is a mock implementation for demonstration
+        In production, this would interact with actual resources (database, file system, etc.)
         """
         if operation == "create":
-            pass
+            logger.info(f"Creating {self.resource_type} with data: {data}")
+            # In production: perform actual resource creation
+            return {
+                "status": "created",
+                "resource_type": self.resource_type,
+                "data": data,
+            }
         elif operation == "update":
-            pass
+            logger.info(f"Updating {self.resource_type} with data: {data}")
+            # In production: perform actual resource update
+            return {
+                "status": "updated",
+                "resource_type": self.resource_type,
+                "data": data,
+            }
         elif operation == "delete":
-            pass
+            logger.info(f"Deleting {self.resource_type} with data: {data}")
+            # In production: perform actual resource deletion
+            return {
+                "status": "deleted",
+                "resource_type": self.resource_type,
+                "data": data,
+            }
         else:
             raise ValueError(f"Unknown operation: {operation}")
 

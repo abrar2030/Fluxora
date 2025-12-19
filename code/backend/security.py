@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from ..code.schemas.user import TokenData
+from schemas.user import TokenData
 
-SECRET_KEY = "YOUR_SECRET_KEY_HERE"
+SECRET_KEY = "YOUR_SECRET_KEY_HERE_CHANGE_IN_PRODUCTION"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

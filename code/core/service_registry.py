@@ -1,7 +1,7 @@
 import os
 import requests
 from fastapi import FastAPI
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 

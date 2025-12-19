@@ -1,6 +1,7 @@
+from typing import Any
 from sqlalchemy.orm import Session
-from ..code.models.data import EnergyData
-from ..code.schemas.data import EnergyDataCreate
+from models.data import EnergyData
+from schemas.data import EnergyDataCreate
 from datetime import datetime
 
 
@@ -8,6 +9,7 @@ def get_data_records(db: Session, user_id: int, skip: int = 0, limit: int = 100)
     return (
         db.query(EnergyData)
         .filter(EnergyData.user_id == user_id)
+        .order_by(EnergyData.timestamp.desc())
         .offset(skip)
         .limit(limit)
         .all()

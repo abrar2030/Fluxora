@@ -1,14 +1,20 @@
+"""
+Logging utilities for Fluxora
+"""
+
 import json
 import logging
 import sys
 import traceback
 import uuid
 from contextvars import ContextVar
-from typing import Optional
+from typing import Optional, Any
 
-request_id_var = ContextVar("request_id", default=None)
-user_id_var = ContextVar("user_id", default=None)
-correlation_id_var = ContextVar("correlation_id", default=None)
+request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
+user_id_var: ContextVar[Optional[str]] = ContextVar("user_id", default=None)
+correlation_id_var: ContextVar[Optional[str]] = ContextVar(
+    "correlation_id", default=None
+)
 
 
 class JsonFormatter(logging.Formatter):
@@ -87,6 +93,19 @@ def setup_logging(service_name: str, log_level: int = logging.INFO) -> Any:
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     return logger
+
+
+def get_logger(name: str) -> logging.Logger:
+    """
+    Get a logger instance for the given name
+
+    Args:
+        name: Name of the logger (typically __name__)
+
+    Returns:
+        Logger instance
+    """
+    return logging.getLogger(name)
 
 
 def set_request_context(

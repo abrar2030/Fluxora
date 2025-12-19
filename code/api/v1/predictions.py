@@ -6,11 +6,11 @@ import joblib
 import os
 import pandas as pd
 import numpy as np
-from ...backend.dependencies import get_db
-from ...backend.security import get_current_active_user
-from ...schemas.user import User
-from ...data.features.feature_engineering import preprocess_data_for_model
-from core.logging import get_logger
+from backend.dependencies import get_db
+from backend.security import get_current_active_user
+from schemas.user import User
+from data.features.feature_engineering import preprocess_data_for_model
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/predictions", tags=["predictions"])
@@ -64,7 +64,7 @@ def get_predictions(
     model = load_model()
     if model is None:
         return generate_mock_predictions(days)
-    from ...crud.data import get_data_records
+    from crud.data import get_data_records
 
     historical_records = get_data_records(db, user_id=current_user.id, limit=48)
     if not historical_records:

@@ -1,42 +1,38 @@
-# Updated Requirements for Fluxora
-# Consolidated and verified dependencies based on code review and existing project files.
+# Requirements for Fluxora Backend
+# Compatible versions with minimal conflicts
 
 # Core Framework & Web
-fastapi
-uvicorn
-pydantic
-starlette
-requests
-websockets
-fastapi-testclient
+fastapi>=0.109.0,<0.116.0
+uvicorn[standard]>=0.27.0,<0.33.0
+pydantic[email]>=2.5.0,<3.0.0
+requests>=2.31.0,<3.0.0
+websockets>=12.0,<14.0
+python-multipart>=0.0.6,<1.0.0
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
+email-validator>=2.1.0,<3.0.0
 
 # Data Processing & ML
-numpy
-pandas
-scikit-learn
-tensorflow
-xgboost
-mlflow
-optuna
-great-expectations
-feature-engine
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0,<3.0.0
+scikit-learn>=1.3.0,<2.0.0
+xgboost>=2.0.0,<3.0.0
+joblib>=1.3.0,<2.0.0
 
 # Database & ORM
-sqlalchemy
-psycopg2-binary # Assuming PostgreSQL based on common use with SQLAlchemy
-alembic # Assuming for migrations
+sqlalchemy>=2.0.0,<3.0.0
+psycopg2-binary>=2.9.0,<3.0.0
+alembic>=1.12.0,<2.0.0
 
 # Monitoring & Observability
-prometheus-client
-opentelemetry
-opentelemetry-exporter-jaeger-thrift
-opentelemetry-sdk
-psutil
+prometheus-client>=0.19.0,<1.0.0
+psutil>=5.9.0,<7.0.0
 
-# Cloud & Infrastructure
-boto3
+# Cloud & Infrastructure (optional)
+boto3>=1.34.0,<2.0.0
 
-# Utilities
-pytest
-unittest
-plotly
+# Utilities & Testing
+pytest>=7.4.0,<9.0.0
+plotly>=5.18.0,<6.0.0

@@ -11,7 +11,7 @@ from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_eng
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 

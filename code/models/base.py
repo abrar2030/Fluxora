@@ -1,4 +1,7 @@
 """
 Base model for SQLAlchemy models.
-This file now imports the configured Base from the backend database module.
 """
+
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()

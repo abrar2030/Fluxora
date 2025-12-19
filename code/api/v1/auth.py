@@ -1,16 +1,16 @@
+from typing import Annotated, Any
 from datetime import timedelta
-from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from ...backend.dependencies import get_db
-from ...backend.security import (
+from backend.dependencies import get_db
+from backend.security import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
     verify_password,
 )
-from ...crud.user import get_user_by_email
-from ...schemas.user import Token, UserCreate, User
+from crud.user import get_user_by_email
+from schemas.user import Token, UserCreate, User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -36,7 +36,7 @@ def login_for_access_token(
 
 @router.post("/register", response_model=User)
 def register_user(user: UserCreate, db: Session = Depends(get_db)) -> Any:
-    from ...crud.user import create_user
+    from crud.user import create_user
 
     db_user = get_user_by_email(db, email=user.email)
     if db_user:

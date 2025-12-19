@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 

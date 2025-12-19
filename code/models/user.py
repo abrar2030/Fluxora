@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import Column, Integer, String, Boolean
 from .base import Base
 

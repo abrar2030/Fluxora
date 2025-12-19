@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 import xgboost as xgb
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 

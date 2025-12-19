@@ -7,7 +7,7 @@ import os
 from typing import Tuple
 from datetime import datetime, timedelta
 import numpy as np
-from core.logging import get_logger
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 MODEL_PATH = os.path.join(os.getcwd(), "fluxora_model.joblib")

@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pydantic import BaseModel
-from ...backend.dependencies import get_db
-from ...backend.security import get_current_active_user
-from ...crud.data import get_data_by_time_range
-from ...schemas.user import User
-from ...models.data import EnergyData
-from core.logging import get_logger
+from backend.dependencies import get_db
+from backend.security import get_current_active_user
+from crud.data import get_data_by_time_range
+from schemas.user import User
+from models.data import EnergyData
+from core.logging_framework import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/analytics", tags=["analytics"])

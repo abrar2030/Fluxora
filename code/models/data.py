@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from .base import Base
