@@ -19,7 +19,7 @@ class DependencyStatus:
 
     def __init__(
         self, name: str, status: HealthStatus, details: Optional[Dict[str, Any]] = None
-    ) -> Any:
+    ) -> None:
         self.name = name
         self.status = status
         self.details = details or {}
@@ -36,12 +36,12 @@ class HealthCheck:
     Health check for a service
     """
 
-    def __init__(self, service_name: str) -> Any:
+    def __init__(self, service_name: str) -> None:
         self.service_name = service_name
         self.start_time = time.time()
         self.dependency_checks: List[Callable[[], DependencyStatus]] = []
 
-    def add_dependency_check(self, check_func: Callable[[], DependencyStatus]) -> Any:
+    def add_dependency_check(self, check_func: Callable[[], DependencyStatus]) -> None:
         """
         Add a dependency check
         """
@@ -111,27 +111,27 @@ class HealthCheck:
         }
 
 
-def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck) -> Any:
+def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck) -> None:
     """
     Add health check endpoints to the FastAPI application
     """
 
     @app.get("/health")
-    async def health():
+    async def health() -> Dict[str, str]:
         """
         Basic health check endpoint
         """
         return {"status": "healthy"}
 
     @app.get("/health/liveness")
-    async def liveness():
+    async def liveness() -> Dict[str, str]:
         """
         Liveness probe endpoint
         """
         return {"status": "healthy"}
 
     @app.get("/health/readiness")
-    async def readiness(response: Response):
+    async def readiness(response: Response) -> Dict[str, Any]:
         """
         Readiness probe endpoint
         """
@@ -141,7 +141,7 @@ def add_health_check_endpoints(app: FastAPI, health_check: HealthCheck) -> Any:
         return health_status
 
     @app.get("/health/detailed")
-    async def detailed_health(response: Response):
+    async def detailed_health(response: Response) -> Dict[str, Any]:
         """
         Detailed health check endpoint
         """

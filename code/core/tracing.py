@@ -15,7 +15,7 @@ class TracingManager:
 
     def __init__(
         self, service_name: str, jaeger_host: str = "jaeger", jaeger_port: int = 6831
-    ) -> Any:
+    ) -> None:
         self.service_name = service_name
         resource = Resource(attributes={SERVICE_NAME: service_name})
         trace.set_tracer_provider(TracerProvider(resource=resource))

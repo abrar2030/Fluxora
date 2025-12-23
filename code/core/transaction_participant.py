@@ -6,7 +6,7 @@ class TransactionRequest(BaseModel):
     transaction_id: str
 
 
-def add_transaction_endpoints(app: FastAPI, resource_manager: Any) -> Any:
+def add_transaction_endpoints(app: FastAPI, resource_manager: Any) -> None:
     """
     Add transaction participant endpoints to the FastAPI application
     """

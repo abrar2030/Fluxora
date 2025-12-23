@@ -17,7 +17,7 @@ class ErrorDetail:
         message: str,
         detail: Optional[str] = None,
         context: Optional[Dict[str, Any]] = None,
-    ) -> Any:
+    ) -> None:
         self.code = code
         self.message = message
         self.detail = detail
@@ -45,7 +45,7 @@ class ErrorResponse:
         error: ErrorDetail,
         request_id: Optional[str] = None,
         status_code: int = 500,
-    ) -> Any:
+    ) -> None:
         self.error = error
         self.request_id = request_id
         self.status_code = status_code
@@ -60,7 +60,7 @@ class ErrorResponse:
         return result
 
 
-def add_error_handlers(app: FastAPI) -> Any:
+def add_error_handlers(app: FastAPI) -> None:
     """
     Add error handlers to the FastAPI application
     """
@@ -86,7 +86,9 @@ def add_error_handlers(app: FastAPI) -> Any:
         return JSONResponse(status_code=400, content=error_response.to_dict())
 
     @app.exception_handler(HTTPException)
-    async def http_exception_handler(request: Request, exc: HTTPException):
+    async def http_exception_handler(
+        request: Request, exc: HTTPException
+    ) -> JSONResponse:
         """
         Handle HTTP exceptions
         """
@@ -105,7 +107,9 @@ def add_error_handlers(app: FastAPI) -> Any:
         )
 
     @app.exception_handler(Exception)
-    async def generic_exception_handler(request: Request, exc: Exception):
+    async def generic_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
         """
         Handle generic exceptions
         """

@@ -8,7 +8,7 @@ logger = get_logger(__name__)
 
 class ResourceManager:
 
-    def __init__(self, resource_type: str) -> Any:
+    def __init__(self, resource_type: str) -> None:
         self.resource_type = resource_type
         self.prepared_resources = {}
         self.temp_dir = "/tmp/transactions"

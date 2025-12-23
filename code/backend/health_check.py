@@ -1,4 +1,5 @@
-from code.core.health_check import (
+from typing import Dict, Any
+from core.health_check import (
     check_database_connections,
     check_feature_store_connection,
     check_model_versions,
@@ -9,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/health")
-def health_check() -> Any:
+def health_check() -> Dict[str, Any]:
     return {
         "api_status": "ok",
         "feature_store": check_feature_store_connection(),
@@ -19,5 +20,5 @@ def health_check() -> Any:
 
 
 @router.get("/ready")
-def readiness_probe() -> Any:
+def readiness_probe() -> Dict[str, str]:
     return {"status": "ready"}

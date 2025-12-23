@@ -6,7 +6,7 @@ from core.logging_framework import get_logger
 logger = get_logger(__name__)
 
 
-def register_service(app: FastAPI, service_name: str, service_version: str) -> Any:
+def register_service(app: FastAPI, service_name: str, service_version: str) -> None:
     """
     Register service with the service registry
     """
@@ -15,7 +15,7 @@ def register_service(app: FastAPI, service_name: str, service_version: str) -> A
     service_port = int(os.getenv("SERVICE_PORT", "8000"))
 
     @app.on_event("startup")
-    async def startup_event():
+    async def startup_event() -> None:
         try:
             response = requests.put(
                 f"{registry_url}/v1/agent/service/register",
@@ -39,7 +39,7 @@ def register_service(app: FastAPI, service_name: str, service_version: str) -> A
             logger.info(f"Error registering service: {str(e)}")
 
     @app.on_event("shutdown")
-    async def shutdown_event():
+    async def shutdown_event() -> None:
         try:
             response = requests.put(
                 f"{registry_url}/v1/agent/service/deregister/{service_id}"

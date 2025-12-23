@@ -112,7 +112,7 @@ def set_request_context(
     request_id: Optional[str] = None,
     user_id: Optional[str] = None,
     correlation_id: Optional[str] = None,
-) -> Any:
+) -> None:
     """
     Set request context for logging
     """
@@ -142,7 +142,7 @@ def get_correlation_id() -> Optional[str]:
     return correlation_id_var.get()
 
 
-def clear_request_context() -> Any:
+def clear_request_context() -> None:
     """
     Clear request context
     """

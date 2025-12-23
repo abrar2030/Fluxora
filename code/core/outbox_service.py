@@ -54,7 +54,7 @@ app = FastAPI(title="Outbox Service")
 
 
 @app.post("/messages")
-async def create_message(message: OutboxMessageModel):
+async def create_message(message: OutboxMessageModel) -> Dict[str, Any]:
     """
     Create a new outbox message
     """
@@ -78,7 +78,7 @@ async def create_message(message: OutboxMessageModel):
 
 
 @app.get("/messages/{message_id}")
-async def get_message(message_id: str):
+async def get_message(message_id: str) -> Dict[str, Any]:
     """
     Get message details
     """
@@ -107,7 +107,7 @@ async def get_message(message_id: str):
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> Dict[str, str]:
     """
     Health check endpoint
     """
@@ -115,14 +115,14 @@ async def health_check():
 
 
 @app.on_event("startup")
-async def start_message_processor():
+async def start_message_processor() -> None:
     """
     Start the background message processor
     """
     asyncio.create_task(process_messages())
 
 
-async def process_messages():
+async def process_messages() -> None:
     """
     Process pending outbox messages
     """

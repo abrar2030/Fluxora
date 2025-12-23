@@ -94,7 +94,7 @@ async def create_saga(name: str, steps: List[Dict], background_tasks: Background
 
 
 @app.get("/sagas/{saga_id}")
-async def get_saga(saga_id: str):
+async def get_saga(saga_id: str) -> Dict[str, Any]:
     """
     Get saga details
     """
@@ -122,7 +122,7 @@ async def get_saga(saga_id: str):
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> Dict[str, str]:
     """
     Health check endpoint
     """
@@ -174,7 +174,7 @@ async def execute_saga(saga_id: str):
     saga.updated_at = time.time()
 
 
-async def compensate_saga(saga_id: str):
+async def compensate_saga(saga_id: str) -> Dict[str, Any]:
     """
     Compensate the saga by executing compensation steps in reverse order
     """

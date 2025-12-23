@@ -24,7 +24,7 @@ class CircuitBreaker:
         failure_threshold: int = 5,
         recovery_timeout: int = 30,
         fallback_function: Optional[Callable] = None,
-    ) -> Any:
+    ) -> None:
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.fallback_function = fallback_function
@@ -36,7 +36,7 @@ class CircuitBreaker:
     def __call__(self, func: Any) -> Any:
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             return self.call(func, *args, **kwargs)
 
         return wrapper

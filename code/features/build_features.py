@@ -9,7 +9,7 @@ class FeaturePipeline:
     Pipeline for transforming raw data into features for model prediction
     """
 
-    def __init__(self) -> Any:
+    def __init__(self) -> None:
         self.config = get_config()
         self.preprocessing_config = self.config.get("preprocessing", {})
 

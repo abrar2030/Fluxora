@@ -59,7 +59,7 @@ app = FastAPI(title="Dead Letter Queue")
 
 
 @app.post("/messages")
-async def create_message(message: DeadLetteredMessageModel):
+async def create_message(message: DeadLetteredMessageModel) -> Dict[str, Any]:
     """
     Create a new dead-lettered message
     """
@@ -86,7 +86,9 @@ async def create_message(message: DeadLetteredMessageModel):
 
 
 @app.post("/messages/{message_id}/retry")
-async def retry_message(message_id: str, background_tasks: BackgroundTasks):
+async def retry_message(
+    message_id: str, background_tasks: BackgroundTasks
+) -> Dict[str, Any]:
     """
     Retry a dead-lettered message
     """
@@ -117,7 +119,7 @@ async def retry_message(message_id: str, background_tasks: BackgroundTasks):
 
 
 @app.post("/messages/{message_id}/resolve")
-async def resolve_message(message_id: str):
+async def resolve_message(message_id: str) -> Dict[str, Any]:
     """
     Mark a dead-lettered message as resolved
     """
@@ -141,7 +143,7 @@ async def resolve_message(message_id: str):
 
 
 @app.get("/messages/{message_id}")
-async def get_message(message_id: str):
+async def get_message(message_id: str) -> Dict[str, Any]:
     """
     Get message details
     """

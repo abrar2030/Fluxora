@@ -8,7 +8,7 @@ class MetricsCollector:
     Metrics collector for Prometheus
     """
 
-    def __init__(self, service_name: str, port: int = 8000) -> Any:
+    def __init__(self, service_name: str, port: int = 8000) -> None:
         self.service_name = service_name
         self.port = port
         self.request_counter = Counter(
@@ -77,19 +77,19 @@ class MetricsCollector:
         """
         self.error_counter.labels(type=error_type, code=error_code).inc()
 
-    def set_circuit_breaker_state(self, name: str, state: int) -> Any:
+    def set_circuit_breaker_state(self, name: str, state: int) -> None:
         """
         Set circuit breaker state
         """
         self.circuit_breaker_state.labels(name=name).set(state)
 
-    def set_resource_usage(self, resource: str, unit: str, value: float) -> Any:
+    def set_resource_usage(self, resource: str, unit: str, value: float) -> None:
         """
         Set resource usage
         """
         self.resource_usage.labels(resource=resource, unit=unit).set(value)
 
-    def set_prediction_accuracy(self, model: str, metric: str, value: float) -> Any:
+    def set_prediction_accuracy(self, model: str, metric: str, value: float) -> None:
         """
         Set prediction accuracy
         """

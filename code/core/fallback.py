@@ -19,7 +19,7 @@ class CachedDataFallback(FallbackStrategy):
     Fallback strategy that returns cached data
     """
 
-    def __init__(self, cache_provider: Callable[[], Any]) -> Any:
+    def __init__(self, cache_provider: Callable[[], Any]) -> None:
         self.cache_provider = cache_provider
 
     def execute(self, *args, **kwargs) -> Any:
@@ -34,7 +34,7 @@ class DefaultValueFallback(FallbackStrategy):
     Fallback strategy that returns a default value
     """
 
-    def __init__(self, default_value: Any) -> Any:
+    def __init__(self, default_value: Any) -> None:
         self.default_value = default_value
 
     def execute(self, *args, **kwargs) -> Any:
@@ -49,7 +49,7 @@ class ChainedFallback(FallbackStrategy):
     Fallback strategy that tries multiple strategies in sequence
     """
 
-    def __init__(self, strategies: List[FallbackStrategy]) -> Any:
+    def __init__(self, strategies: List[FallbackStrategy]) -> None:
         self.strategies = strategies
 
     def execute(self, *args, **kwargs) -> Any:

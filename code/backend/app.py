@@ -1,6 +1,7 @@
-from code.core.config import get_config
-from code.features.build_features import FeaturePipeline
-from code.models.predict import get_model, predict_with_model
+from typing import Dict, Any, List, Tuple
+from core.config import get_config
+from features.build_features import FeaturePipeline
+from models.predict import get_model, predict_with_model
 
 import numpy as np
 from fastapi import FastAPI
@@ -24,7 +25,7 @@ app.include_router(health_router)
 
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict(payload: PredictionRequest):
+async def predict(payload: PredictionRequest) -> Dict[str, Any]:
     """
     Batch prediction endpoint
     """
@@ -40,7 +41,7 @@ async def predict(payload: PredictionRequest):
         if len(predictions.shape) > 1
         else np.std(predictions)
     )
-    confidence_intervals = [
+    confidence_intervals: List[Tuple[float, float]] = [
         (float(pred - 1.96 * std_dev), float(pred + 1.96 * std_dev))
         for pred in predictions
     ]

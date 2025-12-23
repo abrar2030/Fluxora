@@ -11,7 +11,7 @@ class FeatureStore:
     Simple feature store implementation to replace Feast dependency
     """
 
-    def __init__(self, repo_path: Any = None) -> Any:
+    def __init__(self, repo_path: Any = None) -> None:
         self.features = {}
 
     def get_online_features(self, entity_rows: Any, features: Any) -> Any:
