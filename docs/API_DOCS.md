@@ -113,15 +113,3 @@ Error responses include a message field with details about the error.
 ## Rate Limiting
 
 Rate limiting is not currently implemented but will be added in future versions.
-
-## Versioning
-
-The API version is included in the response headers and in the health check endpoint.
-
-## Future Enhancements
-
-- Authentication
-- Rate limiting
-- Batch prediction endpoint
-- Real-time streaming data support
-- Historical data access
