@@ -30,7 +30,7 @@ class CircuitBreaker:
         self.fallback_function = fallback_function
         self.state = CircuitState.CLOSED
         self.failure_count = 0
-        self.last_failure_time = 0
+        self.last_failure_time: float = 0.0
         self.lock = threading.RLock()
 
     def __call__(self, func: Any) -> Any:

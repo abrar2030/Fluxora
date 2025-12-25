@@ -27,7 +27,7 @@ class ErrorDetail:
         """
         Convert to dictionary representation
         """
-        result = {"code": self.code, "message": self.message}
+        result: Dict[str, Any] = {"code": self.code, "message": self.message}
         if self.detail:
             result["detail"] = self.detail
         if self.context:
@@ -54,7 +54,7 @@ class ErrorResponse:
         """
         Convert to dictionary representation
         """
-        result = {"error": self.error.to_dict()}
+        result: Dict[str, Any] = {"error": self.error.to_dict()}
         if self.request_id:
             result["request_id"] = self.request_id
         return result

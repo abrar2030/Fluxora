@@ -8,8 +8,7 @@ import requests
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from core.logging_framework import get_logger
 
@@ -19,7 +18,10 @@ logger = get_logger(__name__)
 DATABASE_URL = "sqlite:///./dlq.db"  # Use PostgreSQL in production
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class DeadLetteredMessage(Base):
@@ -106,8 +108,8 @@ async def retry_message(
             raise HTTPException(status_code=400, detail="Message already resolved")
 
         # Update retry count and timestamp
-        message.retry_count += 1
-        message.last_retry_at = time.time()
+        message.retry_count += 1  # type: ignore[assignment]
+        message.last_retry_at = time.time()  # type: ignore[assignment]
         db.commit()
 
         # Start retry in background
@@ -133,8 +135,8 @@ async def resolve_message(message_id: str) -> Dict[str, Any]:
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
 
-        message.resolved = True
-        message.resolved_at = time.time()
+        message.resolved = True  # type: ignore[assignment]
+        message.resolved_at = time.time()  # type: ignore[assignment]
         db.commit()
 
         return {"message_id": message_id, "status": MessageStatus.RESOLVED.value}
@@ -165,9 +167,9 @@ async def get_message(message_id: str) -> Dict[str, Any]:
 
         return {
             "message_id": message.id,
-            "source_queue": message.source_queue,
-            "destination_service": message.destination_service,
-            "payload": json.loads(message.payload),
+            "source_queue": str(message.source_queue),
+            "destination_service": str(message.destination_service),
+            "payload": json.loads(str(message.payload)),
             "error_message": message.error_message,
             "created_at": message.created_at,
             "retry_count": message.retry_count,
@@ -265,19 +267,18 @@ async def retry_message_delivery(message_id: str):
 
         try:
             # Get service URL from service registry
-            service_url = get_service_url(message.destination_service)
+            service_url = get_service_url(str(message.destination_service))
             if not service_url:
                 return
 
             # Send message to destination service
-            response = requests.post(
-                f"{service_url}/messages", json=json.loads(message.payload)
-            )
+            payload_data = json.loads(str(message.payload))
+            response = requests.post(f"{service_url}/messages", json=payload_data)
 
             if response.status_code == 200:
                 # Mark message as resolved
-                message.resolved = True
-                message.resolved_at = time.time()
+                message.resolved = True  # type: ignore[assignment]
+                message.resolved_at = time.time()  # type: ignore[assignment]
                 db.commit()
         except Exception as e:
             logger.info(f"Error retrying message {message_id}: {str(e)}")

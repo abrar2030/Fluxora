@@ -1,3 +1,4 @@
+from typing import Any
 from feature_engine.creation import CyclicalFeatures
 from pandas.tseries.holiday import HolidayCalendar
 

@@ -3,14 +3,13 @@ import json
 import time
 import uuid
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, Float, Integer, String, Text, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from core.logging_framework import get_logger
 
@@ -20,7 +19,10 @@ logger = get_logger(__name__)
 DATABASE_URL = "sqlite:///./outbox.db"  # Use PostgreSQL in production
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class OutboxMessage(Base):
@@ -90,8 +92,8 @@ async def get_message(message_id: str) -> Dict[str, Any]:
 
         return {
             "message_id": message.id,
-            "destination_service": message.destination_service,
-            "payload": json.loads(message.payload),
+            "destination_service": str(message.destination_service),
+            "payload": json.loads(str(message.payload)),
             "created_at": message.created_at,
             "processed": message.processed,
             "processed_at": message.processed_at,
@@ -141,25 +143,26 @@ async def process_messages() -> None:
             for message in messages:
                 try:
                     # Get service URL from service registry
-                    service_url = get_service_url(message.destination_service)
+                    service_url = get_service_url(str(message.destination_service))
                     if not service_url:
                         continue
 
                     # Send message to destination service
+                    payload_data = json.loads(str(message.payload))
                     response = requests.post(
-                        f"{service_url}/messages", json=json.loads(message.payload)
+                        f"{service_url}/messages", json=payload_data
                     )
 
                     if response.status_code == 200:
                         # Mark message as processed
-                        message.processed = True
-                        message.processed_at = time.time()
+                        message.processed = True  # type: ignore[assignment]
+                        message.processed_at = time.time()  # type: ignore[assignment]
                     else:
                         # Increment retry count
-                        message.retry_count += 1
+                        message.retry_count += 1  # type: ignore[assignment]
                 except Exception as e:
                     logger.info(f"Error processing message {message.id}: {str(e)}")
-                    message.retry_count += 1
+                    message.retry_count += 1  # type: ignore[assignment]
 
             db.commit()
         except Exception as e:

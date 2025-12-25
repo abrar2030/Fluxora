@@ -1,7 +1,7 @@
 import time
 import uuid
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 from fastapi import BackgroundTasks, FastAPI, HTTPException
@@ -174,7 +174,7 @@ async def execute_saga(saga_id: str):
     saga.updated_at = time.time()
 
 
-async def compensate_saga(saga_id: str) -> Dict[str, Any]:
+async def compensate_saga(saga_id: str) -> None:
     """
     Compensate the saga by executing compensation steps in reverse order
     """

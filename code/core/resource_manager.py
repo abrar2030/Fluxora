@@ -10,7 +10,7 @@ class ResourceManager:
 
     def __init__(self, resource_type: str) -> None:
         self.resource_type = resource_type
-        self.prepared_resources = {}
+        self.prepared_resources: Dict[str, Dict[str, Any]] = {}
         self.temp_dir = "/tmp/transactions"
         os.makedirs(self.temp_dir, exist_ok=True)
 

@@ -1,4 +1,9 @@
+from typing import Any
 import great_expectations as ge
+
+
+class DataValidationError(Exception):
+    """Exception raised when data validation fails"""
 
 
 def validate_raw_data(df: Any) -> Any:

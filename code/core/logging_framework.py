@@ -45,8 +45,9 @@ class JsonFormatter(logging.Formatter):
         if correlation_id:
             log_data["correlation_id"] = correlation_id
         if record.exc_info:
+            exc_type = record.exc_info[0]
             log_data["exception"] = {
-                "type": record.exc_info[0].__name__,
+                "type": exc_type.__name__ if exc_type else "Unknown",
                 "message": str(record.exc_info[1]),
                 "traceback": traceback.format_exception(*record.exc_info),
             }

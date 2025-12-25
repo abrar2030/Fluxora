@@ -71,7 +71,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Any:
 
 
 def get_current_active_user(
-    current_user: Annotated[object, Depends(get_current_user)],
+    current_user: Annotated[Any, Depends(get_current_user)],
 ) -> Any:
     """Dependency to get the current active authenticated user."""
     if not current_user.is_active:

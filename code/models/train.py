@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 import os
-from typing import Tuple
+from typing import Any, Tuple
 from datetime import datetime, timedelta
 import numpy as np
 from core.logging_framework import get_logger

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 import numpy as np
 import pandas as pd
 from core.logging_framework import get_logger
@@ -12,7 +12,7 @@ class FeatureStore:
     """
 
     def __init__(self, repo_path: Any = None) -> None:
-        self.features = {}
+        self.features: Dict[str, Any] = {}
 
     def get_online_features(self, entity_rows: Any, features: Any) -> Any:
         """
@@ -34,7 +34,7 @@ class FeatureStore:
         for i, entity_row in enumerate(entity_rows):
             for key, value in entity_row.items():
                 if key not in result:
-                    result[key] = [None] * len(entity_rows)
+                    result[key] = [None] * len(entity_rows)  # type: ignore[assignment]
                 result[key][i] = value
         return pd.DataFrame(result)
 

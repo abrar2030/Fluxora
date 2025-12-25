@@ -1,7 +1,7 @@
 import time
 import uuid
 from enum import Enum
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 class TransactionStatus(Enum):
@@ -41,7 +41,7 @@ class TransactionCoordinator:
     """
 
     def __init__(self) -> None:
-        self.transactions = {}
+        self.transactions: Dict[str, Dict[str, Any]] = {}
 
     def create_transaction(self) -> str:
         """
