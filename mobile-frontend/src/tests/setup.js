@@ -1,4 +1,3 @@
-import "@testing-library/jest-native/extend-expect";
 import { configure } from "@testing-library/react-native";
 
 // Configure testing-library
@@ -52,3 +51,39 @@ jest.mock("react-native-gesture-handler", () => {
     Directions: {},
   };
 });
+
+// Mock react-native-chart-kit
+jest.mock("react-native-chart-kit", () => ({
+  LineChart: "LineChart",
+  BarChart: "BarChart",
+  PieChart: "PieChart",
+  ProgressChart: "ProgressChart",
+  ContributionGraph: "ContributionGraph",
+  StackedBarChart: "StackedBarChart",
+}));
+
+// Mock react-native-svg
+jest.mock("react-native-svg", () => ({
+  Svg: "Svg",
+  Circle: "Circle",
+  Ellipse: "Ellipse",
+  G: "G",
+  Text: "Text",
+  TSpan: "TSpan",
+  TextPath: "TextPath",
+  Path: "Path",
+  Polygon: "Polygon",
+  Polyline: "Polyline",
+  Line: "Line",
+  Rect: "Rect",
+  Use: "Use",
+  Image: "Image",
+  Symbol: "Symbol",
+  Defs: "Defs",
+  LinearGradient: "LinearGradient",
+  RadialGradient: "RadialGradient",
+  Stop: "Stop",
+  ClipPath: "ClipPath",
+  Pattern: "Pattern",
+  Mask: "Mask",
+}));

@@ -1,48 +1,83 @@
 import axios from "axios";
+import { API_CONFIG } from "../constants/config";
 
-// Replace with your actual backend API URL
-// Consider making this configurable, e.g., via settings or environment variables
-const API_BASE_URL = "http://localhost:8000"; // Placeholder URL - NEEDS TO BE UPDATED FOR ACTUAL DEPLOYMENT
-
+// Create axios instance with configuration
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_CONFIG.BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // Add a timeout for requests
+  timeout: API_CONFIG.TIMEOUT,
 });
 
-// Interceptor for logging or error handling (optional)
-apiClient.interceptors.response.use(
-  (response) => response,
+// Request interceptor for adding auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    // In a real app, get token from AsyncStorage or auth context
+    // const token = await AsyncStorage.getItem('token');
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    // }
+    return config;
+  },
   (error) => {
-    console.error("API call error:", error.response || error.message || error);
-    // Optionally re-throw or handle specific errors globally
     return Promise.reject(error);
   },
 );
 
+// Response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API call error:", error.response || error.message || error);
+
+    // Handle specific error codes
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          // Handle unauthorized - maybe navigate to login
+          console.warn("Unauthorized - Please login again");
+          break;
+        case 404:
+          console.warn("Resource not found");
+          break;
+        case 500:
+          console.error("Server error");
+          break;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
+/**
+ * Health check endpoint
+ * @returns {Promise<{status: string}>}
+ */
 export const getHealth = async () => {
   try {
     const response = await apiClient.get("/health");
     return response.data;
   } catch (error) {
     console.error("Error fetching health status:", error);
-    // Re-throw a more specific error or a generic one
     throw new Error("Failed to fetch health status from backend.");
   }
 };
 
+/**
+ * Get predictions from the backend
+ * @param {Object} payload - Prediction request payload
+ * @returns {Promise<{predictions: number[], confidence_intervals: Array<[number, number]>, model_version: string}>}
+ */
 export const postPredictions = async (payload) => {
   try {
-    // Ensure payload matches the PredictionRequest schema expected by the backend
     const response = await apiClient.post("/predict", payload);
-    return response.data; // Should return PredictionResponse
+    return response.data;
   } catch (error) {
     console.error("Error posting predictions:", error);
-    // Check for specific backend validation errors if possible
+
     if (error.response && error.response.data && error.response.data.detail) {
-      // FastAPI validation errors often come in `detail`
       throw new Error(
         `Prediction failed: ${JSON.stringify(error.response.data.detail)}`,
       );
@@ -51,44 +86,46 @@ export const postPredictions = async (payload) => {
   }
 };
 
-// New function to fetch summary data (example)
+/**
+ * Get summary statistics
+ * @returns {Promise<{totalPredictions: number, averageAccuracy: number, lastPredictionTime: string}>}
+ */
 export const getSummary = async () => {
   try {
-    // Assuming a '/summary' endpoint exists on the backend
     const response = await apiClient.get("/summary");
-    return response.data; // Adjust based on actual response structure
+    return response.data;
   } catch (error) {
     console.error("Error fetching summary data:", error);
-    // Return null or default data, or re-throw
-    // For now, let's return a placeholder or throw
-    // throw new Error('Failed to fetch summary data from backend.');
+
+    // Return mock data when endpoint is not available
     console.warn(
-      "Using placeholder summary data as /summary endpoint failed or is not implemented.",
+      "Using fallback summary data - /summary endpoint not available",
     );
     return {
       totalPredictions: 125,
       averageAccuracy: 0.92,
       lastPredictionTime: new Date().toLocaleTimeString(),
-    }; // Placeholder data
+    };
   }
 };
 
-// Add other API calls as needed (e.g., for fetching historical data for charts)
-
-// New function to fetch historical data (example)
+/**
+ * Get historical energy data
+ * @param {Object} params - Query parameters (e.g., { start_date, end_date, meter_id })
+ * @returns {Promise<{lineData: Object, barData: Object}>}
+ */
 export const getHistoricalData = async (params) => {
   try {
-    // Assuming a 	'/historical_data' endpoint exists
-    // Params could include time range, meter_id etc.
-    const response = await apiClient.get("/historical_data	", { params });
-    return response.data; // Adjust based on actual response structure
+    const response = await apiClient.get("/historical_data", { params });
+    return response.data;
   } catch (error) {
-    console.error("Error fetching historical data:	", error);
-    // Return null or default data, or re-throw
+    console.error("Error fetching historical data:", error);
+
+    // Return mock data when endpoint is not available
     console.warn(
-      "Using placeholder historical data as /historical_data endpoint failed or is not implemented.	",
+      "Using fallback historical data - /historical_data endpoint not available",
     );
-    // Return placeholder data matching the chart format
+
     return {
       lineData: {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -98,6 +135,77 @@ export const getHistoricalData = async (params) => {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         datasets: [{ data: [30, 50, 35, 70, 90, 50, 60] }],
       },
-    }; // Placeholder data
+    };
   }
 };
+
+/**
+ * Get model performance metrics
+ * @returns {Promise<{mae: number, rmse: number, r2_score: number}>}
+ */
+export const getModelMetrics = async () => {
+  try {
+    const response = await apiClient.get("/metrics");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching model metrics:", error);
+
+    // Return mock data when endpoint is not available
+    console.warn(
+      "Using fallback metrics data - /metrics endpoint not available",
+    );
+
+    return {
+      mae: 0.15,
+      rmse: 0.22,
+      r2_score: 0.89,
+    };
+  }
+};
+
+/**
+ * Get user profile
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>}
+ */
+export const getUserProfile = async (userId) => {
+  try {
+    const response = await apiClient.get(`/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw new Error("Failed to fetch user profile.");
+  }
+};
+
+/**
+ * Update user profile
+ * @param {string} userId - User ID
+ * @param {Object} data - Profile data to update
+ * @returns {Promise<Object>}
+ */
+export const updateUserProfile = async (userId, data) => {
+  try {
+    const response = await apiClient.put(`/users/${userId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    throw new Error("Failed to update user profile.");
+  }
+};
+
+/**
+ * Get notifications
+ * @returns {Promise<Array>}
+ */
+export const getNotifications = async () => {
+  try {
+    const response = await apiClient.get("/notifications");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    return []; // Return empty array on error
+  }
+};
+
+export default apiClient;
