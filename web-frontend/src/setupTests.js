@@ -1,12 +1,10 @@
 import "@testing-library/jest-dom";
 import { configure } from "@testing-library/react";
 
-// Configure testing-library
 configure({
   testIdAttribute: "data-testid",
 });
 
-// Mock window.matchMedia
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
@@ -20,3 +18,14 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: jest.fn(),
   })),
 });
+
+Object.defineProperty(window, "scrollTo", {
+  writable: true,
+  value: jest.fn(),
+});
+
+global.console = {
+  ...console,
+  error: jest.fn(),
+  warn: jest.fn(),
+};
