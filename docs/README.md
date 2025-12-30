@@ -1,122 +1,105 @@
-# Docs Directory
+# Fluxora Documentation
 
-## Overview
+**Energy Forecasting & Optimization Platform** - Comprehensive technical documentation for developers, operators, and contributors.
 
-The `docs` directory contains comprehensive documentation for the Fluxora energy forecasting platform. This directory serves as the central knowledge base for developers, contributors, and users of the platform, providing detailed information about the system architecture, API specifications, development guidelines, and more.
+Fluxora is an advanced energy forecasting and optimization platform that leverages machine learning to predict energy consumption patterns and optimize resource allocation. This documentation provides complete coverage of installation, usage, APIs, configuration, architecture, and contribution guidelines.
 
-## Structure
+---
 
-The directory is organized with the following documentation files:
+## 📑 Table of Contents
 
-- **API_DOCS.md**: Detailed API documentation
-- **ARCHITECTURE.md**: System architecture overview
-- **CONTRIBUTING.md**: Guidelines for contributing to the project
-- **DEVELOPMENT_GUIDELINES.md**: Standards and best practices for development
-- **PROJECT_OVERVIEW.md**: High-level overview of the Fluxora project
-- **SETUP_GUIDE.md**: Instructions for setting up the development environment
-- **TROUBLESHOOTING.md**: Common issues and their solutions
-- **images/**: Directory containing documentation images
-  - **Fluxora_dashboard.bmp**: Screenshot of the Fluxora dashboard
+### Getting Started
 
-## Documentation Files
+- **[Installation Guide](INSTALLATION.md)** - System prerequisites, installation methods (pip, Docker, Kubernetes)
+- **[Quick Start](USAGE.md#quick-start)** - Get up and running in 5 minutes
+- **[Configuration](CONFIGURATION.md)** - Environment variables, config files, and deployment settings
 
-### API_DOCS.md
+### Core Documentation
 
-Provides detailed documentation for the Fluxora API, including:
+- **[Usage Guide](USAGE.md)** - Common usage patterns, workflows, and best practices
+- **[API Reference](API.md)** - Complete REST API documentation with examples
+- **[CLI Reference](CLI.md)** - Command-line interface guide and scripts
+- **[Feature Matrix](FEATURE_MATRIX.md)** - Comprehensive feature overview and capabilities
 
-- Endpoint specifications
-- Request and response formats
-- Authentication requirements
-- Error handling
+### Architecture & Development
 
-### ARCHITECTURE.md
+- **[Architecture Overview](ARCHITECTURE.md)** - System design, components, and data flow
+- **[Examples](examples/)** - Working code examples for common tasks
+  - [Basic Prediction Example](examples/BASIC_PREDICTION.md)
+  - [Advanced Analytics Example](examples/ADVANCED_ANALYTICS.md)
+  - [Custom Model Training Example](examples/CUSTOM_TRAINING.md)
+- **[Contributing Guide](CONTRIBUTING.md)** - How to contribute code, tests, and documentation
 
-Describes the overall architecture of the Fluxora platform, including:
+### Operations & Support
 
-- System components and their interactions
-- Data flow diagrams
-- Technology stack
-- Design decisions and rationale
+- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Diagnostics](diagnostics/)** - Test results and system health reports
 
-### CONTRIBUTING.md
+---
 
-Guidelines for contributing to the Fluxora project, covering:
+## 🚀 Quick Start (3 Steps)
 
-- Code contribution workflow
-- Pull request process
-- Code review guidelines
-- Community standards
+```bash
+# 1. Clone and enter the repository
+git clone https://github.com/abrar2030/Fluxora.git && cd Fluxora
 
-### DEVELOPMENT_GUIDELINES.md
+# 2. Install dependencies
+pip install -r requirements.txt
 
-Standards and best practices for development, including:
+# 3. Start the API server
+python code/main.py
+```
 
-- Coding standards
-- Testing requirements
-- Documentation requirements
-- Version control practices
+Access the dashboard at `http://localhost:8000` and API documentation at `http://localhost:8000/docs`
 
-### PROJECT_OVERVIEW.md
+---
 
-High-level overview of the Fluxora project, including:
+## 🎯 What Can Fluxora Do?
 
-- Project goals and objectives
-- Key features
-- Target users
-- Project roadmap
+| Capability                | Description                                                       |
+| ------------------------- | ----------------------------------------------------------------- |
+| **Energy Forecasting**    | Predict energy consumption with LSTM, XGBoost, and Prophet models |
+| **Anomaly Detection**     | Identify unusual patterns using Isolation Forest algorithms       |
+| **Real-time Monitoring**  | Track energy usage with live dashboards and metrics               |
+| **Resource Optimization** | Optimize energy distribution and allocation strategies            |
+| **API Integration**       | RESTful API with authentication and comprehensive endpoints       |
+| **MLOps Pipeline**        | Complete ML workflow with MLflow, Optuna, DVC, and Prefect        |
+| **Production Ready**      | Circuit breakers, retry logic, health checks, and observability   |
 
-### SETUP_GUIDE.md
+---
 
-Instructions for setting up the development environment, including:
+## 📦 Project Components
 
-- Prerequisites
-- Installation steps
-- Configuration
-- Verification tests
+| Component          | Technology                    | Documentation Link                               |
+| ------------------ | ----------------------------- | ------------------------------------------------ |
+| **Backend API**    | FastAPI, Python 3.9+          | [API Reference](API.md)                          |
+| **ML Models**      | TensorFlow, XGBoost, Prophet  | [Feature Matrix](FEATURE_MATRIX.md)              |
+| **MLOps**          | MLflow, Optuna, DVC, Prefect  | [CLI Reference](CLI.md)                          |
+| **Feature Store**  | Custom Feast implementation   | [Architecture](ARCHITECTURE.md)                  |
+| **Web Frontend**   | Node.js, React                | [Setup Guide](INSTALLATION.md#web-frontend)      |
+| **Mobile App**     | React Native, Expo            | [Setup Guide](INSTALLATION.md#mobile-frontend)   |
+| **Infrastructure** | Docker, Kubernetes, Terraform | [Deployment](INSTALLATION.md#deployment-options) |
+| **Monitoring**     | Prometheus, Grafana, Loki     | [Configuration](CONFIGURATION.md#monitoring)     |
 
-### TROUBLESHOOTING.md
+---
 
-Common issues and their solutions, organized by:
+## 🔗 External Resources
 
-- Development environment issues
-- Runtime errors
-- Deployment problems
-- Performance concerns
+- **GitHub Repository**: https://github.com/abrar2030/Fluxora
+- **Issue Tracker**: https://github.com/abrar2030/Fluxora/issues
+- **CI/CD Status**: ![CI/CD](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/cicd.yml?branch=main)
+- **License**: MIT License
 
-## Usage
+---
 
-To use the documentation effectively:
+## 📝 Document Conventions
 
-1. Start with PROJECT_OVERVIEW.md for a high-level understanding
-2. Follow SETUP_GUIDE.md to set up your development environment
-3. Refer to ARCHITECTURE.md to understand the system design
-4. Use API_DOCS.md when working with the API
-5. Follow DEVELOPMENT_GUIDELINES.md and CONTRIBUTING.md when making changes
-6. Consult TROUBLESHOOTING.md when encountering issues
+Throughout this documentation:
 
-## Documentation Maintenance
+- **Code blocks** are shown with syntax highlighting and copy buttons
+- **File paths** are relative to repository root (e.g., `code/main.py`)
+- **Shell commands** assume Unix-like systems (Linux/macOS); Windows users should adapt accordingly
+- **API examples** use `curl` but can be adapted to any HTTP client
+- **Configuration examples** show YAML format unless otherwise noted
 
-When updating the documentation:
-
-1. Ensure changes are accurate and consistent with the codebase
-2. Follow the same formatting and style as existing documentation
-3. Update related documentation files as needed
-4. Add images to the images/ directory when helpful
-5. Verify links between documentation files
-
-## Best Practices
-
-- Keep documentation up-to-date with code changes
-- Use clear, concise language
-- Include examples where appropriate
-- Use diagrams and images to illustrate complex concepts
-- Organize information logically
-- Cross-reference related documentation
-
-## Related Resources
-
-For additional information, refer to:
-
-- The project README.md in the repository root
-- The notebooks/ directory for interactive examples
-- External documentation referenced in specific files
+---

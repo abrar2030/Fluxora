@@ -1,166 +1,609 @@
-# System Architecture
+# Architecture Overview
 
-## Overview
+System architecture, design patterns, and component interaction for Fluxora.
 
-Fluxora follows a modern, scalable architecture designed for maintainability and performance. The system is divided into several key components that work together to provide a robust application. The project has recently undergone restructuring to consolidate shared functionalities and improve modularity.
+---
+
+## 📑 Table of Contents
+
+- [High-Level Architecture](#high-level-architecture)
+- [System Components](#system-components)
+- [Data Flow](#data-flow)
+- [Module Structure](#module-structure)
+- [Design Patterns](#design-patterns)
+- [Technology Stack](#technology-stack)
+- [Security Architecture](#security-architecture)
+- [Scalability & Performance](#scalability--performance)
+
+---
+
+## High-Level Architecture
+
+Fluxora follows a layered architecture with clear separation of concerns.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Web Frontend │  │ Mobile App   │  │  API Clients │          │
+│  │  (React)     │  │ (React Native)│  │  (3rd Party) │          │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
+└─────────┼──────────────────┼──────────────────┼─────────────────┘
+          │                  │                  │
+          └──────────────────┴──────────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   Load Balancer │
+                    │   (Nginx/K8s)   │
+                    └────────┬────────┘
+                             │
+┌────────────────────────────┼─────────────────────────────────────┐
+│                    Application Layer                              │
+│                    ┌────────▼────────┐                           │
+│                    │   FastAPI App   │                           │
+│                    │  (Main Entry)   │                           │
+│                    └────────┬────────┘                           │
+│                             │                                     │
+│    ┌────────────────────────┼────────────────────────┐          │
+│    │           │             │             │          │          │
+│ ┌──▼──┐   ┌───▼───┐   ┌────▼────┐   ┌───▼───┐  ┌──▼──┐       │
+│ │Auth │   │ Data  │   │Predict  │   │Analytics│ │Health│       │
+│ │ API │   │  API  │   │   API   │   │   API   │ │Check │       │
+│ └──┬──┘   └───┬───┘   └────┬────┘   └───┬────┘ └──┬───┘       │
+└────┼──────────┼────────────┼─────────────┼─────────┼───────────┘
+     │          │            │             │         │
+┌────┼──────────┼────────────┼─────────────┼─────────┼───────────┐
+│    │     Business Logic / Domain Layer  │         │            │
+│ ┌──▼──────┐  ┌───────────┐  ┌──────────▼────┐    │            │
+│ │Security │  │   CRUD    │  │  ML Models    │    │            │
+│ │         │  │Operations │  │ (Train/Predict)│    │            │
+│ └─────────┘  └─────┬─────┘  └───────┬───────┘    │            │
+│                    │                 │            │            │
+│              ┌─────▼──────┐   ┌──────▼──────┐     │            │
+│              │  Feature   │   │Model Manager│     │            │
+│              │Engineering │   │  & Registry │     │            │
+│              └─────┬──────┘   └──────┬──────┘     │            │
+└────────────────────┼─────────────────┼────────────┼───────────┘
+                     │                 │            │
+┌────────────────────┼─────────────────┼────────────┼───────────┐
+│               Infrastructure Layer   │            │            │
+│    ┌─────────────┐    ┌──────────────▼──┐   ┌────▼──────┐    │
+│    │ PostgreSQL  │    │  Feature Store  │   │   Redis   │    │
+│    │  Database   │    │   (Feast-like)  │   │   Cache   │    │
+│    └─────────────┘    └─────────────────┘   └───────────┘    │
+│                                                                │
+│    ┌─────────────┐    ┌─────────────────┐   ┌───────────┐    │
+│    │   MLflow    │    │    Prometheus   │   │   Loki    │    │
+│    │  Tracking   │    │    Metrics      │   │   Logs    │    │
+│    └─────────────┘    └─────────────────┘   └───────────┘    │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## System Components
 
-### 1. Frontend Layer (Conceptual - Not Implemented in Detail)
+### Frontend Components
 
-- **Technology**: Assumed to be a React-based web application (as per `web-frontend` structure).
-- **Key Features**:
-  - Responsive UI components
-  - State management
-  - API integration
-  - Client-side routing
-- **Directory**: `web-frontend/` (Contains placeholders, not fully implemented)
+| Component         | Technology         | Port | Purpose                                   |
+| ----------------- | ------------------ | ---- | ----------------------------------------- |
+| **Web Dashboard** | React, Node.js     | 3000 | Interactive web UI for data visualization |
+| **Mobile App**    | React Native, Expo | N/A  | iOS/Android mobile access                 |
+| **Admin Panel**   | React              | 3000 | System administration interface           |
 
-### 2. Mobile Frontend Layer (Conceptual - Not Implemented)
+### Backend Components
 
-- **Technology**: Assumed to be a React Native or similar mobile application.
-- **Key Features**: Mobile-specific UI, native integrations.
-- **Directory**: `mobile-frontend/` (Contains placeholders, not fully implemented)
+| Component             | Technology               | Port | Purpose                               |
+| --------------------- | ------------------------ | ---- | ------------------------------------- |
+| **API Server**        | FastAPI, Python          | 8000 | REST API for all operations           |
+| **Auth Service**      | JWT, OAuth2              | 8000 | User authentication and authorization |
+| **Prediction Engine** | scikit-learn, TensorFlow | 8000 | ML model serving                      |
+| **Analytics Engine**  | Pandas, NumPy            | 8000 | Data aggregation and analysis         |
 
-### 3. Backend/Shared Logic Layer
+### Data Components
 
-- **Technology**: Python-based modules and utilities.
-- **Key Features**:
-  - Core business logic (if applicable, currently focused on utilities)
-  - Data processing and manipulation utilities
-  - Feature engineering and dataset preparation
-  - Model interaction (training, prediction - conceptual)
-  - Shared utilities for logging, monitoring, configuration, and plotting.
-- **Primary Directory**: `packages/shared/` (Consolidated from the previous `src/` and other shared areas)
-  - `packages/shared/data/`: Contains `make_dataset.py` for data preparation and `feature_store.py` for a conceptual feature store client.
-  - `packages/shared/features/`: Contains `build_features.py` (placeholder) and `feature_engineering.py` (placeholder).
-  - `packages/shared/models/`: Contains placeholders for model training (`train.py`), prediction (`predict.py`), tuning (`tune_hyperparams.py`), selection (`model_selector.py`), and versioning (`model_versioning.py`).
-  - `packages/shared/utils/`: Contains core utilities like `alert_handler.py`, `config.py`, `logger.py`, and `monitoring.py` (system resource monitoring).
-  - `packages/shared/visualization/`: Contains `plot_utils.py` for generating various plots.
+| Component            | Technology          | Port | Purpose                       |
+| -------------------- | ------------------- | ---- | ----------------------------- |
+| **Primary Database** | PostgreSQL          | 5432 | Persistent data storage       |
+| **Cache Layer**      | Redis               | 6379 | Session and query caching     |
+| **Feature Store**    | Custom (Feast-like) | N/A  | ML feature management         |
+| **Time-series DB**   | Planned (InfluxDB)  | N/A  | Future: Optimized time-series |
 
-### 4. Monitoring and Tools Layer
+### ML Components
 
-- **Components**:
-  - Scripts for monitoring model performance and data drift.
-  - Example Grafana dashboard configuration.
-- **Key Features**:
-  - Data drift detection using Evidently (`tools/monitoring/drift_detection.py`).
-  - Performance metric collection using Prometheus client (`tools/monitoring/performance.py`).
-  - Placeholder for Grafana dashboards (`tools/monitoring/grafana/dashboard.json`).
-- **Directory**: `tools/monitoring/` (Consolidated from the previous `monitoring/`)
+| Component                 | Technology               | Port | Purpose                       |
+| ------------------------- | ------------------------ | ---- | ----------------------------- |
+| **Training Pipeline**     | scikit-learn, TensorFlow | N/A  | Model training                |
+| **Model Registry**        | MLflow                   | 5000 | Model versioning and tracking |
+| **Feature Engineering**   | Pandas, NumPy            | N/A  | Feature extraction            |
+| **Hyperparameter Tuning** | Optuna                   | N/A  | Automated optimization        |
 
-### 5. Notebooks and Experimentation
+### Infrastructure Components
 
-- **Components**:
-  - Jupyter notebooks for data exploration, model experimentation, and visualization.
-  - Utility scripts for notebook environments.
-- **Key Features**:
-  - Interactive data analysis.
-  - Rapid prototyping of models.
-  - Visualization of results.
-- **Directory**: `notebooks/` (Contains example notebooks and `notebooks/utilities/plot_helpers.py` - which might be redundant with `packages/shared/visualization/plot_utils.py` and should be reviewed for consolidation).
+| Component             | Technology          | Port       | Purpose                      |
+| --------------------- | ------------------- | ---------- | ---------------------------- |
+| **Container Runtime** | Docker              | N/A        | Application containerization |
+| **Orchestration**     | Kubernetes          | N/A        | Container management         |
+| **IaC**               | Terraform           | N/A        | Infrastructure provisioning  |
+| **CI/CD**             | GitHub Actions      | N/A        | Automated deployment         |
+| **Monitoring**        | Prometheus, Grafana | 9090, 3000 | System observability         |
 
-## Data Flow (Conceptual)
+---
 
-### Request Flow (If a full application with API was present)
+## Data Flow
 
-1. Client request (Web/Mobile) -> API Gateway (if used)
-2. API Gateway -> Backend Services (e.g., FastAPI/Flask app using `packages/shared` logic)
-3. Backend Services -> Data Layer / Feature Store
-4. Response flows back through the same path.
+### Prediction Request Flow
 
-### Data Processing Flow (ML Pipeline Focus)
+```
+1. Client Request
+   │
+   ├─→ API Gateway (FastAPI)
+   │
+   ├─→ Authentication Middleware
+   │   └─→ JWT Token Validation
+   │
+   ├─→ Prediction Controller (/v1/predictions/)
+   │   │
+   │   ├─→ Load Historical Data (Database)
+   │   │
+   │   ├─→ Feature Engineering
+   │   │   ├─→ Extract Time Features
+   │   │   ├─→ Calculate Lag Features
+   │   │   └─→ Compute Rolling Statistics
+   │   │
+   │   ├─→ Load ML Model (JobLib/MLflow)
+   │   │
+   │   ├─→ Make Predictions
+   │   │   └─→ Apply Model to Features
+   │   │
+   │   └─→ Format Response
+   │       └─→ Add Confidence Intervals
+   │
+   └─→ Return JSON Response
+```
 
-1. Data ingestion (handled by `packages/shared/data/make_dataset.py` or external scripts).
-2. Feature Engineering (conceptualized in `packages/shared/features/`).
-3. Feature Storage/Retrieval (`packages/shared/data/feature_store.py`).
-4. Model Training (`packages/shared/models/train.py`).
-5. Model Prediction (`packages/shared/models/predict.py`).
-6. Monitoring for Drift and Performance (`tools/monitoring/`).
+### Data Ingestion Flow
 
-## Security Architecture (Conceptual - Standard Practices)
+```
+1. Data Source
+   │
+   ├─→ API Endpoint (POST /v1/data/)
+   │
+   ├─→ Request Validation (Pydantic)
+   │   ├─→ Schema Validation
+   │   └─→ Data Quality Checks
+   │
+   ├─→ Business Logic
+   │   ├─→ User Authorization Check
+   │   └─→ Data Transformation
+   │
+   ├─→ Database Layer
+   │   ├─→ ORM (SQLAlchemy)
+   │   └─→ Write to PostgreSQL
+   │
+   ├─→ Cache Update (Redis)
+   │   └─→ Invalidate Related Queries
+   │
+   └─→ Success Response
+```
 
-### Authentication (If applicable)
+### Model Training Flow
 
-- JWT-based authentication for APIs.
-- OAuth 2.0 integration.
-- Role-based access control.
+```
+1. Trigger Training (CLI/Scheduled)
+   │
+   ├─→ Data Extraction
+   │   └─→ Query Database for Training Data
+   │
+   ├─→ Data Preprocessing
+   │   ├─→ Handle Missing Values
+   │   ├─→ Remove Outliers
+   │   └─→ Feature Engineering
+   │
+   ├─→ Train/Test Split
+   │
+   ├─→ Model Training
+   │   ├─→ Fit Model (RF/XGBoost/LSTM)
+   │   └─→ Hyperparameter Optimization (Optuna)
+   │
+   ├─→ Model Evaluation
+   │   ├─→ Calculate Metrics (MSE, R2)
+   │   └─→ Validate Performance
+   │
+   ├─→ Model Persistence
+   │   ├─→ Save Model File (.joblib)
+   │   └─→ Register in MLflow
+   │
+   └─→ Deploy Model
+       └─→ Update Production Model
+```
 
-### Data Security
+---
 
-- Encryption at rest and in transit.
-- Secure key management.
-- Secure handling of sensitive data in configurations and logs (leveraging the logger for appropriate levels).
+## Module Structure
 
-## Scalability Considerations (Conceptual)
+### Directory Organization
+
+```
+Fluxora/
+├── code/                      # Main application code
+│   ├── api/                   # API routes and endpoints
+│   │   └── v1/               # API version 1
+│   │       ├── auth.py       # Authentication endpoints
+│   │       ├── data.py       # Data management endpoints
+│   │       ├── predictions.py # Prediction endpoints
+│   │       └── analytics.py  # Analytics endpoints
+│   ├── backend/              # Backend services
+│   │   ├── app.py           # FastAPI application
+│   │   ├── database.py      # Database connection
+│   │   ├── security.py      # Auth & security
+│   │   └── middleware.py    # Custom middleware
+│   ├── core/                # Cross-cutting concerns
+│   │   ├── circuit_breaker.py # Fault tolerance
+│   │   ├── retry.py         # Retry logic
+│   │   ├── logging_framework.py # Logging
+│   │   ├── metrics.py       # Prometheus metrics
+│   │   └── health_check.py  # Health checks
+│   ├── models/              # ML models
+│   │   ├── train.py         # Training pipeline
+│   │   ├── predict.py       # Prediction service
+│   │   └── model_versioning.py # Version management
+│   ├── features/            # Feature engineering
+│   │   └── feature_store.py # Feature management
+│   ├── data/                # Data processing
+│   │   └── features/        # Feature extraction
+│   │       └── feature_engineering.py
+│   ├── crud/                # Database operations
+│   │   └── data.py          # Data CRUD
+│   ├── schemas/             # Pydantic models
+│   │   └── user.py          # User schema
+│   └── visualization/       # Data visualization
+│       └── plot_utils.py    # Plotting utilities
+├── config/                  # Configuration files
+│   ├── config.yaml         # Main config
+│   └── preprocessing.yaml  # Preprocessing config
+├── infrastructure/         # Infrastructure as Code
+│   ├── terraform/          # Cloud provisioning
+│   ├── kubernetes/         # K8s manifests
+│   ├── ansible/            # Configuration management
+│   └── monitoring/         # Monitoring configs
+├── tests/                  # Test suites
+│   ├── test_api.py        # API tests
+│   ├── test_models.py     # Model tests
+│   └── conftest.py        # Test fixtures
+├── web-frontend/          # React web app
+├── mobile-frontend/       # React Native app
+├── scripts/               # Utility scripts
+├── notebooks/             # Jupyter notebooks
+└── docs/                  # Documentation
+```
+
+### Module Dependencies
+
+```python
+# High-level dependency graph
+main.py
+├── api.v1
+│   ├── auth (→ backend.security)
+│   ├── data (→ crud.data, backend.database)
+│   ├── predictions (→ models.predict, features)
+│   └── analytics (→ crud.data, pandas)
+├── backend
+│   ├── database (→ sqlalchemy)
+│   ├── security (→ jwt, passlib)
+│   └── middleware (→ core.logging)
+├── core
+│   ├── circuit_breaker
+│   ├── retry
+│   ├── metrics (→ prometheus_client)
+│   └── logging_framework
+├── models
+│   ├── train (→ features, sklearn)
+│   ├── predict (→ joblib, features)
+│   └── model_versioning (→ mlflow)
+└── features
+    └── feature_store
+```
+
+---
+
+## Design Patterns
+
+### 1. Layered Architecture
+
+**Purpose:** Separation of concerns and maintainability
+
+**Layers:**
+
+- **Presentation:** API endpoints, request/response handling
+- **Application:** Business logic, orchestration
+- **Domain:** Core entities, ML models, feature engineering
+- **Infrastructure:** Database, cache, external services
+
+### 2. Repository Pattern
+
+**Location:** `code/crud/`
+
+**Purpose:** Abstract data access logic
+
+```python
+# Example: Data repository
+class DataRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_by_id(self, id: int):
+        return self.db.query(EnergyData).filter_by(id=id).first()
+
+    def get_by_time_range(self, start, end):
+        return self.db.query(EnergyData).filter(
+            EnergyData.timestamp.between(start, end)
+        ).all()
+```
+
+### 3. Circuit Breaker Pattern
+
+**Location:** `code/core/circuit_breaker.py`
+
+**Purpose:** Prevent cascading failures
+
+```python
+@CircuitBreaker(failure_threshold=5, recovery_timeout=30)
+def external_api_call():
+    # Protected function
+    pass
+```
+
+### 4. Dependency Injection
+
+**Location:** `code/backend/dependencies.py`
+
+**Purpose:** Loose coupling and testability
+
+```python
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# Usage in endpoint
+@app.get("/data")
+def get_data(db: Session = Depends(get_db)):
+    return db.query(EnergyData).all()
+```
+
+### 5. Strategy Pattern
+
+**Location:** `code/models/model_selector.py`
+
+**Purpose:** Interchangeable ML models
+
+```python
+class ModelStrategy:
+    def train(self, data): pass
+    def predict(self, data): pass
+
+class XGBoostStrategy(ModelStrategy):
+    def train(self, data): ...
+    def predict(self, data): ...
+
+class LSTMStrategy(ModelStrategy):
+    def train(self, data): ...
+    def predict(self, data): ...
+```
+
+### 6. SAGA Pattern
+
+**Location:** `code/core/saga_orchestrator.py`
+
+**Purpose:** Distributed transaction management
+
+```python
+class SagaOrchestrator:
+    def execute(self, steps):
+        for step in steps:
+            try:
+                step.execute()
+            except Exception:
+                step.compensate()  # Rollback
+                raise
+```
+
+---
+
+## Technology Stack
+
+### Backend Stack
+
+```yaml
+Runtime:
+  - Python: 3.9+
+  - FastAPI: 0.95.2
+  - Uvicorn: 0.22.0
+
+Data Processing:
+  - Pandas: 1.4.4
+  - NumPy: (implicit)
+  - SQLAlchemy: (via FastAPI)
+
+Machine Learning:
+  - TensorFlow: 2.12.0
+  - XGBoost: 1.7.5
+  - scikit-learn: 1.2.2
+  - Prophet: 1.1.3
+
+MLOps:
+  - MLflow: 2.4.0
+  - Optuna: 3.2.0
+  - DVC: 3.29.0
+  - Prefect: 2.10.5
+  - Feast: 0.31.0
+
+Database & Cache:
+  - PostgreSQL: 13+
+  - Redis: 6+
+  - SQLAlchemy: ORM
+
+Monitoring:
+  - Prometheus: prometheus-client 0.17.0
+  - Evidently: 0.3.0
+```
+
+### Frontend Stack
+
+```yaml
+Web Frontend:
+  - Node.js: 16+
+  - React: Latest
+  - Package Manager: npm
+
+Mobile Frontend:
+  - React Native
+  - Expo: Latest
+  - Package Manager: npm
+```
+
+### Infrastructure Stack
+
+```yaml
+Containerization:
+  - Docker: 20.10+
+  - Docker Compose: 1.29+
+
+Orchestration:
+  - Kubernetes: 1.20+
+  - Helm: (optional)
+
+Infrastructure as Code:
+  - Terraform: 1.0+
+  - Ansible: 2.10+
+
+CI/CD:
+  - GitHub Actions
+  - Pre-commit hooks
+
+Monitoring:
+  - Prometheus
+  - Grafana
+  - Loki
+  - Alertmanager
+```
+
+---
+
+## Security Architecture
+
+### Authentication Flow
+
+```
+1. User Login Request
+   ├─→ POST /v1/auth/login (username, password)
+   │
+2. Password Verification
+   ├─→ Hash password with bcrypt
+   ├─→ Compare with stored hash
+   │
+3. Token Generation
+   ├─→ Create JWT payload (user_id, email, exp)
+   ├─→ Sign with SECRET_KEY (HS256)
+   │
+4. Return Token
+   └─→ {"access_token": "eyJ...", "token_type": "bearer"}
+
+5. Subsequent Requests
+   ├─→ Header: Authorization: Bearer eyJ...
+   ├─→ Verify signature
+   ├─→ Check expiration
+   └─→ Extract user_id → Authorize request
+```
+
+### Security Layers
+
+| Layer                | Mechanism             | Implementation       |
+| -------------------- | --------------------- | -------------------- |
+| **Transport**        | HTTPS/TLS             | Nginx/Load Balancer  |
+| **Authentication**   | JWT tokens            | FastAPI Security     |
+| **Authorization**    | Role-based            | Dependency injection |
+| **Input Validation** | Pydantic models       | FastAPI validation   |
+| **SQL Injection**    | ORM parameterization  | SQLAlchemy           |
+| **CORS**             | Origin whitelist      | FastAPI middleware   |
+| **Rate Limiting**    | Request throttling    | Custom middleware    |
+| **Secrets**          | Environment variables | .env files, Vault    |
+
+---
+
+## Scalability & Performance
 
 ### Horizontal Scaling
 
-- Stateless services if backend APIs are developed.
-- Load balancing.
+```yaml
+API Layer:
+  - Stateless design
+  - Load balancer distribution
+  - Kubernetes HPA (CPU/Memory based)
+  - Target: Handle 1000+ req/s
 
-### Vertical Scaling
+Database Layer:
+  - Read replicas for queries
+  - Write to primary
+  - Connection pooling
+  - Query optimization
 
-- Resource optimization in data processing and model serving.
-- Efficient use of libraries like Pandas/Numpy.
+Cache Layer:
+  - Redis cluster
+  - Cache-aside pattern
+  - TTL-based invalidation
+```
 
-## Monitoring and Logging (Implemented)
+### Performance Optimizations
 
-### System Monitoring
+| Technique              | Implementation                | Benefit                        |
+| ---------------------- | ----------------------------- | ------------------------------ |
+| **Database Indexing**  | Indexes on timestamp, user_id | 10x query speedup              |
+| **Connection Pooling** | SQLAlchemy pool_size=20       | Reduced connection overhead    |
+| **Caching**            | Redis for frequent queries    | 100x response time improvement |
+| **Async I/O**          | FastAPI async endpoints       | Handle concurrent requests     |
+| **Model Caching**      | In-memory model loading       | Avoid disk I/O per request     |
+| **Batch Prediction**   | Process multiple inputs       | Efficient GPU/CPU utilization  |
+| **Query Optimization** | Eager loading, pagination     | Reduced data transfer          |
 
-- **Application Metrics**: Custom metrics for model performance, API requests, and latency are exposed via Prometheus client in `tools/monitoring/performance.py`.
-- **Data Drift**: Detected using `tools/monitoring/drift_detection.py` with Evidently, with alerts via `packages/shared/utils/alert_handler.py`.
-- **System Resources**: Monitored by `packages/shared/utils/monitoring.py` (CPU, memory, disk).
+### Monitoring & Observability
 
-### Logging
+```
+Metrics Collection:
+  - Prometheus scrapes /metrics endpoint
+  - Custom metrics: request_duration, prediction_latency
+  - System metrics: CPU, memory, disk
 
-- **Structured Logging**: Implemented via `packages/shared/utils/logger.py`, providing configurable and consistent logging across modules.
-- **Log Aggregation**: (External setup) Logs can be directed to files or stdout for collection by systems like ELK stack or Splunk.
-- **Error Tracking**: Alerts for critical errors are handled by `packages/shared/utils/alert_handler.py`.
+Logging:
+  - Structured JSON logs
+  - Loki aggregation
+  - Log levels: DEBUG, INFO, WARNING, ERROR
 
-## Deployment Architecture (Conceptual)
+Tracing:
+  - Request ID propagation
+  - Distributed tracing (planned: Jaeger)
+  - Correlate logs across services
 
-### Environments
+Alerting:
+  - Prometheus alert rules
+  - Alertmanager routing
+  - Channels: Email, Slack, PagerDuty
+```
 
-- Development, Staging, Production (standard practice).
+---
 
-### CI/CD Pipeline
+## Next Steps
 
-- Automated testing, building, and deployment (standard practice).
+- **[Feature Matrix](FEATURE_MATRIX.md)** - All features and capabilities
+- **[API Reference](API.md)** - API endpoint details
+- **[Configuration](CONFIGURATION.md)** - System configuration
+- **[Examples](examples/)** - Working code examples
 
-## Technology Stack (Current & Assumed)
+---
 
-### Core & Utilities (Python)
-
-- Pandas, NumPy for data manipulation.
-- Scikit-learn for ML tasks (metrics, model splitting).
-- Evidently for data drift detection.
-- Prometheus Client for metrics.
-- Matplotlib, Seaborn for plotting.
-
-### Frontend (Assumed/Placeholder)
-
-- React, Redux/Context API, CSS Modules/Styled Components, Axios.
-
-### Backend API (Conceptual - if built)
-
-- Python, FastAPI/Flask, SQLAlchemy, Pydantic.
-
-### Infrastructure (Conceptual)
-
-- Docker, Kubernetes, Terraform, Cloud Provider (AWS/GCP/Azure).
-
-## Key Changes from Restructuring:
-
-- The `src/` directory has been removed, and its relevant functionalities (data processing, features, models, utils) have been consolidated into `packages/shared/`.
-- The `monitoring/` directory has been removed, and its contents merged into `tools/monitoring/`.
-- Empty placeholder directories like `packages/ui/` and `packages/utils/` (top-level) have been removed.
-- Utility scripts for logging, configuration, alert handling, system monitoring, data creation, feature storage, and plotting have been significantly enhanced or newly implemented within `packages/shared/`.
-- Monitoring scripts in `tools/monitoring/` (`drift_detection.py`, `performance.py`) have been made more robust and integrated with the shared utilities.
-
-## Additional Resources
-
-- [Project Overview](PROJECT_OVERVIEW.md)
-- [Development Guidelines](DEVELOPMENT_GUIDELINES.md)
-- [API Documentation](API_DOCS.md) (Needs review for relevance to current structure)
-- [Setup Guide](SETUP_GUIDE.md) (Needs review for relevance to current structure)
+**Need Help?** Check [Troubleshooting](TROUBLESHOOTING.md) or open an issue on [GitHub](https://github.com/abrar2030/Fluxora/issues).
