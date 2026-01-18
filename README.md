@@ -1,7 +1,7 @@
 # Fluxora
 
-![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/cicd.yml?branch=main&label=CI/CD&logo=github)
-[![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/abrar2030/Fluxora/actions)
+![CI/CD Status](https://img.shields.io/github/actions/workflow/status/quantsingularity/Fluxora/cicd.yml?branch=main&label=CI/CD&logo=github)
+[![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/quantsingularity/Fluxora/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## 🔋 Energy Forecasting & Optimization Platform
@@ -57,7 +57,7 @@ Fluxora is built on a modern, robust, and scalable technology stack.
 
 ```bash
 # Clone the repository
-git clone https://github.com/abrar2030/fluxora.git
+git clone https://github.com/quantsingularity/fluxora.git
 cd fluxora
 
 # Set up environment

@@ -41,7 +41,7 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 
 ```bash
 # 1. Clone and enter the repository
-git clone https://github.com/abrar2030/Fluxora.git && cd Fluxora
+git clone https://github.com/quantsingularity/Fluxora.git && cd Fluxora
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -85,9 +85,9 @@ Access the dashboard at `http://localhost:8000` and API documentation at `http:/
 
 ## 🔗 External Resources
 
-- **GitHub Repository**: https://github.com/abrar2030/Fluxora
-- **Issue Tracker**: https://github.com/abrar2030/Fluxora/issues
-- **CI/CD Status**: ![CI/CD](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxora/cicd.yml?branch=main)
+- **GitHub Repository**: https://github.com/quantsingularity/Fluxora
+- **Issue Tracker**: https://github.com/quantsingularity/Fluxora/issues
+- **CI/CD Status**: ![CI/CD](https://img.shields.io/github/actions/workflow/status/quantsingularity/Fluxora/cicd.yml?branch=main)
 - **License**: MIT License
 
 ---

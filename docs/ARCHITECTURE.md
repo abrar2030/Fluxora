@@ -606,4 +606,4 @@ Alerting:
 
 ---
 
-**Need Help?** Check [Troubleshooting](TROUBLESHOOTING.md) or open an issue on [GitHub](https://github.com/abrar2030/Fluxora/issues).
+**Need Help?** Check [Troubleshooting](TROUBLESHOOTING.md) or open an issue on [GitHub](https://github.com/quantsingularity/Fluxora/issues).

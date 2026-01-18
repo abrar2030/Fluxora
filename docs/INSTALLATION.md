@@ -60,7 +60,7 @@ Best for development and testing on a single machine.
 #### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/abrar2030/Fluxora.git
+git clone https://github.com/quantsingularity/Fluxora.git
 cd Fluxora
 ```
 
@@ -134,7 +134,7 @@ Recommended for consistent environments and easy deployment.
 #### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/abrar2030/Fluxora.git
+git clone https://github.com/quantsingularity/Fluxora.git
 cd Fluxora
 ```
 
@@ -481,4 +481,4 @@ After successful installation:
 
 ---
 
-**Need Help?** Open an issue on [GitHub](https://github.com/abrar2030/Fluxora/issues) or check the [Troubleshooting Guide](TROUBLESHOOTING.md).
+**Need Help?** Open an issue on [GitHub](https://github.com/quantsingularity/Fluxora/issues) or check the [Troubleshooting Guide](TROUBLESHOOTING.md).

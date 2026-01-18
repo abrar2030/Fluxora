@@ -728,7 +728,7 @@ LOG_LEVEL=DEBUG
 
 ### Community Support
 
-1. **Search existing issues:** [GitHub Issues](https://github.com/abrar2030/Fluxora/issues)
+1. **Search existing issues:** [GitHub Issues](https://github.com/quantsingularity/Fluxora/issues)
 2. **Create new issue:** Use issue templates
 3. **Provide details:**
    - Error message (full stack trace)

@@ -61,7 +61,7 @@ git clone https://github.com/YOUR_USERNAME/Fluxora.git
 cd Fluxora
 
 # 3. Add upstream remote
-git remote add upstream https://github.com/abrar2030/Fluxora.git
+git remote add upstream https://github.com/quantsingularity/Fluxora.git
 
 # 4. Verify remotes
 git remote -v

@@ -22,7 +22,7 @@ Get Fluxora running in 3 steps:
 
 ```bash
 # 1. Install and activate
-git clone https://github.com/abrar2030/Fluxora.git && cd Fluxora
+git clone https://github.com/quantsingularity/Fluxora.git && cd Fluxora
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
@@ -43,7 +43,7 @@ Complete setup for a new installation:
 
 ```bash
 # Step 1: Clone and install
-git clone https://github.com/abrar2030/Fluxora.git
+git clone https://github.com/quantsingularity/Fluxora.git
 cd Fluxora
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -598,4 +598,4 @@ data_df = data_df[z_scores < 3]
 
 ---
 
-**Need Help?** Check the [Troubleshooting Guide](TROUBLESHOOTING.md) or open an issue on [GitHub](https://github.com/abrar2030/Fluxora/issues).
+**Need Help?** Check the [Troubleshooting Guide](TROUBLESHOOTING.md) or open an issue on [GitHub](https://github.com/quantsingularity/Fluxora/issues).

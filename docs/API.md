@@ -764,4 +764,4 @@ print(f"Weekly analytics points: {len(analytics)}")
 
 ---
 
-**Need Help?** Open an issue on [GitHub](https://github.com/abrar2030/Fluxora/issues) or check [Troubleshooting](TROUBLESHOOTING.md).
+**Need Help?** Open an issue on [GitHub](https://github.com/quantsingularity/Fluxora/issues) or check [Troubleshooting](TROUBLESHOOTING.md).
