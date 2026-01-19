@@ -23,8 +23,8 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 - [API Reference](#api-reference)
 - [Monitoring Stack](#monitoring-stack)
 - [Testing](#testing)
-- [Model Training](#model-training)
-- [Deployment](#deployment)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -38,6 +38,20 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 - **API Integration**: Connect with existing energy management systems
 - **Mobile Access**: Monitor and manage on the go with mobile application
 - **Alerting System**: Receive notifications for critical events and anomalies
+
+## 📂 Project Structure
+
+The project follows a modular and domain-driven structure to ensure maintainability and scalability.
+
+| Directory         | Content         | Description                                        |
+| :---------------- | :-------------- | :------------------------------------------------- |
+| `code/backend/`   | FastAPI API     | Core business logic and API endpoints              |
+| `code/models/`    | ML Models       | Training, prediction, and versioning logic         |
+| `code/data/`      | ETL/Pipelines   | Data ingestion, cleaning, and feature engineering  |
+| `frontend/`       | Web/Mobile UI   | Source code for the web dashboard and mobile app   |
+| `infrastructure/` | IaC             | Terraform and Kubernetes manifests for deployment  |
+| `tests/`          | Test Suites     | Unit, integration, and end-to-end tests            |
+| `scripts/`        | Utility Scripts | Helper scripts for setup, linting, and maintenance |
 
 ## 🛠️ Tech Stack
 
@@ -196,75 +210,44 @@ cd tests
 pytest -m integration
 ```
 
-## 🧠 Model Training
+## CI/CD Pipeline
 
-Fluxora uses several machine learning models for energy forecasting and optimization. The training pipeline is orchestrated and tracked using MLOps tools.
+Fluxora uses GitHub Actions for continuous integration and deployment:
 
-### Forecasting Models
+| Stage                | Control Area                    | Institutional-Grade Detail                                                              |
+| :------------------- | :------------------------------ | :-------------------------------------------------------------------------------------- |
+| **Formatting Check** | Change Triggers                 | Enforced on all `push` and `pull_request` events to `main` and `develop`                |
+|                      | Manual Oversight                | On-demand execution via controlled `workflow_dispatch`                                  |
+|                      | Source Integrity                | Full repository checkout with complete Git history for auditability                     |
+|                      | Python Runtime Standardization  | Python 3.10 with deterministic dependency caching                                       |
+|                      | Backend Code Hygiene            | `autoflake` to detect unused imports/variables using non-mutating diff-based validation |
+|                      | Backend Style Compliance        | `black --check` to enforce institutional formatting standards                           |
+|                      | Non-Intrusive Validation        | Temporary workspace comparison to prevent unauthorized source modification              |
+|                      | Node.js Runtime Control         | Node.js 18 with locked dependency installation via `npm ci`                             |
+|                      | Web Frontend Formatting Control | Prettier checks for web-facing assets                                                   |
+|                      | Mobile Frontend Formatting      | Prettier enforcement for mobile application codebases                                   |
+|                      | Documentation Governance        | Repository-wide Markdown formatting enforcement                                         |
+|                      | Infrastructure Configuration    | Prettier validation for YAML/YML infrastructure definitions                             |
+|                      | Compliance Gate                 | Any formatting deviation fails the pipeline and blocks merge                            |
 
-| Model Type           | Primary Use Case               | Key Benefit                                                 |
-| :------------------- | :----------------------------- | :---------------------------------------------------------- |
-| **LSTM Networks**    | Time-series prediction         | Captures long-term dependencies in sequential data          |
-| **XGBoost**          | General regression/forecasting | High performance, handles complex feature interactions      |
-| **Prophet**          | Baseline forecasting           | Handles seasonality and holidays out-of-the-box             |
-| **Isolation Forest** | Anomaly detection              | Effective for identifying outliers in high-dimensional data |
+## Documentation
 
-To train models:
-
-```bash
-cd src/models
-python train.py --config=configs/lstm_config.yaml
-```
-
-Model performance metrics are tracked using MLflow and can be viewed at http://localhost:5000 when running locally.
-
-## 🚢 Deployment
-
-Fluxora supports deployment across various platforms using Infrastructure as Code (IaC) principles.
-
-### Deployment Targets
-
-| Target                      | Tooling                | Description                                       |
-| :-------------------------- | :--------------------- | :------------------------------------------------ |
-| **Containerization**        | Docker, Docker Compose | Local development and staging environments        |
-| **Orchestration**           | Kubernetes (k8s)       | Production-grade container management and scaling |
-| **Cloud (AWS, GCP, Azure)** | Terraform              | Provisioning and managing cloud infrastructure    |
-
-### Kubernetes Deployment
-
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f deployments/k8s/
-
-# Check deployment status
-kubectl get pods -n fluxora
-```
-
-### Cloud Deployment
-
-Terraform configurations are provided for AWS, GCP, and Azure deployments:
-
-```bash
-cd infrastructure/terraform/aws
-terraform init
-terraform apply
-```
-
-## 📂 Project Structure
-
-The project follows a modular and domain-driven structure to ensure maintainability and scalability.
-
-| Directory         | Content              | Description                                               |
-| :---------------- | :------------------- | :-------------------------------------------------------- |
-| `code/backend/`   | FastAPI API          | Core business logic and API endpoints                     |
-| `code/models/`    | ML Models            | Training, prediction, and versioning logic                |
-| `code/data/`      | ETL/Pipelines        | Data ingestion, cleaning, and feature engineering         |
-| `config/`         | Configuration        | YAML files for models, features, and environment settings |
-| `frontend/`       | Web/Mobile UI        | Source code for the web dashboard and mobile app          |
-| `infrastructure/` | IaC                  | Terraform and Kubernetes manifests for deployment         |
-| `notebooks/`      | Exploratory Analysis | Jupyter notebooks for research and experimentation        |
-| `tests/`          | Test Suites          | Unit, integration, and end-to-end tests                   |
-| `scripts/`        | Utility Scripts      | Helper scripts for setup, linting, and maintenance        |
+| Document                    | Path                 | Description                                                            |
+| :-------------------------- | :------------------- | :--------------------------------------------------------------------- |
+| **README**                  | `README.md`          | High-level overview, project scope, and repository entry point         |
+| **Quickstart Guide**        | `QUICKSTART.md`      | Fast-track guide to get the system running with minimal setup          |
+| **Installation Guide**      | `INSTALLATION.md`    | Step-by-step installation and environment setup                        |
+| **Deployment Guide**        | `DEPLOYMENT.md`      | Deployment procedures, environments, and operational considerations    |
+| **API Reference**           | `API.md`             | Detailed documentation for all API endpoints                           |
+| **CLI Reference**           | `CLI.md`             | Command-line interface usage, commands, and examples                   |
+| **User Guide**              | `USAGE.md`           | Comprehensive end-user guide, workflows, and examples                  |
+| **Architecture Overview**   | `ARCHITECTURE.md`    | System architecture, components, and design rationale                  |
+| **Configuration Guide**     | `CONFIGURATION.md`   | Configuration options, environment variables, and tuning               |
+| **Feature Matrix**          | `FEATURE_MATRIX.md`  | Feature coverage, capabilities, and roadmap alignment                  |
+| **Smart Contracts**         | `SMART_CONTRACTS.md` | Smart contract architecture, interfaces, and security considerations   |
+| **Security Guide**          | `SECURITY.md`        | Security model, threat assumptions, and responsible disclosure process |
+| **Contributing Guidelines** | `CONTRIBUTING.md`    | Contribution workflow, coding standards, and PR requirements           |
+| **Troubleshooting**         | `TROUBLESHOOTING.md` | Common issues, diagnostics, and remediation steps                      |
 
 ## 📄 License
 
