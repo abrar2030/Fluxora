@@ -16,6 +16,7 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 
 ## 📋 Table of Contents
 
+- [Project Structure](#project-structure)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
@@ -28,18 +29,7 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 - [Contributing](#contributing)
 - [License](#license)
 
-## ✨ Features
-
-- **Energy Consumption Forecasting**: Predict energy usage patterns with high accuracy
-- **Anomaly Detection**: Identify unusual consumption patterns and potential issues
-- **Resource Optimization**: Optimize energy distribution and resource allocation
-- **Real-time Monitoring**: Track energy usage and system performance in real-time
-- **Interactive Dashboards**: Visualize data and insights through intuitive interfaces
-- **API Integration**: Connect with existing energy management systems
-- **Mobile Access**: Monitor and manage on the go with mobile application
-- **Alerting System**: Receive notifications for critical events and anomalies
-
-## 📂 Project Structure
+## Project Structure
 
 The project follows a modular and domain-driven structure to ensure maintainability and scalability.
 
@@ -53,7 +43,18 @@ The project follows a modular and domain-driven structure to ensure maintainabil
 | `tests/`          | Test Suites     | Unit, integration, and end-to-end tests            |
 | `scripts/`        | Utility Scripts | Helper scripts for setup, linting, and maintenance |
 
-## 🛠️ Tech Stack
+## Features
+
+- **Energy Consumption Forecasting**: Predict energy usage patterns with high accuracy
+- **Anomaly Detection**: Identify unusual consumption patterns and potential issues
+- **Resource Optimization**: Optimize energy distribution and resource allocation
+- **Real-time Monitoring**: Track energy usage and system performance in real-time
+- **Interactive Dashboards**: Visualize data and insights through intuitive interfaces
+- **API Integration**: Connect with existing energy management systems
+- **Mobile Access**: Monitor and manage on the go with mobile application
+- **Alerting System**: Receive notifications for critical events and anomalies
+
+## Tech Stack
 
 Fluxora is built on a modern, robust, and scalable technology stack.
 
@@ -85,7 +86,7 @@ python src/api/main.py
 
 Once running, access the dashboard at http://localhost:8000
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -131,7 +132,7 @@ npm install
 npx expo start
 ```
 
-## 📚 API Reference
+## API Reference
 
 ### Authentication
 
@@ -167,7 +168,7 @@ curl -X GET http://api/data/consumption \
   --data-urlencode "meter_id=MT_001"
 ```
 
-## 📊 Monitoring Stack
+## Monitoring Stack
 
 Fluxora includes a comprehensive monitoring stack:
 
@@ -180,7 +181,7 @@ Fluxora includes a comprehensive monitoring stack:
 
 Access the monitoring dashboard at http://localhost:3000 when running locally.
 
-## 🧪 Testing
+## Testing
 
 The project maintains comprehensive test coverage across all components to ensure reliability and accuracy.
 
@@ -249,6 +250,6 @@ Fluxora uses GitHub Actions for continuous integration and deployment:
 | **Contributing Guidelines** | `CONTRIBUTING.md`    | Contribution workflow, coding standards, and PR requirements           |
 | **Troubleshooting**         | `TROUBLESHOOTING.md` | Common issues, diagnostics, and remediation steps                      |
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
