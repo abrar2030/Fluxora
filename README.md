@@ -29,16 +29,19 @@ Fluxora is an advanced energy forecasting and optimization platform that leverag
 
 ## Project Structure
 
-The project follows a modular and domain-driven structure to ensure maintainability and scalability.
+The project is organized into several main components:
 
-├── code/ # Core backend logic, services, and shared utilities
-├── docs/ # Project documentation
-├── infrastructure/ # DevOps, deployment, and infra-related code
-├── mobile-frontend/ # Mobile application
-├── web-frontend/ # Web dashboard
-├── scripts/ # Automation, setup, and utility scripts
-├── LICENSE # License information
-└── README.md # Project overview and instructions
+```
+Fluxora/
+├── code/                   # Core backend logic, services, and shared utilities
+├── docs/                   # Project documentation
+├── infrastructure/         # DevOps, deployment, and infra-related code
+├── mobile-frontend/        # Mobile application
+├── web-frontend/           # Web dashboard
+├── scripts/                # Automation, setup, and utility scripts
+├── LICENSE                 # License information
+└── README.md               # Project overview and instructions
+```
 
 ## Features
 
