@@ -8,21 +8,16 @@ from typing import Any, Tuple
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
 
 # Import from ml_core (sibling module) – no longer from app.services
 from ml_core.data_validator import validate_energy_dataframe
 from ml_core.feature_engineering import preprocess_data_for_model
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
 
 logger = logging.getLogger(__name__)
 
-# Bug fix: this previously ignored the documented MODEL_PATH environment
-# variable (see app/core/config.py and .env.example) and always hardcoded
-# a path relative to the current working directory. Both the training
-# pipeline and the predictions endpoint now resolve the model path from
-# here, so setting MODEL_PATH actually has an effect.
 MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.getcwd(), "fluxora_model.joblib"))
 
 

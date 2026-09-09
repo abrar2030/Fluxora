@@ -11,7 +11,6 @@ from app.core.security import get_current_active_user, get_current_superuser
 from app.db.dependencies import get_db
 from app.schemas.user import User
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
 
 # ML utilities live in ml_core (project-level package). ``build_model_features``
 # is the single source of truth for feature construction, shared by both the
@@ -22,6 +21,7 @@ from ml_core.feature_engineering import (
     DEFAULT_WINDOWS,
     build_model_features,
 )
+from sqlalchemy.orm import Session
 
 try:
     import joblib
@@ -34,14 +34,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
 
-# Bug fix: the endpoint previously only fetched the 48 most recent readings
-# as prediction context, but the largest rolling window used by the feature
-# pipeline is 7*24=168 hours. With only 48 rows of history, the
-# rolling_std_168 feature could never be non-NaN until ~120 future steps had
-# already been (fallback-)predicted, so almost an entire 7-day forecast
-# silently degraded to a flat "fallback mean" line instead of using the
-# trained model. 30 days of hourly history comfortably covers every
-# configured lag/window with room to spare.
 _HISTORICAL_LOOKBACK_RECORDS = 24 * 30
 
 # Protects the hot model-loading path: if the model file becomes corrupted

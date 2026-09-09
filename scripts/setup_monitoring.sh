@@ -219,12 +219,6 @@ create_grafana_dashboards() {
     print_section "Creating Grafana Dashboards"
 
     # Create Grafana datasource configuration.
-    # Bug fix: this previously wrote to grafana/datasources/prometheus.yml,
-    # a directory that was never created (an immediate crash under `set -e`)
-    # and, even if created, is never mounted into the Grafana container --
-    # only ./grafana/provisioning is (see create_docker_compose below).
-    # Grafana's own provisioning convention expects datasource configs
-    # under <provisioning-path>/datasources/, so this now writes there.
     cat > "${MONITORING_DIR}/grafana/provisioning/datasources/prometheus.yml" << EOF
 apiVersion: 1
 
@@ -547,10 +541,6 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      # Bug fix: this was previously mapped to host port 3000, exactly the
-      # port the web-frontend's Vite dev server uses (see
-      # web-frontend/vite.config.js). Running start_services.sh and this
-      # monitoring stack at the same time would fight over the same port.
       - "3001:3000"
     restart: unless-stopped
     networks:

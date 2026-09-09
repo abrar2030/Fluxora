@@ -2,12 +2,6 @@
 # Build context for this Dockerfile MUST be the `code/` directory (the
 # parent of both `backend/` and `ml_core/`), not `backend/` itself. See
 # docker-compose.yml, which sets `context: ..` + `dockerfile: backend/Dockerfile`.
-#
-# Bug fix: this Dockerfile previously used `COPY . .` with a build context
-# of `backend/` alone. `app/main.py` (and app/api/v1/predictions.py) import
-# the sibling `ml_core` package at module load time, so the resulting image
-# would crash immediately on startup with `ModuleNotFoundError: No module
-# named 'ml_core'` — the container never actually ran.
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim
 

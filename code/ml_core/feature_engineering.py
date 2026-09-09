@@ -63,32 +63,7 @@ def create_rolling_features(
     windows: List[int],
     group_col: Optional[str] = None,
 ) -> pd.DataFrame:
-    """Creates rolling window features (mean, std) for a given target column.
-
-    Bug fix: the rolling window is computed on the target *shifted by one
-    row* rather than on the raw column directly. Pandas' ``.rolling()``
-    windows are inclusive of the current row by default, so computing
-    ``df[target_col].rolling(window).mean()`` folds each row's own target
-    value into its own feature. That is a double problem:
-
-      1. Target leakage during training — the model is handed a feature
-         that is partly a smoothed copy of the very label it's predicting
-         for that row, inflating validation metrics without generalising.
-      2. A guaranteed dead end at inference time — the row being predicted
-         has an unknown (NaN) target by definition, so its own rolling
-         feature is *always* NaN regardless of how much history precedes
-         it, which silently forced every real prediction to fall back to
-         a flat historical-mean value no matter how much data existed.
-
-    Shifting by one row first means ``rolling_mean_W``/``rolling_std_W``
-    at row *i* reflect only the ``W`` rows strictly before *i* — the
-    correct, leak-free definition for a forecasting feature, and one that
-    remains computable for a still-unknown future row.
-
-    Like :func:`create_lag_features`, an optional ``group_col`` keeps the
-    rolling window scoped to each group instead of sliding across
-    concatenated multi-user data.
-    """
+    """Creates rolling window features (mean, std) for a given target column."""
     df = df.copy()
     for window in windows:
         mean_col = f"{target_col}_rolling_mean_{window}"

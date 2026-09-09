@@ -324,14 +324,6 @@ fi
 echo "----------------------------------------"
 echo "Applying common fixes to all file types..."
 
-# Bug fix: the original built this find expression by gluing together a
-# single quoted string ("*/node_modules/* -not -path */venv/* -not -path
-# */dist/*") and passing the WHOLE thing as one argument to a single
-# `-not -path`. find matched that literal (nonsensical) string instead of
-# excluding node_modules/venv/dist, so those directories were never
-# actually excluded from the trailing-whitespace/newline fixes below.
-# Using real arrays for both the name patterns and the exclusions avoids
-# that, and avoids unquoted-variable word-splitting/glob-expansion risk.
 FILE_NAME_ARGS=(
   -name "*.py" -o -name "*.js" -o -name "*.jsx" -o -name "*.ts" -o -name "*.tsx"
   -o -name "*.yaml" -o -name "*.yml" -o -name "*.tf" -o -name "*.tfvars"

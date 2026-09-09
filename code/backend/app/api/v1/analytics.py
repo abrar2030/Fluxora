@@ -36,10 +36,6 @@ def _compute_efficiency(consumption: pd.Series, temperature: pd.Series) -> pd.Se
     because dividing consumption by temperature produces physically
     meaningless results when temperature is near zero or negative.
 
-    Bug fix: the original formula ``100 - consumption / temp`` produced
-    values far outside [0, 100] whenever temperature was small, and the
-    direction was wrong (higher temperature → lower divisor → lower
-    efficiency score even for the same consumption).
     """
     max_consumption = consumption.max()
     if max_consumption == 0:
@@ -53,13 +49,6 @@ def generate_mock_analytics(period: str) -> List[Dict[str, Any]]:
     Generate a physically plausible placeholder series when the user has no
     recorded data yet for the requested period.
 
-    Bug fix: this previously returned a single hardcoded 3-point list
-    (labelled "Day 1" / "Day 2" / "Day 3") regardless of which period was
-    requested. Selecting ``period=year`` therefore silently returned three
-    day-labelled points instead of a year's worth of week-labelled points —
-    inconsistent with what ``calculate_analytics`` produces for real data,
-    and misleading in any UI that renders the ``label``/point-count as if
-    it reflected the requested period.
     """
     now = datetime.now(timezone.utc)
     rng = np.random.default_rng()

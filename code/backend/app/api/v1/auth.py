@@ -116,12 +116,6 @@ def update_current_user(
     admin-facing ``UserUpdate`` so a user can never flip their own
     ``is_active`` flag.
 
-    Bug fix: access/refresh tokens are keyed on email (the JWT ``sub``
-    claim). Successfully changing the email here would otherwise silently
-    invalidate the caller's current token on their very next request —
-    indistinguishable from being logged out right after saving. When the
-    email changes, a fresh token pair for the new email is issued in the
-    same response so the session carries on uninterrupted.
     """
     update_data = profile.model_dump(exclude_unset=True)
     if not update_data:
