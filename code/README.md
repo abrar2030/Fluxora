@@ -80,7 +80,7 @@ docker compose up --build
 
 `docker-compose.yml`'s build context reaches up to this directory (`code/`)
 so the image can include the sibling `ml_core` package alongside
-`backend/` — that's resolved relative to the compose file itself, so
+`backend/` - that's resolved relative to the compose file itself, so
 running the command from `backend/` is correct and doesn't need any `cd ..`.
 
 ## ml_core Package

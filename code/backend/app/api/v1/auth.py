@@ -111,7 +111,7 @@ def update_current_user(
 
     Missing endpoint fix: ``app.crud.user.update_user`` has always fully
     supported this (including password re-hashing), but no route ever
-    exposed it — account settings were read-only from the API's
+    exposed it - account settings were read-only from the API's
     perspective. Deliberately uses ``UserProfileUpdate`` rather than the
     admin-facing ``UserUpdate`` so a user can never flip their own
     ``is_active`` flag.

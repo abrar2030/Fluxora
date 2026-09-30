@@ -101,8 +101,8 @@ def _build_features_for_row(
     overrides time-based features with the actual future timestamp so the
     model sees the right hour/day_of_week etc.
 
-    Uses :func:`build_model_features` — the exact same feature pipeline
-    used to train the model — so the columns produced here always match
+    Uses :func:`build_model_features` - the exact same feature pipeline
+    used to train the model - so the columns produced here always match
     the columns the model was fit on.
     """
     # Include the current future row so lags align correctly

@@ -1,7 +1,7 @@
-# Web Frontend — Fluxora
+# Web Frontend - Fluxora
 
 The React web client for Fluxora, an energy intelligence platform. It ships a public
-marketing homepage, email/password authentication, and a protected dashboard shell —
+marketing homepage, email/password authentication, and a protected dashboard shell -
 all fully wired to the FastAPI backend in `code/backend`.
 
 ## What's here
@@ -53,7 +53,7 @@ on `/dashboard`. Visiting `/dashboard/*` while signed out redirects you to `/sig
 visiting `/signin` or `/signup` while already signed in redirects you to `/dashboard`.
 
 Make sure the backend is running first (see `code/backend/README.md` or the repo
-root docs) — every screen after sign-in calls the real API, there is no mock mode.
+root docs) - every screen after sign-in calls the real API, there is no mock mode.
 
 ### Environment variables
 

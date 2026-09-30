@@ -99,7 +99,7 @@ def build_model_features(
     sets (previously the prediction endpoint hand-rolled its own,
     slightly different, copy of this pipeline).
 
-    Does not drop NaN rows — callers decide whether they want a fully
+    Does not drop NaN rows - callers decide whether they want a fully
     "clean" training frame (:func:`preprocess_data_for_model`) or a single
     future row where insufficient history simply means some columns are
     still NaN (checked by the caller before calling ``model.predict``).

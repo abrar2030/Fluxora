@@ -38,7 +38,7 @@ class UserUpdate(BaseModel):
 
 
 class UserProfileUpdate(BaseModel):
-    """Self-service profile update — deliberately excludes ``is_active``
+    """Self-service profile update - deliberately excludes ``is_active``
     and ``is_superuser``, which only admin-facing endpoints may change."""
 
     email: Optional[EmailStr] = None
@@ -68,7 +68,7 @@ class ProfileUpdateResponse(BaseModel):
     Access/refresh tokens are only populated when the update changed the
     user's email. JWTs here are keyed on email (the ``sub`` claim), so
     changing it makes the caller's existing access token immediately
-    unresolvable — without reissuing fresh tokens in the same response,
+    unresolvable - without reissuing fresh tokens in the same response,
     the very next authenticated request after a successful email change
     would silently 401 and look like the user had been logged out.
     """

@@ -174,7 +174,7 @@ def test_refresh_rotates_refresh_token(client: TestClient, test_user):
     response = client.post("/v1/auth/refresh", json={"refresh_token": old_refresh})
     assert response.status_code == 200
     new_refresh = response.json()["refresh_token"]
-    # Tokens are freshly signed — they differ at least in the exp claim
+    # Tokens are freshly signed - they differ at least in the exp claim
     assert isinstance(new_refresh, str) and len(new_refresh) > 20
 
 

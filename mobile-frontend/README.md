@@ -1,8 +1,8 @@
-# Mobile Frontend — Fluxora
+# Mobile Frontend - Fluxora
 
 The React Native (Expo) client for Fluxora, an energy intelligence platform. It mirrors
 the web app: a public welcome screen, email/password authentication, and a protected
-drawer app — all fully wired to the FastAPI backend in `code/backend`.
+drawer app - all fully wired to the FastAPI backend in `code/backend`.
 
 ## Features
 
@@ -18,7 +18,7 @@ drawer app — all fully wired to the FastAPI backend in `code/backend`.
 
 - **Framework**: React Native with Expo SDK 52
 - **UI library**: React Native Paper
-- **Navigation**: React Navigation v7 — a native-stack for Home/SignIn/SignUp/Main, and
+- **Navigation**: React Navigation v7 - a native-stack for Home/SignIn/SignUp/Main, and
   a drawer for the authenticated app
 - **Charts**: React Native Chart Kit
 - **State**: React Context (`AuthContext`) + AsyncStorage for token persistence
@@ -38,7 +38,7 @@ cd mobile-frontend
 npm install
 ```
 
-No `--legacy-peer-deps` flag is needed — the dependency tree (React Navigation v7,
+No `--legacy-peer-deps` flag is needed - the dependency tree (React Navigation v7,
 `react-native-screens`, `react-test-renderer`) is fully aligned.
 
 ### Configure the backend URL
