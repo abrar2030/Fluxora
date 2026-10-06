@@ -1,16 +1,12 @@
-"""Data validation utilities for Fluxora."""
-
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import pandas as pd
 
-
-class DataValidationError(Exception):
-    """Raised when data validation fails."""
+from ..exceptions import DataValidationError
 
 
 class ValidationResult:
-    def __init__(self, success: bool, errors: Optional[List[str]] = None) -> None:
+    def __init__(self, success: bool, errors: list[str] | None = None) -> None:
         self.success = success
         self.errors = errors or []
 
@@ -19,43 +15,32 @@ class ValidationResult:
 
 
 def validate_raw_data(df: Any) -> ValidationResult:
-    """
-    Validates a raw energy DataFrame for required columns and value ranges.
+    errors: list[str] = []
 
-    Raises:
-        DataValidationError: if any validation rule is violated.
-    """
-    errors: List[str] = []
-
-    required_columns = ["timestamp", "consumption_kwh"]
-    for col in required_columns:
+    for col in ("timestamp", "consumption_kwh"):
         if col not in df.columns:
             errors.append(f"Missing required column: '{col}'")
-
-    # Fail fast on missing columns – further checks would raise KeyError
     if errors:
         raise DataValidationError(f"Data validation failed: {errors}")
 
     if df["consumption_kwh"].isnull().any():
         errors.append("Column 'consumption_kwh' contains null values.")
-
     if (df["consumption_kwh"].dropna() < 0).any():
         errors.append("Column 'consumption_kwh' contains negative values.")
 
-    if "cost_usd" in df.columns:
-        if df["cost_usd"].dropna().lt(0).any():
-            errors.append("Column 'cost_usd' contains negative values.")
+    if "cost_usd" in df.columns and df["cost_usd"].dropna().lt(0).any():
+        errors.append("Column 'cost_usd' contains negative values.")
 
     if "temperature_c" in df.columns:
-        temp_valid = df["temperature_c"].dropna()
-        if (temp_valid < -100).any() or (temp_valid > 100).any():
+        temp = df["temperature_c"].dropna()
+        if (temp < -100).any() or (temp > 100).any():
             errors.append(
                 "Column 'temperature_c' has values outside plausible range [-100, 100]."
             )
 
     if "humidity_percent" in df.columns:
-        hum_valid = df["humidity_percent"].dropna()
-        if (hum_valid < 0).any() or (hum_valid > 100).any():
+        hum = df["humidity_percent"].dropna()
+        if (hum < 0).any() or (hum > 100).any():
             errors.append(
                 "Column 'humidity_percent' has values outside range [0, 100]."
             )
@@ -66,15 +51,7 @@ def validate_raw_data(df: Any) -> ValidationResult:
     return ValidationResult(success=True)
 
 
-def validate_energy_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
-    """
-    Comprehensive validation with a summary report instead of raising.
-
-    Returns:
-        dict with 'valid', 'row_count', 'null_counts', and 'warnings' keys.
-    """
-    warnings: List[str] = []
-
+def validate_energy_dataframe(df: pd.DataFrame) -> dict[str, Any]:
     if df.empty:
         return {
             "valid": False,
@@ -83,21 +60,22 @@ def validate_energy_dataframe(df: pd.DataFrame) -> Dict[str, Any]:
             "warnings": ["DataFrame is empty."],
         }
 
-    null_counts: Dict[str, int] = df.isnull().sum().to_dict()
+    warnings: list[str] = []
+    null_counts: dict[str, int] = df.isnull().sum().to_dict()
 
-    if "consumption_kwh" in df.columns and df["consumption_kwh"].isnull().any():
+    if "consumption_kwh" in df.columns and null_counts.get("consumption_kwh", 0):
         warnings.append(
-            f"consumption_kwh has {null_counts.get('consumption_kwh', 0)} null values."
+            f"consumption_kwh has {null_counts['consumption_kwh']} null values."
         )
 
     if "timestamp" in df.columns:
         try:
             pd.to_datetime(df["timestamp"])
-        except Exception:
+        except (ValueError, TypeError):
             warnings.append("Some 'timestamp' values could not be parsed as datetime.")
 
     return {
-        "valid": len(warnings) == 0,
+        "valid": not warnings,
         "row_count": len(df),
         "null_counts": null_counts,
         "warnings": warnings,

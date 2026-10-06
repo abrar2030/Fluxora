@@ -19,9 +19,8 @@ import {
 import { LineChart } from "react-native-chart-kit";
 import StatCard from "../components/StatCard";
 import { useAuth } from "../contexts/AuthContext";
-import { getPredictions, triggerTraining } from "../api/api";
+import { getModelInfo, getPredictions, triggerTraining } from "../api/api";
 import { colors, fontSize, shadows, spacing } from "../styles/theme";
-
 const screenWidth = Dimensions.get("window").width;
 const HORIZONS = [
   { value: "1", label: "1d" },
@@ -29,10 +28,20 @@ const HORIZONS = [
   { value: "14", label: "14d" },
   { value: "30", label: "30d" },
 ];
-
 const fmtKwh = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} kWh`;
-
+  `${Number(n ?? 0).toLocaleString(void 0, { maximumFractionDigits: 1 })} kWh`;
+const errorMessage = (err, fallback) =>
+  err?.response?.data?.error?.message || fallback;
+const describeModel = (model) => {
+  if (!model) return "Status unavailable";
+  if (!model.available) return "No trained model";
+  const trained = new Date(model.trained_at).toLocaleDateString(void 0, {
+    month: "short",
+    day: "numeric",
+  });
+  const level = Math.round((model.interval_level ?? 0) * 100);
+  return `Trained ${trained} | ${level}%`;
+};
 export default function PredictionsScreen() {
   const { user } = useAuth();
   const [days, setDays] = useState("7");
@@ -41,64 +50,76 @@ export default function PredictionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [training, setTraining] = useState(false);
   const [snackbar, setSnackbar] = useState(null);
-
+  const [model, setModel] = useState(null);
+  const [notice, setNotice] = useState(null);
+  const loadModel = useCallback(async () => {
+    try {
+      setModel(await getModelInfo());
+    } catch {
+      setModel(null);
+    }
+  }, []);
   const load = useCallback(async (d) => {
     try {
       const res = await getPredictions(Number(d));
       setPredictions(res || []);
+      setNotice(null);
     } catch (err) {
-      console.error("Failed to load predictions", err);
+      setPredictions([]);
+      setNotice(errorMessage(err, "Unable to generate predictions right now."));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
-
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
+      loadModel();
       load(days);
-    }, [load, days]),
+    }, [load, loadModel, days]),
   );
-
   const handleRefresh = () => {
     setRefreshing(true);
+    loadModel();
     load(days);
   };
-
   const handleTrain = async () => {
     setTraining(true);
     try {
       const res = await triggerTraining();
-      setSnackbar(`Model retrained (status: ${res.status}).`);
+      const r2 = res?.metrics?.r2_score;
+      setSnackbar(
+        typeof r2 === "number"
+          ? `Model retrained. R2 ${r2.toFixed(2)} on held-out hours.`
+          : "Model retrained.",
+      );
+      await loadModel();
+      await load(days);
     } catch (err) {
       setSnackbar(
-        err?.response?.data?.error?.message ||
-          "Training failed or requires admin access.",
+        errorMessage(err, "Training failed or requires admin access."),
       );
     } finally {
       setTraining(false);
     }
   };
-
   const values = predictions.map((p) => p.predicted_consumption);
   const avg = values.length
     ? values.reduce((a, b) => a + b, 0) / values.length
     : 0;
   const peak = values.length ? Math.max(...values) : 0;
   const low = values.length ? Math.min(...values) : 0;
-
   const maxPoints = 14;
   const step = Math.max(1, Math.ceil(predictions.length / maxPoints));
   const sampled = predictions.filter((_, i) => i % step === 0);
   const chartLabels = sampled.map((p) =>
-    new Date(p.timestamp).toLocaleDateString(undefined, {
+    new Date(p.timestamp).toLocaleDateString(void 0, {
       month: "short",
       day: "numeric",
     }),
   );
   const chartValues = sampled.map((p) => p.predicted_consumption);
-
   return (
     <View style={styles.root}>
       <ScrollView
@@ -115,14 +136,12 @@ export default function PredictionsScreen() {
         <Text style={styles.subheading}>
           Forecasted consumption with confidence intervals.
         </Text>
-
         <SegmentedButtons
           value={days}
           onValueChange={setDays}
           style={styles.segmented}
           buttons={HORIZONS}
         />
-
         {user?.is_superuser && (
           <Button
             mode="outlined"
@@ -132,10 +151,9 @@ export default function PredictionsScreen() {
             disabled={training}
             style={styles.trainButton}
           >
-            {training ? "Training…" : "Retrain model"}
+            {training ? "Training..." : "Retrain model"}
           </Button>
         )}
-
         <View style={styles.statsRow}>
           <StatCard
             icon="chart-line"
@@ -159,7 +177,6 @@ export default function PredictionsScreen() {
             style={styles.statCardThird}
           />
         </View>
-
         <Card
           style={[styles.card, shadows.small, { marginBottom: spacing.xxl }]}
         >
@@ -169,7 +186,7 @@ export default function PredictionsScreen() {
                 Forecast: next {days} day{days !== "1" ? "s" : ""}
               </Title>
               <Chip compact style={styles.chip} textStyle={styles.chipText}>
-                Model
+                {describeModel(model)}
               </Chip>
             </View>
             {chartValues.length > 0 ? (
@@ -198,13 +215,14 @@ export default function PredictionsScreen() {
               />
             ) : (
               <Text style={styles.emptyText}>
-                {loading ? "Loading…" : "No forecast data available."}
+                {loading
+                  ? "Loading..."
+                  : notice || "No forecast data available."}
               </Text>
             )}
           </Card.Content>
         </Card>
       </ScrollView>
-
       <Snackbar
         visible={!!snackbar}
         onDismiss={() => setSnackbar(null)}
@@ -215,7 +233,6 @@ export default function PredictionsScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   scrollContent: { padding: spacing.lg },

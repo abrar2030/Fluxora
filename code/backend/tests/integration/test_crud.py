@@ -1,5 +1,3 @@
-"""Integration tests for CRUD operations against the test database."""
-
 from datetime import datetime
 
 from app.core.security import get_password_hash
@@ -26,10 +24,6 @@ from app.models.data import EnergyData
 from app.models.user import User
 from app.schemas.data import EnergyDataCreate, EnergyDataUpdate
 from app.schemas.user import UserCreate, UserUpdate
-
-# ---------------------------------------------------------------------------
-# User CRUD
-# ---------------------------------------------------------------------------
 
 
 class TestUserCRUD:
@@ -121,11 +115,6 @@ class TestUserCRUD:
     def test_update_nonexistent_user_returns_none(self, db_session):
         result = update_user(db_session, 99999, UserUpdate(email="x@x.com"))
         assert result is None
-
-
-# ---------------------------------------------------------------------------
-# Data CRUD
-# ---------------------------------------------------------------------------
 
 
 class TestDataCRUD:

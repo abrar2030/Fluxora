@@ -1,28 +1,16 @@
-"""
-Fluxora FastAPI application factory.
-
-sys.path is extended here (before any ml_core imports) so that the
-ml_core package – which lives one directory above backend/ – is always
-importable regardless of how the server is started.
-"""
-
 import logging
 import os
-import sys
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
+from app.api.v1 import analytics, auth, data, predictions, users
+from app.core.error_middleware import add_error_handlers
+from app.core.security import validate_security_settings
+from app.db.database import init_db
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
-# ---------------------------------------------------------------------------
-# Make the project root (parent of backend/) importable so `ml_core` can be
-# found regardless of the working directory.
-# ---------------------------------------------------------------------------
-_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -33,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    from app.db.database import init_db
-
+    validate_security_settings()
     init_db()
     logger.info("Application startup complete.")
     yield
@@ -63,8 +50,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from app.core.error_middleware import add_error_handlers  # noqa: E402
-
 add_error_handlers(app)
 
 
@@ -74,13 +59,14 @@ async def log_requests(request: Request, call_next: Any) -> Any:
     response = await call_next(request)
     duration = time.time() - start
     logger.info(
-        f"{request.method} {request.url.path} → {response.status_code} "
-        f"({duration:.3f}s)"
+        "%s %s -> %s (%.3fs)",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration,
     )
     return response
 
-
-from app.api.v1 import analytics, auth, data, predictions, users  # noqa: E402
 
 app.include_router(auth.router, prefix="/v1")
 app.include_router(data.router, prefix="/v1")
@@ -91,18 +77,12 @@ app.include_router(users.router, prefix="/v1")
 
 @app.get("/health", tags=["system"])
 def health_check() -> Any:
-    """Basic health check endpoint."""
     return {"status": "ok"}
 
 
 @app.get("/", tags=["system"])
 def root() -> Any:
-    """Root endpoint."""
-    return {
-        "message": "Fluxora API",
-        "version": "1.0.0",
-        "docs": "/docs",
-    }
+    return {"message": "Fluxora API", "version": "1.0.0", "docs": "/docs"}
 
 
 if __name__ == "__main__":
@@ -113,5 +93,5 @@ if __name__ == "__main__":
         host=os.getenv("API_HOST", "0.0.0.0"),
         port=int(os.getenv("API_PORT", "8000")),
         workers=int(os.getenv("API_WORKERS", "1")),
-        reload=os.getenv("ENV", "production") == "development",
+        reload=os.getenv("ENV", "development") == "development",
     )

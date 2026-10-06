@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, EmailStr, field_validator
 
 _MIN_PASSWORD_LENGTH = 8
@@ -23,13 +21,13 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    is_active: Optional[bool] = None
+    email: EmailStr | None = None
+    password: str | None = None
+    is_active: bool | None = None
 
     @field_validator("password")
     @classmethod
-    def password_must_meet_minimum_length(cls, v: Optional[str]) -> Optional[str]:
+    def password_must_meet_minimum_length(cls, v: str | None) -> str | None:
         if v is not None and len(v) < _MIN_PASSWORD_LENGTH:
             raise ValueError(
                 f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."
@@ -38,15 +36,13 @@ class UserUpdate(BaseModel):
 
 
 class UserProfileUpdate(BaseModel):
-    """Self-service profile update - deliberately excludes ``is_active``
-    and ``is_superuser``, which only admin-facing endpoints may change."""
 
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    email: EmailStr | None = None
+    password: str | None = None
 
     @field_validator("password")
     @classmethod
-    def password_must_meet_minimum_length(cls, v: Optional[str]) -> Optional[str]:
+    def password_must_meet_minimum_length(cls, v: str | None) -> str | None:
         if v is not None and len(v) < _MIN_PASSWORD_LENGTH:
             raise ValueError(
                 f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."
@@ -63,20 +59,11 @@ class User(UserBase):
 
 
 class ProfileUpdateResponse(BaseModel):
-    """Response for ``PATCH /v1/auth/me``.
-
-    Access/refresh tokens are only populated when the update changed the
-    user's email. JWTs here are keyed on email (the ``sub`` claim), so
-    changing it makes the caller's existing access token immediately
-    unresolvable - without reissuing fresh tokens in the same response,
-    the very next authenticated request after a successful email change
-    would silently 401 and look like the user had been logged out.
-    """
 
     user: User
-    access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    token_type: Optional[str] = None
+    access_token: str | None = None
+    refresh_token: str | None = None
+    token_type: str | None = None
 
 
 class Token(BaseModel):
@@ -90,4 +77,4 @@ class TokenRefresh(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
+    email: str | None = None

@@ -1,5 +1,3 @@
-"""Unit tests for app.core.security."""
-
 from datetime import timedelta
 
 import pytest
@@ -129,3 +127,43 @@ class TestRefreshToken:
         with pytest.raises(HTTPException) as exc:
             decode_refresh_token(token)
         assert exc.value.status_code == 401
+
+
+def test_validate_security_settings_allows_development(monkeypatch):
+    from app.core import security
+
+    monkeypatch.setenv("ENV", "development")
+    monkeypatch.setattr(security, "SECRET_KEY", "change-me-in-production")
+    security.validate_security_settings()
+
+
+def test_validate_security_settings_rejects_placeholder_in_production(monkeypatch):
+    import pytest
+    from app.core import security
+
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.setattr(
+        security,
+        "SECRET_KEY",
+        "change-this-secret-key-in-production-minimum-32-chars",
+    )
+    with pytest.raises(RuntimeError):
+        security.validate_security_settings()
+
+
+def test_validate_security_settings_rejects_short_key_in_production(monkeypatch):
+    import pytest
+    from app.core import security
+
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.setattr(security, "SECRET_KEY", "short")
+    with pytest.raises(RuntimeError):
+        security.validate_security_settings()
+
+
+def test_validate_security_settings_accepts_strong_key_in_production(monkeypatch):
+    from app.core import security
+
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.setattr(security, "SECRET_KEY", "k" * 48)
+    security.validate_security_settings()

@@ -1,5 +1,3 @@
-"""Unit tests for fallback strategies."""
-
 import pytest
 from app.core.fallback import (
     CachedDataFallback,
@@ -93,7 +91,7 @@ class TestWithFallbackDecorator:
     def test_uses_fallback_on_exception(self):
         @with_fallback(DefaultValueFallback("default"))
         def risky():
-            raise IOError("network gone")
+            raise OSError("network gone")
 
         assert risky() == "default"
 

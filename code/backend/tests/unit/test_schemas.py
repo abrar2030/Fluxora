@@ -1,5 +1,3 @@
-"""Unit tests for Pydantic schemas."""
-
 import pytest
 from pydantic import ValidationError
 
@@ -160,3 +158,34 @@ class TestUserSchema:
         update = UserUpdate(is_active=False)
         dumped = update.model_dump(exclude_unset=True)
         assert dumped == {"is_active": False}
+
+
+def test_energy_data_create_normalises_timezone_aware_timestamp_to_utc():
+    from app.schemas.data import EnergyDataCreate
+
+    created = EnergyDataCreate(
+        consumption_kwh=1.0, timestamp="2024-03-01T05:00:00+05:00"
+    )
+    assert created.timestamp.tzinfo is None
+    assert created.timestamp.isoformat() == "2024-03-01T00:00:00"
+
+
+def test_energy_data_create_keeps_naive_timestamp_unchanged():
+    from app.schemas.data import EnergyDataCreate
+
+    created = EnergyDataCreate(consumption_kwh=1.0, timestamp="2024-03-01T05:00:00")
+    assert created.timestamp.isoformat() == "2024-03-01T05:00:00"
+
+
+def test_energy_data_output_serialises_timestamp_as_utc():
+    from datetime import datetime
+
+    from app.schemas.data import EnergyData
+
+    record = EnergyData(
+        id=1,
+        consumption_kwh=1.0,
+        timestamp=datetime(2024, 3, 1, 5, 0, 0),
+        user_id=1,
+    )
+    assert record.model_dump(mode="json")["timestamp"] == "2024-03-01T05:00:00Z"

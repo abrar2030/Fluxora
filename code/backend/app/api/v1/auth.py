@@ -61,9 +61,8 @@ def refresh_access_token(
     body: TokenRefresh,
     db: Session = Depends(get_db),
 ) -> Any:
-    """Exchange a refresh token for a new access/refresh token pair."""
     token_data = decode_refresh_token(body.refresh_token)
-    user = get_user_by_email(db, email=token_data.email)
+    user = get_user_by_email(db, email=token_data.email) if token_data.email else None
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,7 +83,6 @@ def refresh_access_token(
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 def register_user(user: UserCreate, db: Session = Depends(get_db)) -> Any:
-    """Register a new user account."""
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -96,7 +94,6 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)) -> Any:
 def read_current_user(
     current_user: Annotated[Any, Depends(get_current_active_user)],
 ) -> Any:
-    """Return the currently authenticated user's profile."""
     return current_user
 
 
@@ -106,17 +103,6 @@ def update_current_user(
     current_user: Annotated[Any, Depends(get_current_active_user)],
     db: Session = Depends(get_db),
 ) -> Any:
-    """
-    Update the current user's own email and/or password.
-
-    Missing endpoint fix: ``app.crud.user.update_user`` has always fully
-    supported this (including password re-hashing), but no route ever
-    exposed it - account settings were read-only from the API's
-    perspective. Deliberately uses ``UserProfileUpdate`` rather than the
-    admin-facing ``UserUpdate`` so a user can never flip their own
-    ``is_active`` flag.
-
-    """
     update_data = profile.model_dump(exclude_unset=True)
     if not update_data:
         return {"user": current_user}
@@ -151,13 +137,6 @@ def delete_current_user(
     current_user: Annotated[Any, Depends(get_current_active_user)],
     db: Session = Depends(get_db),
 ) -> None:
-    """
-    Permanently delete the current user's own account and all of their
-    energy data records (cascades via the ORM relationship).
-
-    Missing endpoint fix: ``app.crud.user.delete_user`` existed and was
-    covered by CRUD-layer tests, but was never reachable through the API.
-    """
     deleted = delete_user(db, user_id=current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="User not found")

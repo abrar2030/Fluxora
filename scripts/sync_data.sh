@@ -8,7 +8,7 @@
 #         readings into a running Fluxora instance via the real API.
 #         Useful because the prediction model's rolling-window features
 #         need real history (weeks, not hours) to produce anything other
-#         than a flat fallback forecast -- see ml_core/feature_engineering.py.
+#         than a flat fallback forecast -- see ml_core/features/.
 #
 #   s3    Optionally syncs raw data down from an S3 bucket for offline
 #         reference. Requires the AWS CLI and is entirely independent of

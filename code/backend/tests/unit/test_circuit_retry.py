@@ -1,14 +1,8 @@
-"""Unit tests for CircuitBreaker and retry decorator."""
-
 import time
 
 import pytest
 from app.core.circuit_breaker import CircuitBreaker, CircuitBreakerError, CircuitState
 from app.core.retry import NonRetryableError, RetryableError, retry
-
-# ---------------------------------------------------------------------------
-# CircuitBreaker – CLOSED state
-# ---------------------------------------------------------------------------
 
 
 class TestCircuitBreakerClosed:
@@ -59,11 +53,6 @@ class TestCircuitBreakerClosed:
         assert cb.state == CircuitState.CLOSED
 
 
-# ---------------------------------------------------------------------------
-# CircuitBreaker – OPEN state
-# ---------------------------------------------------------------------------
-
-
 class TestCircuitBreakerOpen:
     def test_raises_circuit_breaker_error_when_open(self):
         cb = CircuitBreaker(failure_threshold=1, recovery_timeout=60)
@@ -96,12 +85,7 @@ class TestCircuitBreakerOpen:
             recovery_timeout=60,
             fallback_function=lambda: "fb",
         )
-        assert cb.call(lambda: (_ for _ in ()).throw(IOError())) == "fb"
-
-
-# ---------------------------------------------------------------------------
-# CircuitBreaker – HALF_OPEN state
-# ---------------------------------------------------------------------------
+        assert cb.call(lambda: (_ for _ in ()).throw(OSError())) == "fb"
 
 
 class TestCircuitBreakerHalfOpen:
@@ -127,11 +111,6 @@ class TestCircuitBreakerHalfOpen:
             cb.call(lambda: (_ for _ in ()).throw(RuntimeError()))
 
         assert cb.state == CircuitState.OPEN
-
-
-# ---------------------------------------------------------------------------
-# CircuitBreaker – reset / get_state
-# ---------------------------------------------------------------------------
 
 
 class TestCircuitBreakerReset:
@@ -176,11 +155,6 @@ class TestCircuitBreakerGetState:
         assert state["state"] == CircuitState.CLOSED.value
 
 
-# ---------------------------------------------------------------------------
-# CircuitBreaker – decorator usage
-# ---------------------------------------------------------------------------
-
-
 class TestCircuitBreakerDecorator:
     def test_used_as_decorator(self):
         cb = CircuitBreaker(failure_threshold=3)
@@ -200,11 +174,6 @@ class TestCircuitBreakerDecorator:
 
         with pytest.raises(ValueError):
             broken()
-
-
-# ---------------------------------------------------------------------------
-# Retry – success cases
-# ---------------------------------------------------------------------------
 
 
 class TestRetrySuccess:
@@ -238,11 +207,6 @@ class TestRetrySuccess:
             return "fine"
 
         assert ok() == "fine"
-
-
-# ---------------------------------------------------------------------------
-# Retry – failure cases
-# ---------------------------------------------------------------------------
 
 
 class TestRetryFailure:
@@ -287,11 +251,6 @@ class TestRetryFailure:
         assert len(errors) == 2
 
 
-# ---------------------------------------------------------------------------
-# Retry – backoff
-# ---------------------------------------------------------------------------
-
-
 class TestRetryBackoff:
     def test_respects_max_delay(self, monkeypatch):
         sleeps = []
@@ -327,13 +286,7 @@ class TestRetryBackoff:
         with pytest.raises(ValueError):
             fail()
 
-        # 3 attempts → 2 sleeps (between attempt 1→2 and 2→3, not after 3)
         assert len(sleeps) == 2
-
-
-# ---------------------------------------------------------------------------
-# Retry – exception classes
-# ---------------------------------------------------------------------------
 
 
 class TestRetryExceptionClasses:

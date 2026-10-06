@@ -1,28 +1,36 @@
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+
+if TYPE_CHECKING:
+    from .user import User
+
+
+def _utc_now_naive() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class EnergyData(Base):
     __tablename__ = "energy_data"
-
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(
-        DateTime,
-        default=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
-        index=True,
-        nullable=False,
+    __table_args__ = (
+        Index("ix_energy_data_user_id_timestamp", "user_id", "timestamp"),
     )
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    consumption_kwh = Column(Float, nullable=False)
-    generation_kwh = Column(Float, nullable=True)
-    cost_usd = Column(Float, nullable=True)
-    temperature_c = Column(Float, nullable=True)
-    humidity_percent = Column(Float, nullable=True)
-    owner = relationship("User", back_populates="energy_records")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime, default=_utc_now_naive, index=True, nullable=False
+    )
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    consumption_kwh: Mapped[float] = mapped_column(Float, nullable=False)
+    generation_kwh: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cost_usd: Mapped[float | None] = mapped_column(Float, nullable=True)
+    temperature_c: Mapped[float | None] = mapped_column(Float, nullable=True)
+    humidity_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+    owner: Mapped["User"] = relationship(back_populates="energy_records")
 
     def __repr__(self) -> str:
         return (

@@ -2,28 +2,24 @@ import functools
 import logging
 import random
 import time
-from typing import Any, Callable, Tuple, Type, Union
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 def retry(
     max_attempts: int = 3,
-    retry_exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = (
-        Exception,
-    ),
+    retry_exceptions: type[Exception] | tuple[type[Exception], ...] = (Exception,),
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
     jitter: bool = True,
 ) -> Any:
-    """
-    Retry decorator with exponential backoff.
 
-    Delay for attempt n (0-indexed) = min(base_delay * backoff_factor**n, max_delay)
-    with optional ±50 % jitter.
-
-    """
+    exceptions: tuple[type[Exception], ...] = (
+        retry_exceptions if isinstance(retry_exceptions, tuple) else (retry_exceptions,)
+    )
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -32,7 +28,7 @@ def retry(
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
-                except retry_exceptions as e:  # type: ignore[misc]
+                except exceptions as e:
                     last_exception = e
                     if attempt < max_attempts - 1:
                         sleep_time = min(
@@ -55,8 +51,8 @@ def retry(
 
 
 class RetryableError(Exception):
-    """Base class for errors that should be retried."""
+    pass
 
 
 class NonRetryableError(Exception):
-    """Base class for errors that should not be retried."""
+    pass

@@ -1,22 +1,4 @@
-"""
-Shared pytest fixtures for the Fluxora test suite.
-
-``conftest.py`` lives inside ``backend/`` so pytest discovers it
-automatically when run from that directory.  The project root is added to
-``sys.path`` here so that ``ml_core`` is importable in every test that
-exercises training / feature-engineering code.
-"""
-
-import os
-import sys
-
-# Ensure ml_core (project root) is importable
-_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if _PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, _PROJECT_ROOT)
-
-import app.models.data  # noqa: F401 – registers EnergyData with SQLAlchemy
-import app.models.user  # noqa: F401 – registers User with SQLAlchemy
+import ml_core
 import pytest
 from app.core.security import _get_db, get_password_hash
 from app.db.dependencies import get_db
@@ -27,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-TEST_DATABASE_URL = "sqlite://"  # in-memory SQLite
+TEST_DATABASE_URL = "sqlite://"
 
 engine = create_engine(
     TEST_DATABASE_URL,
@@ -38,8 +20,15 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 @pytest.fixture(autouse=True)
+def isolated_model_path(tmp_path, monkeypatch):
+    monkeypatch.setenv("MODEL_PATH", str(tmp_path / "fluxora_model.joblib"))
+    ml_core.clear_cache()
+    yield
+    ml_core.clear_cache()
+
+
+@pytest.fixture(autouse=True)
 def setup_test_db():
-    """Create all tables before each test, drop them after."""
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
@@ -67,7 +56,6 @@ def _override_get_db(db_session):
 @pytest.fixture()
 def client(db_session):
     override = _override_get_db(db_session)
-    # Override both injection points so every route gets the test session
     app.dependency_overrides[get_db] = override
     app.dependency_overrides[_get_db] = override
     with TestClient(app) as c:
@@ -163,7 +151,6 @@ def sample_energy_record(client, auth_headers):
 
 @pytest.fixture()
 def multiple_energy_records(client, auth_headers):
-    """Creates 5 energy records for pagination / list tests."""
     records = []
     for i in range(1, 6):
         r = client.post(

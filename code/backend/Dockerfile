@@ -1,12 +1,5 @@
-# ---------------------------------------------------------------------------
-# Build context for this Dockerfile MUST be the `code/` directory (the
-# parent of both `backend/` and `ml_core/`), not `backend/` itself. See
-# docker-compose.yml, which sets `context: ..` + `dockerfile: backend/Dockerfile`.
-# ---------------------------------------------------------------------------
 FROM python:3.12-slim
 
-# System dependencies. `curl` is required by the HEALTHCHECK in
-# docker-compose.yml (previously absent, so the healthcheck always failed).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     curl \
@@ -14,20 +7,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Install Python dependencies first (layer cache)
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy source: ml_core first (rarely changes independent of backend code,
-# so this keeps Docker's layer cache useful), then the backend itself.
 COPY ml_core /app/ml_core
+RUN pip install --no-cache-dir /app/ml_core
+
 COPY backend /app/backend
 
-WORKDIR /app/backend
+RUN adduser --disabled-password --gecos "" appuser \
+    && mkdir -p /app/data \
+    && chown -R appuser /app
 
-# Non-root user for security
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+WORKDIR /app/backend
 USER appuser
+
+ENV ENV=production \
+    DATABASE_URL=sqlite:////app/data/fluxora.db \
+    MODEL_PATH=/app/data/fluxora_model.joblib
 
 EXPOSE 8000
 

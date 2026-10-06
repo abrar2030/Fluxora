@@ -1,3 +1,4 @@
+import importlib
 import os
 import sys
 from logging.config import fileConfig
@@ -5,8 +6,6 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-# Ensure backend/ is the first entry on sys.path so ``app.*`` resolves
-# correctly when alembic is invoked from any working directory.
 _BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if _BACKEND_DIR not in sys.path:
     sys.path.insert(0, _BACKEND_DIR)
@@ -16,16 +15,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url from environment if set
 database_url = os.getenv("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
-import app.models.data  # noqa: F401, E402
-import app.models.user  # noqa: F401, E402
-from app.models.base import Base  # noqa: E402
-
-target_metadata = Base.metadata
+target_metadata = importlib.import_module("app.models.base").Base.metadata
 
 
 def run_migrations_offline() -> None:

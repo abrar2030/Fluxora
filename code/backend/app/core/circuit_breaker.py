@@ -1,8 +1,9 @@
 import functools
 import threading
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 
 class CircuitState(Enum):
@@ -12,24 +13,16 @@ class CircuitState(Enum):
 
 
 class CircuitBreakerError(Exception):
-    """Raised when a circuit breaker is open and no fallback is configured."""
+    pass
 
 
 class CircuitBreaker:
-    """
-    Thread-safe circuit breaker implementation.
-
-    States:
-      CLOSED    → normal operation; failures are counted.
-      OPEN      → calls are blocked; fallback is used if configured.
-      HALF_OPEN → one probe call is allowed after recovery_timeout elapses.
-    """
 
     def __init__(
         self,
         failure_threshold: int = 5,
         recovery_timeout: int = 30,
-        fallback_function: Optional[Callable] = None,
+        fallback_function: Callable | None = None,
     ) -> None:
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -66,9 +59,7 @@ class CircuitBreaker:
             except Exception:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
-                if self.state == CircuitState.HALF_OPEN:
-                    self.state = CircuitState.OPEN
-                elif (
+                if self.state == CircuitState.HALF_OPEN or (
                     self.state == CircuitState.CLOSED
                     and self.failure_count >= self.failure_threshold
                 ):
@@ -78,14 +69,12 @@ class CircuitBreaker:
                 raise
 
     def reset(self) -> None:
-        """Reset the circuit breaker to its initial state."""
         with self.lock:
             self.state = CircuitState.CLOSED
             self.failure_count = 0
             self.last_failure_time = 0.0
 
-    def get_state(self) -> Dict[str, Any]:
-        """Return a snapshot of the current circuit breaker state."""
+    def get_state(self) -> dict[str, Any]:
         with self.lock:
             return {
                 "state": self.state.value,

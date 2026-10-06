@@ -1,11 +1,3 @@
-"""Tests for the /v1/users admin endpoints.
-
-These endpoints expose CRUD functions (get_users, update_user, delete_user,
-activate_user, deactivate_user) that were already fully implemented and
-covered by CRUD-layer tests in tests/integration/test_crud.py, but were
-never reachable through the API before this fix.
-"""
-
 from fastapi.testclient import TestClient
 
 

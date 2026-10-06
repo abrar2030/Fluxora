@@ -1,6 +1,5 @@
 import logging
-import traceback
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -15,16 +14,16 @@ class ErrorDetail:
         self,
         code: str,
         message: str,
-        detail: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None,
+        detail: str | None = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         self.code = code
         self.message = message
         self.detail = detail
         self.context = context or {}
 
-    def to_dict(self) -> Dict[str, Any]:
-        result: Dict[str, Any] = {"code": self.code, "message": self.message}
+    def to_dict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"code": self.code, "message": self.message}
         if self.detail:
             result["detail"] = self.detail
         if self.context:
@@ -36,22 +35,21 @@ class ErrorResponse:
     def __init__(
         self,
         error: ErrorDetail,
-        request_id: Optional[str] = None,
+        request_id: str | None = None,
         status_code: int = 500,
     ) -> None:
         self.error = error
         self.request_id = request_id
         self.status_code = status_code
 
-    def to_dict(self) -> Dict[str, Any]:
-        result: Dict[str, Any] = {"error": self.error.to_dict()}
+    def to_dict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"error": self.error.to_dict()}
         if self.request_id:
             result["request_id"] = self.request_id
         return result
 
 
 def add_error_handlers(app: FastAPI) -> None:
-    """Add error handlers to the FastAPI application."""
 
     def _make_serializable(obj: Any) -> Any:
         if isinstance(obj, dict):
@@ -87,7 +85,6 @@ def add_error_handlers(app: FastAPI) -> None:
         error_detail = ErrorDetail(
             code=f"HTTP_{exc.status_code}",
             message=str(exc.detail),
-            context={"headers": dict(exc.headers)} if exc.headers else {},
         )
         error_response = ErrorResponse(
             error=error_detail,
@@ -108,8 +105,6 @@ def add_error_handlers(app: FastAPI) -> None:
         error_detail = ErrorDetail(
             code="INTERNAL_SERVER_ERROR",
             message="An unexpected error occurred",
-            detail=str(exc),
-            context={"traceback": traceback.format_exc()},
         )
         error_response = ErrorResponse(
             error=error_detail,

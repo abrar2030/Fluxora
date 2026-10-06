@@ -1,10 +1,4 @@
-"""Tests for /v1/data endpoints."""
-
 from fastapi.testclient import TestClient
-
-# ---------------------------------------------------------------------------
-# System endpoints
-# ---------------------------------------------------------------------------
 
 
 def test_health_check(client: TestClient):
@@ -25,11 +19,6 @@ def test_root_endpoint(client: TestClient):
 def test_docs_endpoint_accessible(client: TestClient):
     response = client.get("/docs")
     assert response.status_code == 200
-
-
-# ---------------------------------------------------------------------------
-# Create
-# ---------------------------------------------------------------------------
 
 
 def test_create_record(client: TestClient, auth_headers: dict):
@@ -141,11 +130,6 @@ def test_create_record_zero_consumption_allowed(client: TestClient, auth_headers
     assert response.status_code == 201
 
 
-# ---------------------------------------------------------------------------
-# Read List
-# ---------------------------------------------------------------------------
-
-
 def test_read_records_empty(client: TestClient, auth_headers: dict):
     response = client.get("/v1/data/", headers=auth_headers)
     assert response.status_code == 200
@@ -222,11 +206,6 @@ def test_read_records_unauthenticated(client: TestClient):
     assert response.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Read Single
-# ---------------------------------------------------------------------------
-
-
 def test_get_single_record(
     client: TestClient, auth_headers: dict, sample_energy_record: dict
 ):
@@ -274,11 +253,6 @@ def test_get_record_unauthenticated(client: TestClient, sample_energy_record: di
     record_id = sample_energy_record["id"]
     response = client.get(f"/v1/data/{record_id}")
     assert response.status_code == 401
-
-
-# ---------------------------------------------------------------------------
-# Update (PATCH)
-# ---------------------------------------------------------------------------
 
 
 def test_update_record(
@@ -335,11 +309,6 @@ def test_update_record_unauthenticated(client: TestClient, sample_energy_record:
     assert response.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Delete
-# ---------------------------------------------------------------------------
-
-
 def test_delete_record(
     client: TestClient, auth_headers: dict, sample_energy_record: dict
 ):
@@ -391,11 +360,6 @@ def test_delete_another_users_record(
     assert response.status_code == 404
 
 
-# ---------------------------------------------------------------------------
-# Time Range Query
-# ---------------------------------------------------------------------------
-
-
 def test_query_records_by_time_range(client: TestClient, auth_headers: dict):
     client.post("/v1/data/", headers=auth_headers, json={"consumption_kwh": 10.0})
     response = client.get(
@@ -411,7 +375,8 @@ def test_query_records_no_results(client: TestClient, auth_headers: dict):
         "/v1/data/query?start_time=2000-01-01T00:00:00&end_time=2000-01-02T00:00:00",
         headers=auth_headers,
     )
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.json() == []
 
 
 def test_query_records_invalid_range(client: TestClient, auth_headers: dict):
@@ -427,3 +392,33 @@ def test_query_records_unauthenticated(client: TestClient):
         "/v1/data/query?start_time=2000-01-01T00:00:00&end_time=2100-01-01T00:00:00"
     )
     assert response.status_code == 401
+
+
+def test_create_record_with_offset_timestamp_is_stored_as_utc(
+    client: TestClient, auth_headers: dict
+):
+    response = client.post(
+        "/v1/data/",
+        headers=auth_headers,
+        json={"consumption_kwh": 3.0, "timestamp": "2024-03-01T05:00:00+05:00"},
+    )
+    assert response.status_code == 201
+    assert response.json()["timestamp"] == "2024-03-01T00:00:00Z"
+
+
+def test_query_records_accepts_offset_range(client: TestClient, auth_headers: dict):
+    client.post(
+        "/v1/data/",
+        headers=auth_headers,
+        json={"consumption_kwh": 3.0, "timestamp": "2024-03-01T00:00:00Z"},
+    )
+    response = client.get(
+        "/v1/data/query",
+        params={
+            "start_time": "2024-03-01T05:00:00+05:00",
+            "end_time": "2024-03-01T06:00:00+05:00",
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+    assert len(response.json()) == 1

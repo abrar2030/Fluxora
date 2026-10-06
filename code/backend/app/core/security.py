@@ -1,6 +1,7 @@
 import os
+from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Any, Generator, Optional
+from typing import Annotated, Any
 
 from app.schemas.user import TokenData
 from fastapi import Depends, HTTPException, status
@@ -9,6 +10,10 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+INSECURE_SECRET_KEYS = {
+    "change-this-secret-key-in-production-minimum-32-chars",
+    "change-me-in-production",
+}
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "change-this-secret-key-in-production-minimum-32-chars"
 )
@@ -21,6 +26,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/token")
 
 
+def validate_security_settings() -> None:
+    environment = os.getenv("ENV", "development").lower()
+    if environment != "production":
+        return
+    if SECRET_KEY in INSECURE_SECRET_KEYS or len(SECRET_KEY) < 32:
+        raise RuntimeError(
+            "SECRET_KEY must be set to a unique value of at least 32 characters "
+            "when ENV=production."
+        )
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -29,7 +45,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     expire = (
         datetime.now(timezone.utc) + expires_delta
@@ -41,7 +57,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 
 def create_refresh_token(data: dict) -> str:
-    """Create a long-lived refresh token."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "type": "refresh"})
@@ -58,7 +73,7 @@ def decode_access_token(token: str) -> TokenData:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") == "refresh":
             raise credentials_exception
-        email: Optional[str] = payload.get("sub")
+        email: str | None = payload.get("sub")
         if email is None:
             raise credentials_exception
         return TokenData(email=email)
@@ -67,7 +82,6 @@ def decode_access_token(token: str) -> TokenData:
 
 
 def decode_refresh_token(token: str) -> TokenData:
-    """Decode and validate a refresh token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate refresh token",
@@ -77,7 +91,7 @@ def decode_refresh_token(token: str) -> TokenData:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
             raise credentials_exception
-        email: Optional[str] = payload.get("sub")
+        email: str | None = payload.get("sub")
         if email is None:
             raise credentials_exception
         return TokenData(email=email)
@@ -86,13 +100,6 @@ def decode_refresh_token(token: str) -> TokenData:
 
 
 def _get_db() -> Generator[Session, None, None]:
-    """
-    Thin re-export of ``app.db.dependencies.get_db``.
-
-    Kept as a named symbol so that test fixtures can override it via
-    ``app.dependency_overrides[_get_db] = ...`` alongside the primary
-    ``get_db`` override, ensuring every injection point is covered.
-    """
     from app.db.dependencies import get_db
 
     yield from get_db()
@@ -102,7 +109,6 @@ def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(_get_db)],
 ) -> Any:
-    """FastAPI dependency: resolve the current user via the injected DB session."""
     from app.crud.user import get_user_by_email
 
     credentials_exception = HTTPException(

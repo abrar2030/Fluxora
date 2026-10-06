@@ -4,7 +4,7 @@
 #
 # Manages the trained Fluxora forecasting model file.
 #
-# The real training pipeline (ml_core/training.py, triggered via
+# The real training pipeline (ml_core/training/, triggered via
 # `POST /v1/predictions/train`) writes a single model file to $MODEL_PATH
 # (default: code/backend/fluxora_model.joblib), overwriting it every time
 # training runs -- there's no built-in versioning. This script adds the
@@ -32,7 +32,7 @@ BACKEND_DIR="${PROJECT_DIR}/code/backend"
 ARCHIVE_DIR="${BACKEND_DIR}/model_archive"
 
 # Respect the same MODEL_PATH env var the app itself reads
-# (ml_core/training.py); default matches the app's own default.
+# (ml_core/training/); default matches the app's own default.
 MODEL_PATH="${MODEL_PATH:-${BACKEND_DIR}/fluxora_model.joblib}"
 
 print_section() { echo -e "\n${BOLD}${BLUE}==== $1 ====${NC}\n"; }

@@ -61,10 +61,10 @@ echo "Installing backend dependencies from code/backend/requirements.txt..."
     exit 1
 }
 
-if [ -f "${PROJECT_DIR}/code/ml_core/requirements.txt" ]; then
-    echo "Installing ml_core dependencies (mostly already covered above)..."
-    "$PIP_BIN" install -r "${PROJECT_DIR}/code/ml_core/requirements.txt" || {
-        echo "Error: Failed to install ml_core dependencies."
+if [ -f "${PROJECT_DIR}/code/ml_core/pyproject.toml" ]; then
+    echo "Installing ml_core package..."
+    "$PIP_BIN" install -e "${PROJECT_DIR}/code/ml_core" || {
+        echo "Error: Failed to install ml_core."
         exit 1
     }
 fi

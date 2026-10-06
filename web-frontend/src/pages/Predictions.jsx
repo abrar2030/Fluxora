@@ -32,44 +32,72 @@ import {
 } from "recharts";
 import StatCard from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
-import { getPredictions, triggerTraining } from "../utils/api";
-
+import { getModelInfo, getPredictions, triggerTraining } from "../utils/api";
 const HORIZONS = [1, 3, 7, 14, 30, 90];
-
 const fmtKwh = (n) =>
-  `${Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} kWh`;
-
+  `${Number(n ?? 0).toLocaleString(void 0, { maximumFractionDigits: 1 })} kWh`;
+const errorMessage = (err, fallback) =>
+  err?.response?.data?.error?.message || fallback;
+const describeModel = (model) => {
+  if (!model) return "Model status unavailable";
+  if (!model.available) return "No trained model";
+  const trained = new Date(model.trained_at).toLocaleDateString(void 0, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const level = Math.round((model.interval_level ?? 0) * 100);
+  return `Trained ${trained} | ${level}% interval`;
+};
 const Predictions = () => {
   const { user } = useAuth();
   const [days, setDays] = useState(7);
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [model, setModel] = useState(null);
   const [training, setTraining] = useState(false);
   const [trainingResult, setTrainingResult] = useState(null);
-
+  const [reloadKey, setReloadKey] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    getModelInfo()
+      .then((res) => mounted && setModel(res))
+      .catch(() => mounted && setModel(null));
+    return () => {
+      mounted = false;
+    };
+  }, [reloadKey]);
   useEffect(() => {
     let mounted = true;
     setLoading(true);
     setError(null);
     getPredictions(days)
       .then((res) => mounted && setPredictions(res || []))
-      .catch(
-        () => mounted && setError("Unable to generate predictions right now."),
-      )
+      .catch((err) => {
+        if (!mounted) return;
+        setPredictions([]);
+        const status = err?.response?.status;
+        setError({
+          message: errorMessage(
+            err,
+            "Unable to generate predictions right now.",
+          ),
+          severity: status === 409 || status === 422 ? "warning" : "error",
+        });
+      })
       .finally(() => mounted && setLoading(false));
     return () => {
       mounted = false;
     };
-  }, [days]);
-
+  }, [days, reloadKey]);
   const chartData = useMemo(
     () =>
       predictions.map((p) => ({
-        timestamp: new Date(p.timestamp).toLocaleString(undefined, {
+        timestamp: new Date(p.timestamp).toLocaleString(void 0, {
           month: "short",
           day: "numeric",
-          hour: days <= 3 ? "numeric" : undefined,
+          hour: days <= 3 ? "numeric" : void 0,
         }),
         predicted: p.predicted_consumption,
         lower: p.confidence_interval?.lower,
@@ -77,7 +105,6 @@ const Predictions = () => {
       })),
     [predictions, days],
   );
-
   const stats = useMemo(() => {
     if (!predictions.length) return { avg: 0, peak: 0, low: 0 };
     const values = predictions.map((p) => p.predicted_consumption);
@@ -87,26 +114,30 @@ const Predictions = () => {
       low: Math.min(...values),
     };
   }, [predictions]);
-
   const handleTrain = async () => {
     setTraining(true);
     setTrainingResult(null);
     try {
       const res = await triggerTraining();
+      const r2 = res?.metrics?.r2_score;
+      const held = res?.metrics?.test_samples;
       setTrainingResult({
         type: "success",
-        message: `Model retrained (status: ${res.status}).`,
+        message:
+          typeof r2 === "number"
+            ? `Model retrained. R2 ${r2.toFixed(2)} on ${held} held-out hours.`
+            : "Model retrained.",
       });
+      setReloadKey((k) => k + 1);
     } catch (err) {
-      const message =
-        err?.response?.data?.error?.message ||
-        "Training failed or requires admin access.";
-      setTrainingResult({ type: "error", message });
+      setTrainingResult({
+        type: "error",
+        message: errorMessage(err, "Training failed or requires admin access."),
+      });
     } finally {
       setTraining(false);
     }
   };
-
   return (
     <Box>
       <Stack
@@ -146,15 +177,14 @@ const Predictions = () => {
               onClick={handleTrain}
               disabled={training}
             >
-              {training ? "Training…" : "Retrain model"}
+              {training ? "Training..." : "Retrain model"}
             </Button>
           )}
         </Stack>
       </Stack>
-
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+        <Alert severity={error.severity} sx={{ mb: 3 }}>
+          {error.message}
         </Alert>
       )}
       {trainingResult && (
@@ -166,7 +196,6 @@ const Predictions = () => {
           {trainingResult.message}
         </Alert>
       )}
-
       <Grid container spacing={2.5} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>
           <StatCard
@@ -196,14 +225,13 @@ const Predictions = () => {
           />
         </Grid>
       </Grid>
-
       <Card>
         <CardHeader
           title={`Forecast: next ${days} day${days > 1 ? "s" : ""}`}
           action={
             <Chip
               size="small"
-              label="Model + confidence band"
+              label={describeModel(model)}
               sx={{
                 backgroundColor: "rgba(59,130,246,0.1)",
                 color: "secondary.dark",
@@ -272,5 +300,4 @@ const Predictions = () => {
     </Box>
   );
 };
-
 export default Predictions;

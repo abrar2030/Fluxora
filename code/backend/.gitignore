@@ -1,4 +1,3 @@
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,29 +10,24 @@ build/
 .Python
 pip-wheel-metadata/
 
-# Virtual environments
 .venv/
 venv/
 env/
 ENV/
 
-# Environment files (never commit secrets)
 .env
 *.env
 
-# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Model artifacts
 *.joblib
 *.pkl
 *.h5
 *.pt
 *.pth
 
-# Test / coverage
 .pytest_cache/
 .coverage
 htmlcov/
@@ -42,19 +36,15 @@ coverage.xml
 *.cover
 nosetests.xml
 
-# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 .DS_Store
 
-# Logs
 *.log
 logs/
 
-# Alembic
 alembic.ini.local
 
-# Docker
 .dockerignore

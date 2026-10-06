@@ -1,20 +1,18 @@
-from typing import List, Optional
-
 from app.core.security import get_password_hash
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from sqlalchemy.orm import Session
 
 
-def get_user(db: Session, user_id: int) -> Optional[User]:
+def get_user(db: Session, user_id: int) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
 
 
-def get_user_by_email(db: Session, email: str) -> Optional[User]:
+def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[User]:
+def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
     return db.query(User).offset(skip).limit(limit).all()
 
 
@@ -27,7 +25,7 @@ def create_user(db: Session, user: UserCreate) -> User:
     return db_user
 
 
-def update_user(db: Session, user_id: int, user_update: UserUpdate) -> Optional[User]:
+def update_user(db: Session, user_id: int, user_update: UserUpdate) -> User | None:
     db_user = get_user(db, user_id)
     if db_user is None:
         return None
@@ -50,21 +48,21 @@ def delete_user(db: Session, user_id: int) -> bool:
     return True
 
 
-def activate_user(db: Session, user_id: int) -> Optional[User]:
+def activate_user(db: Session, user_id: int) -> User | None:
     db_user = get_user(db, user_id)
     if db_user is None:
         return None
-    db_user.is_active = True  # type: ignore[assignment]
+    db_user.is_active = True
     db.commit()
     db.refresh(db_user)
     return db_user
 
 
-def deactivate_user(db: Session, user_id: int) -> Optional[User]:
+def deactivate_user(db: Session, user_id: int) -> User | None:
     db_user = get_user(db, user_id)
     if db_user is None:
         return None
-    db_user.is_active = False  # type: ignore[assignment]
+    db_user.is_active = False
     db.commit()
     db.refresh(db_user)
     return db_user

@@ -1,16 +1,15 @@
 import functools
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 
 class FallbackStrategy:
-    """Base class for fallback strategies."""
 
     def execute(self, *args: Any, **kwargs: Any) -> Any:
         raise NotImplementedError("Fallback strategy must implement execute method")
 
 
 class CachedDataFallback(FallbackStrategy):
-    """Fallback strategy that returns cached data."""
 
     def __init__(self, cache_provider: Callable[[], Any]) -> None:
         self.cache_provider = cache_provider
@@ -20,7 +19,6 @@ class CachedDataFallback(FallbackStrategy):
 
 
 class DefaultValueFallback(FallbackStrategy):
-    """Fallback strategy that returns a default value."""
 
     def __init__(self, default_value: Any) -> None:
         self.default_value = default_value
@@ -30,9 +28,8 @@ class DefaultValueFallback(FallbackStrategy):
 
 
 class ChainedFallback(FallbackStrategy):
-    """Fallback strategy that tries multiple strategies in sequence."""
 
-    def __init__(self, strategies: List[FallbackStrategy]) -> None:
+    def __init__(self, strategies: list[FallbackStrategy]) -> None:
         self.strategies = strategies
 
     def execute(self, *args: Any, **kwargs: Any) -> Any:
@@ -48,7 +45,6 @@ class ChainedFallback(FallbackStrategy):
 
 
 def with_fallback(fallback_strategy: FallbackStrategy) -> Any:
-    """Decorator that applies a fallback strategy to a function."""
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
