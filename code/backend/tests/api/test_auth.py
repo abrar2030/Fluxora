@@ -182,10 +182,31 @@ def test_get_current_user_invalid_token(client: TestClient):
     assert response.status_code == 401
 
 
+def _swap_char(value: str, index: int) -> str:
+    replacement = "A" if value[index] != "A" else "B"
+    return value[:index] + replacement + value[index + 1 :]
+
+
 def test_tampered_token_rejected(client: TestClient, auth_headers):
-    original = auth_headers["Authorization"]
-    tampered = original[:-1] + ("X" if original[-1] != "X" else "Y")
-    response = client.get("/v1/auth/me", headers={"Authorization": tampered})
+    # Change the first signature character. The last character of a base64url
+    # HS256 signature carries only 4 data bits, so altering it can leave the
+    # decoded signature unchanged and make this test flaky.
+    token = auth_headers["Authorization"].removeprefix("Bearer ")
+    header, payload, signature = token.split(".")
+    tampered = f"{header}.{payload}.{_swap_char(signature, 0)}"
+    response = client.get(
+        "/v1/auth/me", headers={"Authorization": f"Bearer {tampered}"}
+    )
+    assert response.status_code == 401
+
+
+def test_tampered_payload_rejected(client: TestClient, auth_headers):
+    token = auth_headers["Authorization"].removeprefix("Bearer ")
+    header, payload, signature = token.split(".")
+    tampered = f"{header}.{_swap_char(payload, len(payload) // 2)}.{signature}"
+    response = client.get(
+        "/v1/auth/me", headers={"Authorization": f"Bearer {tampered}"}
+    )
     assert response.status_code == 401
 
 
