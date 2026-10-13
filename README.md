@@ -40,15 +40,15 @@ Fluxora/
 │   │   ├── app/core/          # config, security (JWT)
 │   │   ├── app/db/            # SQLAlchemy setup (SQLite by default)
 │   │   └── tests/             # api, unit, and integration test suites
-│   └── ml_core/                # Installable forecasting package, imported as `src`
-│                                # (code/ml_core/src): data, features, models, training, inference
-│                                # (scikit-learn RandomForestRegressor),
-│                                # genuinely imported by the predictions API
-├── web-frontend/                # React (Vite) dashboard
-├── mobile-frontend/               # React Native (Expo) app, TypeScript
-├── infrastructure/                 # Docker, Kubernetes, Terraform, Ansible, monitoring
-├── scripts/                         # Setup, deploy, test, and monitoring scripts
-├── docs/                             # Documentation (this directory)
+│   └── ml_core/               # Installable forecasting package, imported as `src`
+│                              # (code/ml_core/src): data, features, models, training, inference
+│                              # (scikit-learn RandomForestRegressor),
+│                              # genuinely imported by the predictions API
+├── web-frontend/              # React (Vite) dashboard
+├── mobile-frontend/           # React Native (Expo) app, TypeScript
+├── infrastructure/            # Docker, Kubernetes, Terraform, Ansible, monitoring
+├── scripts/                   # Setup, deploy, test, and monitoring scripts
+├── docs/                      # Documentation (this directory)
 └── README.md
 ```
 
