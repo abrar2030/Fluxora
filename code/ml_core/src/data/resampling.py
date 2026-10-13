@@ -1,6 +1,12 @@
+import numpy as np
 import pandas as pd
 
-from ..config import DEFAULT_GROUP_COL, DEFAULT_TARGET_COL, DEFAULT_TIME_COL
+from ..config import (
+    DEFAULT_GROUP_COL,
+    DEFAULT_TARGET_COL,
+    DEFAULT_TIME_COL,
+    MAX_FILL_GAP_HOURS,
+)
 
 
 def to_utc_naive(values: pd.Series) -> pd.Series:
@@ -39,3 +45,21 @@ def to_hourly_series(
     if not parts:
         return pd.DataFrame(columns=ordered)
     return pd.concat(parts, ignore_index=True)[ordered]
+
+
+def fill_short_gaps(
+    values: pd.Series, max_gap_hours: int = MAX_FILL_GAP_HOURS
+) -> pd.Series:
+    """Linearly interpolate runs of missing hours no longer than ``max_gap_hours``.
+
+    Longer runs are left completely missing (never partially filled), and so are
+    missing values before the first or after the last observation. Training and
+    forecasting both use this function so they treat gaps identically.
+    """
+    missing = values.isna()
+    if not missing.any():
+        return values
+    run_id = (missing != missing.shift()).cumsum()
+    run_length = missing.groupby(run_id).transform("sum")
+    filled = values.interpolate(method="linear", limit_area="inside")
+    return filled.mask(missing & (run_length > max_gap_hours), np.nan)

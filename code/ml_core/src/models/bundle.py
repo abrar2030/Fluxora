@@ -20,9 +20,13 @@ class ModelBundle:
     target_col: str
     history_hours: int
     metrics: dict[str, Any]
-    residual_lower: float
-    residual_upper: float
+    residual_lower: float  # one-step-ahead bound, equal to interval_lower[0]
+    residual_upper: float  # one-step-ahead bound, equal to interval_upper[0]
     interval_level: float
+    interval_edges: list[int]
+    interval_lower: list[float]
+    interval_upper: list[float]
+    holiday_country: str
     trained_at: str
     _flat: FlatForest | None = field(default=None, repr=False, compare=False)
 
@@ -42,5 +46,7 @@ class ModelBundle:
             "feature_count": len(self.feature_columns),
             "history_hours": self.history_hours,
             "interval_level": self.interval_level,
+            "interval_horizon_hours": list(self.interval_edges),
+            "holiday_country": self.holiday_country,
             "metrics": dict(self.metrics),
         }

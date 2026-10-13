@@ -6,6 +6,7 @@ CALENDAR_FEATURES = [
     "day_of_year",
     "month",
     "is_weekend",
+    "is_holiday",
     "quarter",
     "hour_sin",
     "hour_cos",

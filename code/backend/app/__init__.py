@@ -5,9 +5,11 @@ import sys
 from dotenv import load_dotenv
 
 _BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-_ML_CORE_SRC = os.path.abspath(os.path.join(_BACKEND_DIR, "..", "ml_core", "src"))
+_ML_CORE_DIR = os.path.abspath(os.path.join(_BACKEND_DIR, "..", "ml_core"))
 
-if importlib.util.find_spec("ml_core") is None and os.path.isdir(_ML_CORE_SRC):
-    sys.path.insert(0, _ML_CORE_SRC)
+if importlib.util.find_spec("src") is None and os.path.isfile(
+    os.path.join(_ML_CORE_DIR, "src", "__init__.py")
+):
+    sys.path.insert(0, _ML_CORE_DIR)
 
 load_dotenv(os.path.join(_BACKEND_DIR, ".env"), override=False)

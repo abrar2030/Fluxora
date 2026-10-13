@@ -8,7 +8,7 @@ running Fluxora backend via its real REST API.
 There is no actual external real-time energy data service this project
 connects to -- this script exists to make local development and demos
 feel "live" without needing one. Each reading is validated with the same
-ml_core.data.validation.validate_raw_data used by the training pipeline
+src.data.validation.validate_raw_data (the ml_core package) used by the training pipeline
 before being posted to POST /v1/data/.
 
 Usage:
@@ -30,12 +30,13 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-# Make ml_core importable when this script is run directly from scripts/.
+# Make the ml_core package (importable as `src`) available when this script is
+# run directly from scripts/.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_PROJECT_ROOT / "code" / "ml_core" / "src"))
+sys.path.insert(0, str(_PROJECT_ROOT / "code" / "ml_core"))
 
 try:
-    from ml_core import DataValidationError, validate_raw_data
+    from src import DataValidationError, validate_raw_data
 except ImportError:  # pragma: no cover - keeps the simulator usable even
     # if ml_core isn't importable for some reason (e.g. missing numpy).
     validate_raw_data = None

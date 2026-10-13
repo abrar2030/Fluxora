@@ -1,6 +1,6 @@
 import os
 
-from ml_core import config
+from src import config
 
 
 def test_model_path_defaults_to_absolute(monkeypatch):

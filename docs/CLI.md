@@ -244,7 +244,7 @@ Final Metrics:
 {
   'mean_squared_error': 12.3456,
   'r2_score': 0.8901,
-  'feature_count': 15,
+  'feature_count': 20,
   'training_samples': 576,
   'test_samples': 144
 }

@@ -18,12 +18,15 @@ def build_model_features(
     windows: list[int] | None = None,
     group_col: str | None = DEFAULT_GROUP_COL,
     time_col: str = DEFAULT_TIME_COL,
+    holiday_country: str | None = None,
 ) -> pd.DataFrame:
     lags = lags if lags is not None else DEFAULT_LAGS
     windows = windows if windows is not None else DEFAULT_WINDOWS
     effective_group = group_col if (group_col and group_col in df.columns) else None
 
-    df = create_time_series_features(df, time_col=time_col)
+    df = create_time_series_features(
+        df, time_col=time_col, holiday_country=holiday_country
+    )
     df = create_cyclical_features(df)
     df = create_lag_features(df, target_col, lags, group_col=effective_group)
     df = create_rolling_features(df, target_col, windows, group_col=effective_group)
@@ -35,6 +38,13 @@ def preprocess_data_for_model(
     group_col: str | None = DEFAULT_GROUP_COL,
     lags: list[int] | None = None,
     windows: list[int] | None = None,
+    holiday_country: str | None = None,
 ) -> pd.DataFrame:
-    df = build_model_features(df, lags=lags, windows=windows, group_col=group_col)
+    df = build_model_features(
+        df,
+        lags=lags,
+        windows=windows,
+        group_col=group_col,
+        holiday_country=holiday_country,
+    )
     return df.dropna()

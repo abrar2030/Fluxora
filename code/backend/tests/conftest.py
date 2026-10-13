@@ -1,5 +1,5 @@
-import ml_core
 import pytest
+import src
 from app.core.security import _get_db, get_password_hash
 from app.db.dependencies import get_db
 from app.main import app
@@ -22,9 +22,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 @pytest.fixture(autouse=True)
 def isolated_model_path(tmp_path, monkeypatch):
     monkeypatch.setenv("MODEL_PATH", str(tmp_path / "fluxora_model.joblib"))
-    ml_core.clear_cache()
+    src.clear_cache()
     yield
-    ml_core.clear_cache()
+    src.clear_cache()
 
 
 @pytest.fixture(autouse=True)

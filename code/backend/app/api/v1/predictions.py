@@ -8,14 +8,14 @@ from app.schemas.prediction import ModelInfo, PredictionPoint, TrainResponse
 from app.schemas.user import User
 from app.services import ml_service
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from ml_core import (
+from sqlalchemy.orm import Session
+from src import (
     DataValidationError,
     InsufficientDataError,
     InsufficientHistoryError,
     ModelLoadError,
     ModelNotFoundError,
 )
-from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

@@ -20,3 +20,7 @@ class ModelNotFoundError(MLCoreError):
 
 class ModelLoadError(MLCoreError):
     pass
+
+
+class ConfigurationError(MLCoreError):
+    pass

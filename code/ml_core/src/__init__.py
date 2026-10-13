@@ -1,11 +1,13 @@
 from .config import DEFAULT_LAGS, DEFAULT_WINDOWS, get_model_path
 from .data import (
     ValidationResult,
+    fill_short_gaps,
     to_hourly_series,
     validate_energy_dataframe,
     validate_raw_data,
 )
 from .exceptions import (
+    ConfigurationError,
     DataValidationError,
     InsufficientDataError,
     InsufficientHistoryError,
@@ -21,6 +23,7 @@ from .features import (
     create_rolling_features,
     create_time_series_features,
     feature_names,
+    holiday_flags,
     preprocess_data_for_model,
 )
 from .inference import forecast
@@ -39,6 +42,7 @@ __version__ = "1.0.0"
 __all__ = [
     "DEFAULT_LAGS",
     "DEFAULT_WINDOWS",
+    "ConfigurationError",
     "DataValidationError",
     "FlatForest",
     "InsufficientDataError",
@@ -58,8 +62,10 @@ __all__ = [
     "create_time_series_features",
     "describe_model",
     "feature_names",
+    "fill_short_gaps",
     "forecast",
     "get_model_path",
+    "holiday_flags",
     "load_bundle",
     "prepare_training_frame",
     "preprocess_data_for_model",

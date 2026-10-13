@@ -63,12 +63,16 @@ Environment variables control runtime behavior and should be set in `.env` file 
 
 ### ML/MLOps Variables
 
-| Option                | Type   | Default                  | Description               | Where to Set |
-| --------------------- | ------ | ------------------------ | ------------------------- | ------------ |
-| `MLFLOW_TRACKING_URI` | string | `http://localhost:5000`  | MLflow server URL         | `.env` file  |
-| `MODEL_PATH`          | string | `./fluxora_model.joblib` | Model file path           | `.env` file  |
-| `FEATURE_STORE_PATH`  | string | `./config/feature_store` | Feature store config path | `.env` file  |
-| `DVC_REMOTE`          | string | `s3://bucket/path`       | DVC remote storage        | `.env` file  |
+| Option                  | Type    | Default                  | Description                                                                                                                                                                                    | Where to Set |
+| ----------------------- | ------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `MLFLOW_TRACKING_URI`   | string  | `http://localhost:5000`  | MLflow server URL                                                                                                                                                                              | `.env` file  |
+| `MODEL_PATH`            | string  | `./fluxora_model.joblib` | Model file path                                                                                                                                                                                | `.env` file  |
+| `MODEL_N_ESTIMATORS`    | integer | `100`                    | Trees in the random forest                                                                                                                                                                     | `.env` file  |
+| `MODEL_MAX_DEPTH`       | integer | unset                    | Optional tree depth limit                                                                                                                                                                      | `.env` file  |
+| `MODEL_REFIT_FULL_DATA` | boolean | `true`                   | Refit on all data after the holdout evaluation; `false` keeps the holdout model and roughly halves fitting time                                                                                | `.env` file  |
+| `HOLIDAY_COUNTRY`       | string  | `US`                     | Holiday calendar for the `is_holiday` feature: `US`, `NONE`, or an ISO country code such as `PK` (non-US codes need the `holidays` package). Stored in the model, so retrain after changing it | `.env` file  |
+| `FEATURE_STORE_PATH`    | string  | `./config/feature_store` | Feature store config path                                                                                                                                                                      | `.env` file  |
+| `DVC_REMOTE`            | string  | `s3://bucket/path`       | DVC remote storage                                                                                                                                                                             | `.env` file  |
 
 ### Monitoring Variables
 
@@ -112,6 +116,8 @@ REDIS_DB=0
 # MLflow
 MLFLOW_TRACKING_URI=http://localhost:5000
 MODEL_PATH=./fluxora_model.joblib
+MODEL_REFIT_FULL_DATA=true
+HOLIDAY_COUNTRY=US
 
 # Feature Store
 FEATURE_STORE_PATH=./config/feature_store

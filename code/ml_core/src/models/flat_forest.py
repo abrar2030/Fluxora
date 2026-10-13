@@ -3,6 +3,21 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 class FlatForest:
+    """Fast single-row inference for a fitted ``RandomForestRegressor``.
+
+    Every tree is packed into rectangular arrays and all trees are walked
+    together with vectorised numpy lookups, which is much faster than calling
+    ``forest.predict`` for one row at a time during recursive forecasting.
+
+    Precision note: scikit-learn casts input features to ``float32`` before
+    traversing a tree, while split thresholds are stored as ``float64``. A value
+    sitting right next to a threshold can therefore land on a different side of
+    the split than its ``float64`` representation would suggest. ``predict_one``
+    reproduces that exact behaviour (``float32`` cast, then widened back to
+    ``float64`` for the comparison) so its output matches ``forest.predict``.
+    Removing the cast would make predictions drift from the trained model.
+    """
+
     def __init__(self, forest: RandomForestRegressor) -> None:
         trees = [estimator.tree_ for estimator in forest.estimators_]
         tree_count = len(trees)
@@ -27,6 +42,7 @@ class FlatForest:
             self.value[i, :count] = tree.value[:, 0, 0]
 
     def predict_one(self, x: np.ndarray) -> float:
+        # Mirror sklearn: features are rounded to float32 before the comparison.
         sample = np.asarray(x, dtype=np.float32).astype(np.float64)
         nodes = np.zeros(len(self._rows), dtype=np.int64)
         rows = self._rows

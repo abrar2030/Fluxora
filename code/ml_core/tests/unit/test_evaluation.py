@@ -1,10 +1,6 @@
 import numpy as np
 import pytest
-from ml_core.training.evaluation import (
-    interval_level,
-    regression_metrics,
-    residual_bounds,
-)
+from src.training.evaluation import interval_level, regression_metrics, residual_bounds
 
 
 def test_perfect_prediction_has_zero_error():

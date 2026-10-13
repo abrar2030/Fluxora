@@ -5,9 +5,9 @@ from typing import Any
 import pandas as pd
 from app.crud.data import get_data_by_time_range
 from app.models.data import EnergyData
-from ml_core import describe_model, forecast, load_bundle, run_training_pipeline
-from ml_core.config import MAX_HISTORY_GAP_HOURS
 from sqlalchemy.orm import Session
+from src import describe_model, forecast, load_bundle, run_training_pipeline
+from src.config import MAX_HISTORY_GAP_HOURS
 
 _training_lock = threading.Lock()
 

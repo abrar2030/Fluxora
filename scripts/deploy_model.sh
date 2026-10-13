@@ -4,7 +4,7 @@
 #
 # Manages the trained Fluxora forecasting model file.
 #
-# The real training pipeline (ml_core/training/, triggered via
+# The real training pipeline (code/ml_core/src/training/, triggered via
 # `POST /v1/predictions/train`) writes a single model file to $MODEL_PATH
 # (default: code/backend/fluxora_model.joblib), overwriting it every time
 # training runs -- there's no built-in versioning. This script adds the
@@ -32,7 +32,7 @@ BACKEND_DIR="${PROJECT_DIR}/code/backend"
 ARCHIVE_DIR="${BACKEND_DIR}/model_archive"
 
 # Respect the same MODEL_PATH env var the app itself reads
-# (ml_core/training/); default matches the app's own default.
+# (code/ml_core/src/config.py); default matches the app's own default.
 MODEL_PATH="${MODEL_PATH:-${BACKEND_DIR}/fluxora_model.joblib}"
 
 print_section() { echo -e "\n${BOLD}${BLUE}==== $1 ====${NC}\n"; }
@@ -51,7 +51,8 @@ backend_python() {
     fi
 }
 
-# Validates that a file is a loadable joblib/scikit-learn model.
+# Validates that a file is a loadable Fluxora model bundle (the format written by
+# code/ml_core: a versioned joblib payload, not a bare scikit-learn estimator).
 validate_model() {
     local path="$1"
     local py
@@ -61,24 +62,32 @@ validate_model() {
         return 1
     fi
 
-    "$py" - "$path" <<'PYEOF'
+    "$py" - "$path" "${PROJECT_DIR}/code/ml_core" <<'PYEOF'
 import sys
-import joblib
 
-path = sys.argv[1]
+path, ml_core_dir = sys.argv[1], sys.argv[2]
+sys.path.insert(0, ml_core_dir)
+
 try:
-    model = joblib.load(path)
-except Exception as e:
+    from src import MLCoreError, load_bundle
+except ImportError as e:
+    print(f"Could not import the ml_core package from {ml_core_dir}: {e}")
+    sys.exit(1)
+
+try:
+    bundle = load_bundle(path)
+except MLCoreError as e:
     print(f"Could not load model: {e}")
     sys.exit(1)
 
-if not hasattr(model, "predict"):
-    print("Loaded object has no predict() method -- not a usable model.")
-    sys.exit(1)
-
-n_features = getattr(model, "n_features_in_", "unknown")
-n_estimators = getattr(model, "n_estimators", "unknown")
-print(f"OK: {type(model).__name__} (n_features_in_={n_features}, n_estimators={n_estimators})")
+info = bundle.describe()
+print(
+    f"OK: {type(bundle.model).__name__} "
+    f"(feature_count={info['feature_count']}, "
+    f"n_estimators={bundle.model.n_estimators}, "
+    f"trained_at={info['trained_at']}, "
+    f"holiday_country={info['holiday_country']})"
+)
 PYEOF
 }
 

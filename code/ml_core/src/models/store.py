@@ -33,6 +33,10 @@ def save_bundle(bundle: ModelBundle, path: str = "") -> str:
         "residual_lower": bundle.residual_lower,
         "residual_upper": bundle.residual_upper,
         "interval_level": bundle.interval_level,
+        "interval_edges": bundle.interval_edges,
+        "interval_lower": bundle.interval_lower,
+        "interval_upper": bundle.interval_upper,
+        "holiday_country": bundle.holiday_country,
         "trained_at": bundle.trained_at,
     }
 
@@ -75,6 +79,10 @@ def _bundle_from_payload(payload: Any) -> ModelBundle:
             residual_lower=float(payload["residual_lower"]),
             residual_upper=float(payload["residual_upper"]),
             interval_level=float(payload["interval_level"]),
+            interval_edges=[int(v) for v in payload["interval_edges"]],
+            interval_lower=[float(v) for v in payload["interval_lower"]],
+            interval_upper=[float(v) for v in payload["interval_upper"]],
+            holiday_country=str(payload["holiday_country"]),
             trained_at=str(payload["trained_at"]),
         )
     except (KeyError, TypeError, ValueError) as exc:

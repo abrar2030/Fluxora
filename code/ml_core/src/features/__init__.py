@@ -1,4 +1,5 @@
 from .builder import build_model_features, preprocess_data_for_model
+from .holiday_calendar import holiday_flags
 from .lags import create_lag_features, create_rolling_features
 from .schema import CALENDAR_FEATURES, feature_names
 from .temporal import (
@@ -16,5 +17,6 @@ __all__ = [
     "create_rolling_features",
     "create_time_series_features",
     "feature_names",
+    "holiday_flags",
     "preprocess_data_for_model",
 ]

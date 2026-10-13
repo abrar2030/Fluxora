@@ -4,7 +4,7 @@ import pytest
 
 class TestFeatureEngineering:
     def test_create_time_series_features(self):
-        from ml_core.features.temporal import create_time_series_features
+        from src.features.temporal import create_time_series_features
 
         df = pd.DataFrame(
             {"timestamp": pd.date_range("2024-01-01", periods=5, freq="h")}
@@ -14,7 +14,7 @@ class TestFeatureEngineering:
             assert col in result.columns
 
     def test_create_lag_features(self):
-        from ml_core.features.lags import create_lag_features
+        from src.features.lags import create_lag_features
 
         df = pd.DataFrame({"consumption_kwh": range(10)})
         result = create_lag_features(df, "consumption_kwh", lags=[1, 2])
@@ -22,7 +22,7 @@ class TestFeatureEngineering:
         assert "consumption_kwh_lag_2" in result.columns
 
     def test_lag_feature_values_correct(self):
-        from ml_core.features.lags import create_lag_features
+        from src.features.lags import create_lag_features
 
         df = pd.DataFrame({"consumption_kwh": [10.0, 20.0, 30.0]})
         result = create_lag_features(df, "consumption_kwh", lags=[1])
@@ -31,7 +31,7 @@ class TestFeatureEngineering:
         assert result["consumption_kwh_lag_1"].iloc[2] == 20.0
 
     def test_create_rolling_features(self):
-        from ml_core.features.lags import create_rolling_features
+        from src.features.lags import create_rolling_features
 
         df = pd.DataFrame({"consumption_kwh": range(20)})
         result = create_rolling_features(df, "consumption_kwh", windows=[3])
@@ -39,7 +39,7 @@ class TestFeatureEngineering:
         assert "consumption_kwh_rolling_std_3" in result.columns
 
     def test_rolling_mean_correct(self):
-        from ml_core.features.lags import create_rolling_features
+        from src.features.lags import create_rolling_features
 
         df = pd.DataFrame({"consumption_kwh": [1.0, 2.0, 3.0, 4.0, 5.0]})
         result = create_rolling_features(df, "consumption_kwh", windows=[3])
@@ -50,7 +50,7 @@ class TestFeatureEngineering:
         assert result["consumption_kwh_rolling_mean_3"].iloc[4] == pytest.approx(3.0)
 
     def test_rolling_features_do_not_include_current_row(self):
-        from ml_core.features.lags import create_rolling_features
+        from src.features.lags import create_rolling_features
 
         df = pd.DataFrame({"consumption_kwh": [1.0, 2.0, 3.0, 4.0, float("nan")]})
         result = create_rolling_features(df, "consumption_kwh", windows=[3])
@@ -58,7 +58,7 @@ class TestFeatureEngineering:
         assert result["consumption_kwh_rolling_mean_3"].iloc[4] == pytest.approx(3.0)
 
     def test_preprocess_pipeline_drops_nan_rows(self):
-        from ml_core.features.builder import preprocess_data_for_model
+        from src.features.builder import preprocess_data_for_model
 
         df = pd.DataFrame(
             {
@@ -72,7 +72,7 @@ class TestFeatureEngineering:
         assert len(result) < len(df)
 
     def test_preprocess_does_not_mutate_input(self):
-        from ml_core.features.builder import preprocess_data_for_model
+        from src.features.builder import preprocess_data_for_model
 
         df = pd.DataFrame(
             {
@@ -86,7 +86,7 @@ class TestFeatureEngineering:
         assert list(df.columns) == original_cols
 
     def test_is_weekend_correct(self):
-        from ml_core.features.temporal import create_time_series_features
+        from src.features.temporal import create_time_series_features
 
         df = pd.DataFrame(
             {"timestamp": pd.to_datetime(["2024-01-06", "2024-01-07", "2024-01-08"])}
@@ -97,7 +97,7 @@ class TestFeatureEngineering:
         assert result.loc[2, "is_weekend"] == 0
 
     def test_quarter_assignment(self):
-        from ml_core.features.temporal import create_time_series_features
+        from src.features.temporal import create_time_series_features
 
         df = pd.DataFrame(
             {
@@ -112,7 +112,7 @@ class TestFeatureEngineering:
 
 class TestTemporalFeatures:
     def test_cyclical_features_created(self):
-        from ml_core.features.temporal import create_cyclical_features
+        from src.features.temporal import create_cyclical_features
 
         df = pd.DataFrame(
             {
@@ -133,7 +133,7 @@ class TestTemporalFeatures:
             assert col in result.columns
 
     def test_cyclical_values_in_range(self):
-        from ml_core.features.temporal import create_cyclical_features
+        from src.features.temporal import create_cyclical_features
 
         df = pd.DataFrame(
             {
@@ -147,7 +147,7 @@ class TestTemporalFeatures:
         assert result["hour_cos"].between(-1.0, 1.0).all()
 
     def test_hour_0_sin_is_zero(self):
-        from ml_core.features.temporal import create_cyclical_features
+        from src.features.temporal import create_cyclical_features
 
         df = pd.DataFrame({"hour": [0], "day_of_week": [0], "month": [1]})
         result = create_cyclical_features(df)
@@ -155,7 +155,7 @@ class TestTemporalFeatures:
         assert result["hour_cos"].iloc[0] == pytest.approx(1.0, abs=1e-10)
 
     def test_calendar_features_with_timestamp_column(self):
-        from ml_core.features.temporal import create_calendar_features
+        from src.features.temporal import create_calendar_features
 
         df = pd.DataFrame(
             {"timestamp": pd.date_range("2024-01-01", periods=10, freq="D")}
@@ -165,14 +165,14 @@ class TestTemporalFeatures:
         assert "hour_sin" in result.columns
 
     def test_calendar_features_missing_column_raises(self):
-        from ml_core.features.temporal import create_calendar_features
+        from src.features.temporal import create_calendar_features
 
         df = pd.DataFrame({"value": [1, 2, 3]})
         with pytest.raises(ValueError):
             create_calendar_features(df)
 
     def test_cyclical_does_not_mutate_input(self):
-        from ml_core.features.temporal import create_cyclical_features
+        from src.features.temporal import create_cyclical_features
 
         df = pd.DataFrame({"hour": [0, 6, 12, 18]})
         original_cols = list(df.columns)

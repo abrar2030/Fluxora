@@ -6,16 +6,39 @@ from ..exceptions import DataValidationError
 
 
 class ValidationResult:
-    def __init__(self, success: bool, errors: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        success: bool,
+        errors: list[str] | None = None,
+        warnings: list[str] | None = None,
+    ) -> None:
         self.success = success
         self.errors = errors or []
+        self.warnings = warnings or []
 
     def __repr__(self) -> str:
-        return f"ValidationResult(success={self.success}, errors={self.errors})"
+        return (
+            f"ValidationResult(success={self.success}, errors={self.errors}, "
+            f"warnings={self.warnings})"
+        )
 
 
-def validate_raw_data(df: Any) -> ValidationResult:
+def _null_message(column: str, count: int, total: int, strict: bool) -> str:
+    message = f"Column '{column}' contains {count} null value(s) out of {total} rows"
+    return message + "." if strict else message + "; those rows are ignored."
+
+
+def validate_raw_data(df: Any, *, strict_nulls: bool = False) -> ValidationResult:
+    """Validate a raw consumption frame.
+
+    Missing values in ``timestamp`` or ``consumption_kwh`` are reported as
+    warnings by default because the training pipeline drops those rows. Pass
+    ``strict_nulls=True`` to treat them as errors instead. Structural problems
+    (missing columns) and impossible values (negative consumption, out-of-range
+    weather readings) always raise ``DataValidationError``.
+    """
     errors: list[str] = []
+    warnings: list[str] = []
 
     for col in ("timestamp", "consumption_kwh"):
         if col not in df.columns:
@@ -23,8 +46,13 @@ def validate_raw_data(df: Any) -> ValidationResult:
     if errors:
         raise DataValidationError(f"Data validation failed: {errors}")
 
-    if df["consumption_kwh"].isnull().any():
-        errors.append("Column 'consumption_kwh' contains null values.")
+    total = len(df)
+    for col in ("timestamp", "consumption_kwh"):
+        nulls = int(df[col].isnull().sum())
+        if nulls:
+            message = _null_message(col, nulls, total, strict_nulls)
+            (errors if strict_nulls else warnings).append(message)
+
     if (df["consumption_kwh"].dropna() < 0).any():
         errors.append("Column 'consumption_kwh' contains negative values.")
 
@@ -48,7 +76,7 @@ def validate_raw_data(df: Any) -> ValidationResult:
     if errors:
         raise DataValidationError(f"Data validation failed: {errors}")
 
-    return ValidationResult(success=True)
+    return ValidationResult(success=True, warnings=warnings)
 
 
 def validate_energy_dataframe(df: pd.DataFrame) -> dict[str, Any]:

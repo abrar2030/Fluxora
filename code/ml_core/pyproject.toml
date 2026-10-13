@@ -16,25 +16,30 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+holidays = [
+    "holidays>=0.50",
+]
 dev = [
     "pytest>=7.4.0",
     "black>=24.0.0",
     "ruff>=0.5.0",
     "mypy>=1.8.0",
+    "holidays>=0.50",
 ]
 
 [tool.setuptools.dynamic]
-version = { attr = "ml_core.__version__" }
+version = { attr = "src.__version__" }
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["src", "src.*"]
 
 [tool.setuptools.package-data]
-ml_core = ["py.typed"]
+src = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "."]
+pythonpath = ["."]
 addopts = "-v --tb=short"
 
 [tool.black]
@@ -44,7 +49,7 @@ target-version = ["py310"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-src = ["src", "tests"]
+src = [".", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF022"]

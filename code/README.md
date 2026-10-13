@@ -26,7 +26,7 @@ code/
 └── ml_core/                  Installable forecasting package (src layout)
     ├── pyproject.toml        Package metadata, dependencies, tool config
     ├── README.md
-    ├── src/ml_core/
+    ├── src/                  Python package, imported as `src`
     │   ├── config.py         Hyperparameters, limits, environment settings
     │   ├── exceptions.py     Error types shared with the backend
     │   ├── data/             Validation and hourly resampling
@@ -48,7 +48,8 @@ pip install -e ../ml_core
 ```
 
 Python 3.10 or newer is required. If `ml_core` is not installed, the backend
-falls back to `ml_core/src` in this repository.
+falls back to the `ml_core` directory in this repository (the package is
+imported as `src`).
 
 ### 2. Configure environment
 
@@ -126,13 +127,15 @@ versions are rejected with an instruction to retrain.
 
 ## Configuration
 
-| Variable             | Default                  | Purpose                                  |
-| :------------------- | :----------------------- | :--------------------------------------- |
-| `MODEL_PATH`         | `./fluxora_model.joblib` | Location of the trained model bundle     |
-| `MODEL_N_ESTIMATORS` | `100`                    | Trees in the random forest               |
-| `MODEL_MAX_DEPTH`    | unset                    | Optional tree depth limit                |
-| `DATABASE_URL`       | `sqlite:///./fluxora.db` | SQLAlchemy database URL                  |
-| `SECRET_KEY`         | development placeholder  | JWT signing key, mandatory in production |
+| Variable                | Default                  | Purpose                                                                                            |
+| :---------------------- | :----------------------- | :------------------------------------------------------------------------------------------------- |
+| `MODEL_PATH`            | `./fluxora_model.joblib` | Location of the trained model bundle                                                               |
+| `MODEL_N_ESTIMATORS`    | `100`                    | Trees in the random forest                                                                         |
+| `MODEL_MAX_DEPTH`       | unset                    | Optional tree depth limit                                                                          |
+| `MODEL_REFIT_FULL_DATA` | `true`                   | Set `false` to skip the second, full-data fit during training                                      |
+| `HOLIDAY_COUNTRY`       | `US`                     | Holiday calendar for the model: `US`, `NONE`, or an ISO code (non-US needs the `holidays` package) |
+| `DATABASE_URL`          | `sqlite:///./fluxora.db` | SQLAlchemy database URL                                                                            |
+| `SECRET_KEY`            | development placeholder  | JWT signing key, mandatory in production                                                           |
 
 ## ml_core Package
 

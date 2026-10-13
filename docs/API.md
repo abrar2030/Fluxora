@@ -534,12 +534,14 @@ curl -X GET "http://localhost:8000/v1/predictions/?days=7" \
 
 **Response Fields:**
 
-| Field                       | Type     | Description                             |
-| --------------------------- | -------- | --------------------------------------- |
-| `timestamp`                 | datetime | Prediction timestamp (hourly intervals) |
-| `predicted_consumption`     | float    | Predicted energy consumption in kWh     |
-| `confidence_interval.lower` | float    | Lower bound of 90% confidence interval  |
-| `confidence_interval.upper` | float    | Upper bound of 90% confidence interval  |
+| Field                       | Type     | Description                                |
+| --------------------------- | -------- | ------------------------------------------ |
+| `timestamp`                 | datetime | Prediction timestamp (hourly intervals)    |
+| `predicted_consumption`     | float    | Predicted energy consumption in kWh        |
+| `confidence_interval.lower` | float    | Lower bound of the 90% prediction interval |
+| `confidence_interval.upper` | float    | Upper bound of the 90% prediction interval |
+
+The interval is calibrated per forecast horizon from backtests, so it gets wider for hours further ahead (it stops widening after 168 hours).
 
 ---
 

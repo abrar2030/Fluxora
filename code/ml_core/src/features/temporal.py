@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-from pandas.tseries.holiday import USFederalHolidayCalendar
 
 from ..config import DEFAULT_TIME_COL
+from .holiday_calendar import holiday_flags
 
 
 def create_cyclical_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -19,7 +19,9 @@ def create_cyclical_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def create_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
+def create_calendar_features(
+    df: pd.DataFrame, holiday_country: str | None = None
+) -> pd.DataFrame:
     df = df.copy()
     if not isinstance(df.index, pd.DatetimeIndex):
         if "timestamp" not in df.columns:
@@ -28,10 +30,7 @@ def create_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
             )
         df = df.set_index(pd.to_datetime(df["timestamp"]))
 
-    holidays = USFederalHolidayCalendar().holidays(
-        start=df.index.min(), end=df.index.max()
-    )
-    df["is_holiday"] = df.index.normalize().isin(holidays).astype(int)
+    df["is_holiday"] = holiday_flags(df.index, holiday_country)
 
     if "hour" not in df.columns:
         df["hour"] = df.index.hour
@@ -44,7 +43,9 @@ def create_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_time_series_features(
-    df: pd.DataFrame, time_col: str = DEFAULT_TIME_COL
+    df: pd.DataFrame,
+    time_col: str = DEFAULT_TIME_COL,
+    holiday_country: str | None = None,
 ) -> pd.DataFrame:
     df = df.copy()
     df[time_col] = pd.to_datetime(df[time_col])
@@ -53,5 +54,6 @@ def create_time_series_features(
     df["day_of_year"] = df[time_col].dt.dayofyear
     df["month"] = df[time_col].dt.month
     df["is_weekend"] = (df["day_of_week"] >= 5).astype(int)
+    df["is_holiday"] = holiday_flags(df[time_col], holiday_country)
     df["quarter"] = df[time_col].dt.quarter
     return df

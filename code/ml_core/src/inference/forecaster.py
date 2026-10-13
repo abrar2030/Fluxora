@@ -3,8 +3,13 @@ from datetime import datetime, timezone
 import numpy as np
 import pandas as pd
 
-from ..config import DEFAULT_TIME_COL, MAX_HISTORY_GAP_HOURS, MAX_MISSING_HISTORY_RATIO
-from ..data.resampling import to_hourly_series
+from ..config import (
+    DEFAULT_TIME_COL,
+    MAX_FILL_GAP_HOURS,
+    MAX_HISTORY_GAP_HOURS,
+    MAX_MISSING_HISTORY_RATIO,
+)
+from ..data.resampling import fill_short_gaps, to_hourly_series
 from ..exceptions import InsufficientHistoryError
 from ..features.schema import CALENDAR_FEATURES
 from ..features.temporal import create_cyclical_features, create_time_series_features
@@ -30,13 +35,19 @@ def _recent_window(series: pd.Series, hours: int) -> np.ndarray:
         raise InsufficientHistoryError(
             "The recent history has too many missing hours to forecast reliably."
         )
-    filled = window.interpolate(limit_direction="both")
+    # Fill gaps over the whole series with the same rule used for training, so
+    # the model only ever sees gap patterns it was trained on.
+    filled = fill_short_gaps(series).iloc[-hours:]
+    if filled.isna().any():
+        raise InsufficientHistoryError(
+            f"The recent history has a gap longer than {MAX_FILL_GAP_HOURS} hours."
+        )
     return np.array(filled.to_numpy(dtype=np.float64), dtype=np.float64)
 
 
-def _calendar_matrix(index: pd.DatetimeIndex) -> np.ndarray:
+def _calendar_matrix(index: pd.DatetimeIndex, holiday_country: str) -> np.ndarray:
     frame = pd.DataFrame({DEFAULT_TIME_COL: index})
-    frame = create_time_series_features(frame)
+    frame = create_time_series_features(frame, holiday_country=holiday_country)
     frame = create_cyclical_features(frame)
     return np.asarray(frame[CALENDAR_FEATURES].to_numpy(dtype=np.float64))
 
@@ -78,7 +89,7 @@ def forecast(
     first_step = last_observed + pd.Timedelta(hours=1)
     last_step = start + pd.Timedelta(hours=horizon_hours - 1)
     step_index = pd.date_range(first_step, last_step, freq="h")
-    calendar = _calendar_matrix(step_index)
+    calendar = _calendar_matrix(step_index, bundle.holiday_country)
 
     calendar_width = len(CALENDAR_FEATURES)
     lag_count = len(bundle.lags)
@@ -111,8 +122,18 @@ def forecast(
     keep = step_index >= start
     timestamps = step_index[keep]
     values = predictions[keep]
-    lower = np.maximum(values + bundle.residual_lower, 0.0)
-    upper = np.maximum(values + bundle.residual_upper, values)
+
+    # Interval width depends on how many hours ahead of the last observation each
+    # step is, because recursive forecasts accumulate error.
+    horizon = np.arange(1, len(step_index) + 1)[keep]
+    bucket = np.minimum(
+        np.searchsorted(bundle.interval_edges, horizon, side="left"),
+        len(bundle.interval_edges) - 1,
+    )
+    lower_offset = np.asarray(bundle.interval_lower, dtype=np.float64)[bucket]
+    upper_offset = np.asarray(bundle.interval_upper, dtype=np.float64)[bucket]
+    lower = np.maximum(values + lower_offset, 0.0)
+    upper = np.maximum(values + upper_offset, values)
 
     return pd.DataFrame(
         {

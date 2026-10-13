@@ -40,8 +40,8 @@ Fluxora/
 │   │   ├── app/core/          # config, security (JWT)
 │   │   ├── app/db/            # SQLAlchemy setup (SQLite by default)
 │   │   └── tests/             # api, unit, and integration test suites
-│   └── ml_core/                # Installable forecasting package (src layout):
-│                                # data, features, models, training, inference
+│   └── ml_core/                # Installable forecasting package, imported as `src`
+│                                # (code/ml_core/src): data, features, models, training, inference
 │                                # (scikit-learn RandomForestRegressor),
 │                                # genuinely imported by the predictions API
 ├── web-frontend/                # React (Vite) dashboard
@@ -56,14 +56,14 @@ Fluxora/
 
 ### Application tier (wired and tested)
 
-| Component                | Details                                                                                                                                                                                                                                                  |
-| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **API**                  | FastAPI backend exposing `/v1` endpoints for auth, data, analytics, predictions, and users.                                                                                                                                                              |
-| **Auth**                 | JWT access and refresh tokens. `SECRET_KEY` falls back to a static placeholder value with no check that rejects it in production.                                                                                                                        |
-| **Forecasting pipeline** | A scikit-learn `RandomForestRegressor`, trained by `ml_core.training.pipeline.run_training_pipeline` and genuinely called from the `/v1/predictions` endpoints for both training and inference, with real feature engineering and data validation steps. |
-| **Data layer**           | SQLAlchemy over SQLite by default (`sqlite:///./fluxora.db`); a PostgreSQL driver is available but commented out in `requirements.txt`, so it must be uncommented to use Postgres.                                                                       |
-| **Web dashboard**        | React app (Vite) with Recharts, covering the core data, analytics, prediction, and authentication screens.                                                                                                                                               |
-| **Mobile app**           | React Native (Expo) app in TypeScript, covering the equivalent core screens.                                                                                                                                                                             |
+| Component                | Details                                                                                                                                                                                                                                                                  |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **API**                  | FastAPI backend exposing `/v1` endpoints for auth, data, analytics, predictions, and users.                                                                                                                                                                              |
+| **Auth**                 | JWT access and refresh tokens. `SECRET_KEY` falls back to a static placeholder value with no check that rejects it in production.                                                                                                                                        |
+| **Forecasting pipeline** | A scikit-learn `RandomForestRegressor`, trained by `src.training.pipeline.run_training_pipeline` (in `code/ml_core`) and genuinely called from the `/v1/predictions` endpoints for both training and inference, with real feature engineering and data validation steps. |
+| **Data layer**           | SQLAlchemy over SQLite by default (`sqlite:///./fluxora.db`); a PostgreSQL driver is available but commented out in `requirements.txt`, so it must be uncommented to use Postgres.                                                                                       |
+| **Web dashboard**        | React app (Vite) with Recharts, covering the core data, analytics, prediction, and authentication screens.                                                                                                                                                               |
+| **Mobile app**           | React Native (Expo) app in TypeScript, covering the equivalent core screens.                                                                                                                                                                                             |
 
 ## Technology Stack
 
