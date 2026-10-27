@@ -87,3 +87,12 @@ jest.mock("react-native-svg", () => ({
   Pattern: "Pattern",
   Mask: "Mask",
 }));
+
+// Mock the icon font set; glyph rendering is irrelevant to unit tests and the
+// real module pulls in native font loading.
+jest.mock("react-native-vector-icons/MaterialCommunityIcons", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+  const Icon = ({ name }) => React.createElement(Text, null, name);
+  return { __esModule: true, default: Icon };
+});

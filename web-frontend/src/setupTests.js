@@ -24,6 +24,12 @@ Object.defineProperty(window, "scrollTo", {
   value: jest.fn(),
 });
 
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 global.console = {
   ...console,
   error: jest.fn(),
